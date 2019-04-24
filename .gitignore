@@ -1,3 +1,5 @@
 CMSSW_*
 MCGeneration
 data/cms*
+*/.sys.v*
+*/*/.sys.v*
