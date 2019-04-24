@@ -1,0 +1,236 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "ImportError",
+     "evalue": "No module named histo_utilities",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[0;31m\u001b[0m",
+      "\u001b[0;31mImportError\u001b[0mTraceback (most recent call last)",
+      "\u001b[0;32m<ipython-input-2-9418787011bb>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mroot_numpy\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mrtnp\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mnumpy\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mnp\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 4\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mhisto_utilities\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mcreate_TH1D\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mcreate_TH2D\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mstd_color_list\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      5\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      6\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mCMS_lumi\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtdrstyle\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;32m/Users/olmo/programs/root-6.10.08/lib/ROOT.pyc\u001b[0m in \u001b[0;36m_importhook\u001b[0;34m(name, *args, **kwds)\u001b[0m\n\u001b[1;32m    316\u001b[0m       \u001b[0;32mexcept\u001b[0m \u001b[0mException\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    317\u001b[0m          \u001b[0;32mpass\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 318\u001b[0;31m    \u001b[0;32mreturn\u001b[0m \u001b[0m_orig_ihook\u001b[0m\u001b[0;34m(\u001b[0m \u001b[0mname\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m*\u001b[0m\u001b[0margs\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkwds\u001b[0m \u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    319\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    320\u001b[0m \u001b[0m__builtin__\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__import__\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0m_importhook\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;31mImportError\u001b[0m: No module named histo_utilities"
+     ]
+    }
+   ],
+   "source": [
+    "import ROOT as rt\n",
+    "import root_numpy as rtnp\n",
+    "import numpy as np\n",
+    "from histo_utilities import create_TH1D, create_TH2D, std_color_list\n",
+    "\n",
+    "import CMS_lumi, tdrstyle\n",
+    "tdrstyle.setTDRStyle()\n",
+    "CMS_lumi.writeExtraText = 1\n",
+    "CMS_lumi.extraText = \"     Simulation Preliminary\"\n",
+    "\n",
+    "donotdelete = []"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "Warning in <TClass::Init>: no dictionary for class ROOT::TIOFeatures is available\n"
+     ]
+    }
+   ],
+   "source": [
+    "fpath = {}\n",
+    "tree = {}\n",
+    "process = {}\n",
+    "\n",
+    "fpath['mu'] = '../data/cmsMC_private/BPH_Tag-Bm_D0kpmunu_Probe-B0_MuNuDmst-pD0bar-kp-_NoPU_10-2-3_v1/BPH_Tag-Bm_D0kpmunu_Probe-B0_MuNuDmst-pD0bar-kp-_BPHMC_merged_1-300.root'\n",
+    "process['mu'] = 'B_{0} #rightarrow D^{*-}(#bar{D}_{0}(K^{+}#pi^{-})#pi^{-})#mu^{+}#nu'\n",
+    "\n",
+    "fpath['tau'] = '../data/cmsMC_private/BPH_Tag-Bm_D0kpmunu_Probe-B0_TauNuDmst-pD0bar-kp-tau2mununu_NoPU_10-2-3_v0/BPH_Tag-Bm_D0kpmunu_Probe-B0_TauNuDmst-pD0bar-kp-tau2mununu_BPHMC_merged_1-300.root'\n",
+    "process['tau'] = 'B_{0} #rightarrow D^{*-}(#bar{D}_{0}(K^{+}#pi^{-})#pi^{-})#tau^{+}(#mu^{+}#nu#bar{#nu})#nu'\n",
+    "\n",
+    "# fpath['Dst_mu'] = '../data/cmsMC_private/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0stkpNeumunu_NoPU_10-2-3_v0/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0stkpNeumunu_BPHMC_merged.root'\n",
+    "# process['Dst_mu'] = 'B^{+} #rightarrow #bar{D}^{*}_{0}(D_{0} n#gamma)#mu^{+}#nu'\n",
+    "\n",
+    "# fpath['Dst_tau'] = '../data/cmsMC_private/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0stkpNeutaunu_tau2mununu_NoPU_10-2-3_v0/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0stkpNeutaunu_tau2mununu_BPHMC_merged.root'\n",
+    "# process['Dst_tau'] = 'B^{+} #rightarrow #bar{D}^{*}_{0}(D_{0} n#gamma)#tau^{+}(#mu^{+}#nu#nu)#nu'\n",
+    "\n",
+    "for k,v in fpath.iteritems():\n",
+    "    tree[k] = rtnp.root2array(v)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "DecayChannelBr = {}\n",
+    "DecayChannelBr['mu'] = 4.88e-2 * 67e-2 * 3.89e-2\n",
+    "DecayChannelBr['tau'] = 1.67e-2 * 17.39e-2 * 67e-2 * 3.89e-2"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "weights = {}\n",
+    "\n",
+    "sumBr = np.sum(np.array(DecayChannelBr.values()))\n",
+    "for k,v in DecayChannelBr.iteritems():\n",
+    "    weights[k] = v/sumBr\n",
+    "    \n",
+    "print weights"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "var_dict = {}\n",
+    "var_dict['M_vis'] = [50, 0, 7]\n",
+    "var_dict['M_ext'] = [50, 0, 10]\n",
+    "var_dict['D_pthat'] = [50, 0, 3]\n",
+    "var_dict['mu_ip'] = [80, 0, 0.08]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [],
+   "source": [
+    "for var, binning in var_dict.iteritems():\n",
+    "    leg = rt.TLegend(0.7,0.6,0.95,0.9)\n",
+    "    leg.SetTextFont(42)\n",
+    "    leg.SetTextAlign(12)\n",
+    "    leg.SetLineWidth(0)\n",
+    "    leg.SetBorderSize(0)\n",
+    "    \n",
+    "    h_sum = rt.TH1D('h_sum'+var, '', binning[0], binning[1], binning[2])\n",
+    "    h_sum.SetXTitle(var)\n",
+    "    h_sum.SetYTitle('Probability / {:.2f}'.format(h_sum.GetBinWidth(1)))\n",
+    "    h_sum.GetYaxis().SetTitleOffset(1.3)\n",
+    "    h_sum.SetStats(0)\n",
+    "    h_sum.SetLineColor(16)\n",
+    "    h_sum.SetFillColor(16)\n",
+    "    h_sum.constituents = []\n",
+    "    leg.AddEntry(h_sum, 'Sum, weighted for Br', 'l')\n",
+    "    \n",
+    "    for i_n, n in enumerate(tree.keys()):\n",
+    "        h = create_TH1D(tree[n][var], name='h_'+n+'_'+var, binning=binning)\n",
+    "        h.SetStats(0)\n",
+    "        h.Scale(weights[n]/h.GetEntries())\n",
+    "        h.SetLineColor(std_color_list[i_n+1])\n",
+    "        leg.AddEntry(h, process[n], 'l')\n",
+    "        \n",
+    "        h_sum.Add(h)\n",
+    "        h_sum.constituents.append(h)\n",
+    "\n",
+    "    ln = rt.TLine()\n",
+    "    ln.SetLineColor(6)\n",
+    "    ln.SetLineWidth(2)\n",
+    "    ln.SetLineStyle(9)\n",
+    "    leg.AddEntry(ln, 'M_{B^{#pm}}', 'l')\n",
+    "    \n",
+    "    h_sum.Sumw2(0)\n",
+    "    h_sum.SetFillStyle(3001)\n",
+    "    \n",
+    "    c = rt.TCanvas('c_'+var, 'c_'+var,50,50,800,600)\n",
+    "    c.SetTickx(0)\n",
+    "    c.SetTicky(0)\n",
+    "    \n",
+    "    h_sum.Draw()\n",
+    "    for h in h_sum.constituents:\n",
+    "        h.Draw('SAME')\n",
+    "    \n",
+    "    ln.DrawLine(5.279, 0, 5.279, h_sum.GetMaximum())\n",
+    "    leg.Draw()\n",
+    "    \n",
+    "    if var in ['mu_ip']:\n",
+    "        c.SetLogy()\n",
+    "    \n",
+    "    CMS_lumi.CMS_lumi(c, -1, 0)\n",
+    "    c.Draw()\n",
+    "    \n",
+    "    donotdelete.append([c, h_sum, leg])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "var_pair_list = [['M_vis', 'mu_ip']]\n",
+    "\n",
+    "for v1, v2 in var_pair_list:\n",
+    "    sample = np.column_stack((tree['tau'][v1], tree['tau'][v2]))\n",
+    "    binning = var_dict[v1] + var_dict[v2]\n",
+    "    h_2d = create_TH2D(sample, axis_title=[v1, v2,''], binning=binning)\n",
+    "    h_2d.SetStats(0)\n",
+    "\n",
+    "\n",
+    "    c = rt.TCanvas('c_'+var, 'c_'+var,50,50,800,600)\n",
+    "\n",
+    "    h_2d.Draw('colz')\n",
+    "    c.Draw()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# h_dphi_B = create_TH1D(tree['tau']['dphi_B'], axis_title=['#phi^{B}_{probe} - #phi^{B}_{tag} [rad]', ''])\n",
+    "# h_dphi_B.SetStats(0)\n",
+    "\n",
+    "# c = rt.TCanvas('c_dphi', 'c_dphi', 600, 600)\n",
+    "# h_dphi_B.Draw('colz')\n",
+    "# c.Draw()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 2",
+   "language": "python",
+   "name": "python2"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.14"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

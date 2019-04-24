@@ -1,0 +1,28 @@
+
+- revise RecoPhoton such that it can deal with Klongs --> no energy constraint
+
+- think about what happens to bremstrahlung: e+ -> e+ gamma
+
+- implement sparse matrices
+
+- make a head-of-tree class, that derives from InternalParticle and is
+  base for InteractionPoint.
+
+- make charged particles curve (now only done for charged tracks) -->
+not difficult: need only change ParticleBase::filterGeoConstraint.
+
+
+[- move 'getFitted' from VtkVertex into ParticleBase]
+[- move 'p4WErr'    from VtkVertex into ParticleBase (remove 'momIndex' from BeamSpot)]
+[- move projection of kinematic constraint into daughter]
+
+Things that need to be changed in VtxFitter:
+
+- my fit fails if you try to vertex a pi0 without further constraints
+
+- you cannot see if a bta-composite has seen a mass constraint or not;
+this is a problem for the fit
+
+
+How to make link/bin dep files:
+workdir/PARENT/SoftRelTools/make-linkfiles -p VtxTreeFitter

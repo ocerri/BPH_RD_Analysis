@@ -1,0 +1,239 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Welcome to JupyROOT 6.12/06\n"
+     ]
+    }
+   ],
+   "source": [
+    "import ROOT as rt\n",
+    "import root_numpy as rtnp\n",
+    "import numpy as np\n",
+    "from histo_utilities import create_TH1D, create_TH2D, std_color_list\n",
+    "from cebefo_style import cebefo_style, Set_2D_colz_graphics\n",
+    "cebefo_style()\n",
+    "\n",
+    "import CMS_lumi, tdrstyle\n",
+    "tdrstyle.setTDRStyle()\n",
+    "CMS_lumi.writeExtraText = 1\n",
+    "CMS_lumi.extraText = \"     Simulation Preliminary\"\n",
+    "\n",
+    "donotdelete = []"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fpath = {}\n",
+    "tree = {}\n",
+    "process = {}\n",
+    "\n",
+    "fpath['mu'] = '../data/cmsMC_private/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0kpmunu_NoPU_10-2-3_v0/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0kpmunu_BPHMC_merged.root'\n",
+    "process['mu'] = 'B^{+} #rightarrow #bar{D}_{0}#mu^{+}#nu'\n",
+    "\n",
+    "fpath['tau'] = '../data/cmsMC_private/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0kptaunu_tau2mununu_NoPU_10-2-3_v0/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0kptaunu_tau2mununu_BPHMC_merged.root'\n",
+    "process['tau'] = 'B^{+} #rightarrow #bar{D}_{0}#tau^{+}(#mu^{+}#nu#nu)#nu'\n",
+    "\n",
+    "fpath['Dst_mu'] = '../data/cmsMC_private/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0stkpNeumunu_NoPU_10-2-3_v0/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0stkpNeumunu_BPHMC_merged.root'\n",
+    "process['Dst_mu'] = 'B^{+} #rightarrow #bar{D}*_{0}(D_{0} n#gamma)#mu^{+}#nu'\n",
+    "\n",
+    "fpath['Dst_tau'] = '../data/cmsMC_private/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0stkpNeutaunu_tau2mununu_NoPU_10-2-3_v0/BPH_Tag-Bm_D0kpmunu_Probe-Bp_D0stkpNeutaunu_tau2mununu_BPHMC_merged.root'\n",
+    "process['Dst_tau'] = 'B^{+} #rightarrow #bar{D}*_{0}(D_{0} n#gamma)#tau^{+}(#mu^{+}#nu#nu)#nu'\n",
+    "\n",
+    "for k,v in fpath.iteritems():\n",
+    "    tree[k] = rtnp.root2array(v)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "DecayChannelBr = {}\n",
+    "DecayChannelBr['mu'] = 2.2e-2\n",
+    "DecayChannelBr['tau'] = 7.7e-3 * 17.4e-2\n",
+    "DecayChannelBr['Dst_mu'] = 4.88e-2\n",
+    "DecayChannelBr['Dst_tau'] = 1.88e-2 * 17.4e-2"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "{'mu': 0.2917346275742265, 'tau': 0.017766638819270396, 'Dst_mu': 0.6471204466191934, 'Dst_tau': 0.043378286987309535}\n"
+     ]
+    }
+   ],
+   "source": [
+    "weights = {}\n",
+    "\n",
+    "sumBr = np.sum(np.array(DecayChannelBr.values()))\n",
+    "for k,v in DecayChannelBr.iteritems():\n",
+    "    weights[k] = v/sumBr\n",
+    "    \n",
+    "print weights"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "var_dict = {}\n",
+    "var_dict['M_vis_MC'] = [50, 0, 2.5]\n",
+    "var_dict['q2_MC'] = [50, -2., 10.]\n",
+    "var_dict['M_vis_RECO'] = [50, 0, 5.3]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [
+    {
+     "ename": "ValueError",
+     "evalue": "no field of name M_vis",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[0;31m\u001b[0m",
+      "\u001b[0;31mValueError\u001b[0mTraceback (most recent call last)",
+      "\u001b[0;32m<ipython-input-5-9c811577db23>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[1;32m     20\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     21\u001b[0m     \u001b[0;32mfor\u001b[0m \u001b[0mi_n\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mn\u001b[0m \u001b[0;32min\u001b[0m \u001b[0menumerate\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtree\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mkeys\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 22\u001b[0;31m         \u001b[0mh\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mcreate_TH1D\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtree\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0mn\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0mvar\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mname\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m'h_'\u001b[0m\u001b[0;34m+\u001b[0m\u001b[0mn\u001b[0m\u001b[0;34m+\u001b[0m\u001b[0;34m'_'\u001b[0m\u001b[0;34m+\u001b[0m\u001b[0mvar\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mbinning\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mbinning\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     23\u001b[0m         \u001b[0mh\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mSetStats\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;36m0\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     24\u001b[0m         \u001b[0mh\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mScale\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mweights\u001b[0m\u001b[0;34m[\u001b[0m\u001b[0mn\u001b[0m\u001b[0;34m]\u001b[0m\u001b[0;34m/\u001b[0m\u001b[0mh\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mGetEntries\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;31mValueError\u001b[0m: no field of name M_vis"
+     ]
+    }
+   ],
+   "source": [
+    "var_list = ['M_vis_MC', 'q2_MC', 'D0_pthat']\n",
+    "binning = [50, 0, 9]\n",
+    "\n",
+    "for var in var_list:\n",
+    "    leg = rt.TLegend(0.7,0.6,0.95,0.9)\n",
+    "    leg.SetTextFont(42)\n",
+    "    leg.SetTextAlign(12)\n",
+    "    leg.SetLineWidth(0)\n",
+    "    leg.SetBorderSize(0)\n",
+    "    \n",
+    "    h_sum = rt.TH1D('h_sum'+var, '', binning[0], binning[1], binning[2])\n",
+    "    h_sum.SetXTitle(var)\n",
+    "    h_sum.SetYTitle('Probability / {:.2f}'.format(h_sum.GetBinWidth(1)))\n",
+    "    h_sum.GetYaxis().SetTitleOffset(1.3)\n",
+    "    h_sum.SetStats(0)\n",
+    "    h_sum.SetLineColor(16)\n",
+    "    h_sum.SetFillColor(16)\n",
+    "    h_sum.constituents = []\n",
+    "    leg.AddEntry(h_sum, 'Sum, weighted for Br', 'l')\n",
+    "    \n",
+    "    for i_n, n in enumerate(tree.keys()):\n",
+    "        h = create_TH1D(tree[n][var], name='h_'+n+'_'+var, binning=binning)\n",
+    "        h.SetStats(0)\n",
+    "        h.Scale(weights[n]/h.GetEntries())\n",
+    "        h.SetLineColor(std_color_list[i_n+1])\n",
+    "        leg.AddEntry(h, process[n], 'l')\n",
+    "        \n",
+    "        h_sum.Add(h)\n",
+    "        h_sum.constituents.append(h)\n",
+    "\n",
+    "    ln = rt.TLine()\n",
+    "    ln.SetLineColor(6)\n",
+    "    ln.SetLineWidth(2)\n",
+    "    ln.SetLineStyle(9)\n",
+    "    leg.AddEntry(ln, 'M_{B^{#pm}}', 'l')\n",
+    "    \n",
+    "    h_sum.Sumw2(0)\n",
+    "    h_sum.SetFillStyle(3001)\n",
+    "    \n",
+    "    c = rt.TCanvas('c_'+var, 'c_'+var,50,50,800,600)\n",
+    "    c.SetTickx(0)\n",
+    "    c.SetTicky(0)\n",
+    "    \n",
+    "    h_sum.Draw()\n",
+    "    for h in h_sum.constituents:\n",
+    "        h.Draw('SAME')\n",
+    "    \n",
+    "    ln.DrawLine(5.279, 0, 5.279, h_sum.GetMaximum())\n",
+    "    leg.Draw()\n",
+    "    c.Draw()\n",
+    "    \n",
+    "    donotdelete.append([c, h_sum, leg])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "sample = np.column_stack((tree['tau']['Btag_pt'], tree['tau']['Bp_pt']))\n",
+    "h_2d_ptB = create_TH2D(sample, axis_title=['B_{tag} p_{T} [GeV]','B_{probe} p_{T} [GeV]',''], binning=[50, 0, 50, 50, 0, 50])\n",
+    "h_2d_ptB.SetStats(0)\n",
+    "\n",
+    "c = rt.TCanvas('c_2D', 'c_2D', 600, 600)\n",
+    "Set_2D_colz_graphics()\n",
+    "h_2d_ptB.Draw('colz')\n",
+    "c.Draw()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "h_dphi_B = create_TH1D(tree['tau']['dphi_B'], axis_title=['#phi^{B}_{probe} - #phi^{B}_{tag} [rad]', ''])\n",
+    "h_dphi_B.SetStats(0)\n",
+    "\n",
+    "c = rt.TCanvas('c_dphi', 'c_dphi', 600, 600)\n",
+    "h_dphi_B.Draw('colz')\n",
+    "c.Draw()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 2",
+   "language": "python",
+   "name": "python2"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.14"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

@@ -1,0 +1,55 @@
+VtxTreeFitter
+-------------
+
+This package implements a global decay chain fit based on a Kalman
+filter. The algorithmics are described in arXiv:physics/0503191, NIM-A
+552, pp 566-575 (2005). A bit more didactic overview can be found here
+
+  http://www.slac.stanford.edu/BFROOT/www/Physics/Tools/Vertex/treefitter/kalman.ps
+
+For additional links, see the babar page on 'fitters':
+
+  http://www.slac.stanford.edu/BFROOT/www/Physics/Tools/Vertex/fitters.html
+
+Some special features:
+ - a 'global ' decay tree fit, including a full covariance matrix of
+   all parameters in the tree
+ - mass constraint, beam position constraint, beam energy constraint,
+   lifetime constraint etc
+ - successful fits to non-trivial trees such as Ks->pi0pi0 and B->Kspi0
+ - missing mass/momentum
+
+
+Some help
+---------
+
+To get the code
+- take your favourite release
+- check out VtxTreeFitter
+- delete VtxTreeFitter/VtxTreeFitterAlgorithm.cc
+  (or check out VtxBase as well and check out
+   VtxBase/VtxAbsAlgorithm.hh from the HEAD)
+
+To run the fit
+   BtaCandidate mycand ;
+   vtxtreefit::Fitter vertex(mycand) ;
+   vertex.fit() ;
+   BtaCandidate fittedcand = vertex.getFitted(mycand) ;
+
+To see whether you are really fitting what you think your fitting, you
+could call
+   vertex.print() ;
+It will show all parameters in the fit. The interface to accessing
+parameters is still a bit clumsy:
+
+   // get position and correlation of BtCandidate X and Y in a tree:
+   vector<int> posindexvec ;
+   int posindexX = vertex.posIndex(X) ;
+   for(int i=0; i<3; ++i) posindexvec.push_back(i+posindexX) ;
+   int posindexY = vertex.posIndex(Y) ; 
+   for(int i=0; i<3; ++i) posindexvec.push_back(i+posindexY) ;
+   HepVector position    = vertex.par(posindexvec) ;
+   HepSymMatrix position = vertex.cov(posindexvec) ;
+
+Of course, if you are only interested in parameters of X, you just use
+vertex.getFitted(X).
