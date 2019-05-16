@@ -50,7 +50,7 @@ def EstimateDispersion(aux, w=None):
     disp_unc = 0.5*np.hypot(e_up, e_dwn)
     return disp_est, disp_unc
 
-def create_TH1D(x, name='h', title=None, binning=[None, None, None], weights=None, h2clone=None, axis_title = ['','']):
+def create_TH1D(x, name='h', title=None, binning=[None, None, None], weights=None, h2clone=None, axis_title = ['',''], opt=''):
     if title is None:
         title = name
     if (x.shape[0] == 0):
@@ -82,6 +82,15 @@ def create_TH1D(x, name='h', title=None, binning=[None, None, None], weights=Non
     else:
         print 'Binning not recognized'
         raise
+
+    if 'underflow' in opt:
+        m = h.GetBinCenter(1)
+        x = np.copy(x)
+        x[x<m] = m
+    if 'overflow' in opt:
+        M = h.GetBinCenter(h.GetNbinsX())
+        x = np.copy(x)
+        x[x>M] = M
 
     rtnp.fill_hist(h, x, weights=weights)
     h.SetXTitle(axis_title[0])

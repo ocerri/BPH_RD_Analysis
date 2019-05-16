@@ -1,5 +1,7 @@
 CMSSW_*
 MCGeneration
 data/cms*
+data/_root
 */.sys.v*
 */*/.sys.v*
+*.root
