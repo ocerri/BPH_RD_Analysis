@@ -1,0 +1,13 @@
+imax 1
+jmax 1
+kmax *
+---------------
+shapes * cat1 ../data/_root/histos4combine_q2only_test.root $PROCESS $PROCESS__$SYSTEMATIC
+---------------
+bin cat1
+observation 961
+---------------
+bin cat1 cat1
+process mu tau
+process 0 1
+rate  800.0 200.0

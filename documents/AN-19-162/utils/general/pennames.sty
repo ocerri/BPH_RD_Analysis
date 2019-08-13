@@ -1,0 +1,279 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                    %
+%  This is pennames.sty                                              %
+%                                                                    %
+%  It contains the definition of the short names for the PEN         %
+%  Elementary Particle Naming Scheme, described in CNL 203, pp 8-11  %
+%                                                                    %
+%  Version 1.0: Original version -  4 Oct 1991 (evh)                 %
+%          1.1: \def,\relax\ifmmode instead of \mbox                 %
+%               16 Oct 1991 (mg)                                     %   
+%          1.2: Corrections for upsilon and psi - 21 Oct 1991 (evh)  %
+%          1.3: Line lenghts < 80 charcaters - 22 Oct 1991 (mg)      %
+%          1.4: Add definitions for NFSS (\mathrm instead of \rm)    %
+%               27 May 1993 (mg)                                     %   
+%          1.5: Add definitions \PaD, \PaDz, \PaB, \PaBz             %
+%               \Pq, \Paq, \Pqd, \Paqd, \Pqu, \Paqu, \Pqs, \Paqs     %
+%               \Pqc, \Paqc, \Pqb, \Paqb, \Pqt, \Paqt, PaP, PagL     %
+%               \PagSm, \PagSp, \PagSz, \PagXz, \PagXp, \PagOp, \PaSq%
+%               12 Jul 1993 (mg)                                     %   
+%          1.6: Include \relax to force expansion of \if (DCa)       %
+%               Add % at end of every command to eliminate possible  %
+%               parasitic white space.                               %
+%                6 Feb 1994 (mg)                                     %   
+%          2.0: Adapt to LaTeX2e with \ensuremath command            %
+%                30 Jan 1995 (mg)                                    %   
+%          3.0: Make latex2e reference and define                    %
+%               \newcommand and/or \ensuremath is undefined.         %
+%                 3 Apr 1996 (mg)                                    %   
+%                                                                    %
+%  Authors: Michel Goossens and Eric van Herwijnen                   %
+%           CERN, Geneva, Switzerland                                %
+%                                                                    %
+%  Last Mod.  3 Apr 1996 (mg)                                        %
+%                                                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \newcommand{\PAz}{\ensuremath{\mathrm{A^0}}}
+ \newcommand{\PBm}{\ensuremath{{\mathrm{B}^{-}}}}
+ \newcommand{\PBpm}{\ensuremath{{\mathrm{B}^{\pm}}}}
+ \newcommand{\PBp}{\ensuremath{{\mathrm{B}^{+}}}}
+ \newcommand{\PBz}{\ensuremath{{\mathrm{B}^0}}}
+ \newcommand{\PB}{\ensuremath{{\mathrm{B}}}}
+ \newcommand{\PDiz}{\ensuremath{{\mathrm{D}_{1}(2420)^0}}}
+ \newcommand{\PDm}{\ensuremath{\mathrm{D^-}}}
+ \newcommand{\PDpm}{\ensuremath{\mathrm{D^{\pm}}}}
+ \newcommand{\PDp}{\ensuremath{\mathrm{D^+}}}
+ \newcommand{\PDstiiz}{\ensuremath{{\mathrm{D}^{\ast}_{2}(2460)^0}}}
+ \newcommand{\PDstpm}{\ensuremath{{\mathrm{D}^{\ast}(2010)^{\pm}}}}
+ \newcommand{\PDstz}{\ensuremath{{\mathrm{D}^{\ast}(2010)^0}}}
+ \newcommand{\PDz}{\ensuremath{\mathrm{D^0}}}
+ \newcommand{\PD}{\ensuremath{\mathrm{D}}}
+ \newcommand{\PEz}{\ensuremath{\mathrm{E^0}}}
+ \newcommand{\PHpm}{\ensuremath{\mathrm{H^{\pm}}}}
+ \newcommand{\PHz}{\ensuremath{\mathrm{H^0}}}
+ \newcommand{\PJgy}{\ensuremath{\mathrm{J /\psi(1S)}}}
+ \newcommand{\PKeiii}{\ensuremath{\mathrm{K_{e3}}}}
+ \newcommand{\PKgmiii}{\ensuremath{\mathrm{K_{\mu 3}}}}
+ \newcommand{\PKia}{\ensuremath{\mathrm{K_1(1400)}}}
+ \newcommand{\PKii}{\ensuremath{\mathrm{K_2(1770)}}}
+ \newcommand{\PKi}{\ensuremath{\mathrm{K_1(1270)}}}
+ \newcommand{\PKm}{\ensuremath{\mathrm{K^-}}}
+ \newcommand{\PKpm}{\ensuremath{\mathrm{K^{\pm}}}}
+ \newcommand{\PKp}{\ensuremath{\mathrm{K^+}}}
+ \newcommand{\PKsta}{\ensuremath{\mathrm{K^{\ast}(1370)}}}
+ \newcommand{\PKstb}{\ensuremath{\mathrm{K^{\ast}(1680)}}}
+ \newcommand{\PKstiii}{\ensuremath{\mathrm{K^{\ast}_3(1780)}}}
+ \newcommand{\PKstii}{\ensuremath{\mathrm{K^{\ast}_2(1430)}}}
+ \newcommand{\PKstiv}{\ensuremath{\mathrm{K^{\ast}_4(2045)}}}
+ \newcommand{\PKstz}{\ensuremath{\mathrm{K^{\ast}_0(1430)}}}
+ \newcommand{\PKst}{\ensuremath{\mathrm{K^{\ast}(892)}}}
+ \newcommand{\PKzL}{\ensuremath{\mathrm{K^0_L}}}
+ \newcommand{\PKzS}{\ensuremath{\mathrm{K^0_S}}}
+ \newcommand{\PKzeiii}{\ensuremath{\mathrm{K^0_{e3}}}}
+ \newcommand{\PKzgmiii}{\ensuremath{\mathrm{K^0_{\mu 3}}}}
+ \newcommand{\PKz}{\ensuremath{\mathrm{K^0}}}
+ \newcommand{\PK}{\ensuremath{\mathrm{K}}}
+ \newcommand{\PLpm}{\ensuremath{\mathrm{L^{\pm}}}}
+ \newcommand{\PLz}{\ensuremath{\mathrm{L^0}}}
+ \newcommand{\PN}{\ensuremath{\mathrm{N}}}
+ \newcommand{\PNa}{\ensuremath{\mathrm{N(1440)P_{11}}}}
+ \newcommand{\PNb}{\ensuremath{\mathrm{N(1520)D_{13}}}}
+ \newcommand{\PNc}{\ensuremath{\mathrm{N(1535)S_{11}}}}
+ \newcommand{\PNd}{\ensuremath{\mathrm{N(1650)S_{11}}}}
+ \newcommand{\PNe}{\ensuremath{\mathrm{N(1675)D_{15}}}}
+ \newcommand{\PNf}{\ensuremath{\mathrm{N(1680)F_{15}}}}
+ \newcommand{\PNg}{\ensuremath{\mathrm{N(1700)D_{13}}}}
+ \newcommand{\PNh}{\ensuremath{\mathrm{N(1710)P_{11}}}}
+ \newcommand{\PNi}{\ensuremath{\mathrm{N(1720)P_{13}}}}
+ \newcommand{\PNj}{\ensuremath{\mathrm{N(2190)G_{17}}}}
+ \newcommand{\PNk}{\ensuremath{\mathrm{N(2220)H_{19}}}}
+ \newcommand{\PNl}{\ensuremath{\mathrm{N(2250)G_{19}}}}
+ \newcommand{\PNm}{\ensuremath{\mathrm{N(2600)I_{1,11}}}}
+ \newcommand{\PSHpm}{\ensuremath{\mathrm{\widetilde{H}^{\pm_j}}}}
+ \newcommand{\PSHz}{\ensuremath{\mathrm{\widetilde{H}^0_j}}}
+ \newcommand{\PSWpm}{\ensuremath{\mathrm{\widetilde{W}^{\pm}}}}
+ \newcommand{\PSZz}{\ensuremath{\mathrm{\widetilde{Z}^0}}}
+ \newcommand{\PSe}{\ensuremath{\mathrm{\widetilde{e}}}}
+ \newcommand{\PSgg}{\ensuremath{\mathrm{\widetilde{\gamma}}}}
+ \newcommand{\PSgm}{\ensuremath{\mathrm{\widetilde{\mu}}}}
+ \newcommand{\PSgn}{\ensuremath{\mathrm{\widetilde{\nu}}}}
+ \newcommand{\PSgt}{\ensuremath{\mathrm{\widetilde{\tau}}}}
+ \newcommand{\PSgxpm}{\ensuremath{\mathrm{\widetilde{\chi}^{\pm_i}}}}
+ \newcommand{\PSgxz}{\ensuremath{\mathrm{\widetilde{\chi}^0_i}}}
+ \newcommand{\PSg}{\ensuremath{\mathrm{\widetilde{g}}}}
+ \newcommand{\PSq}{\ensuremath{\mathrm{\widetilde{q}}}}
+ \newcommand{\PWR}{\ensuremath{\mathrm{W_R}}}
+ \newcommand{\PWm}{\ensuremath{\mathrm{W^-}}}
+ \newcommand{\PWpr}{\ensuremath{\mathrm{W^{'}}}}%\prime
+ \newcommand{\PWp}{\ensuremath{\mathrm{W^+}}}
+ \newcommand{\PW}{\ensuremath{\mathrm{W}}}
+ \newcommand{\PZLR}{\ensuremath{\mathrm{Z_{LR}}}}
+ \newcommand{\PZgc}{\ensuremath{\mathrm{Z_{\chi}}}}
+ \newcommand{\PZge}{\ensuremath{\mathrm{Z_{\eta}}}}
+ \newcommand{\PZgy}{\ensuremath{\mathrm{Z_{\psi}}}}
+ \newcommand{\PZi}{\ensuremath{\mathrm{Z_1}}}
+ \newcommand{\PZz}{\ensuremath{\mathrm{Z^0}}}
+ \newcommand{\PaBz}{\ensuremath{\mathrm{\overline{B}}^0}}
+ \newcommand{\PaB}{\ensuremath{\mathrm{\overline{B}}}}
+ \newcommand{\PaDz}{\ensuremath{\mathrm{\overline{D}^0}}}
+ \newcommand{\PaD}{\ensuremath{\overline{\mathrm{D}}}}
+ \newcommand{\PaKz}{\ensuremath{\mathrm{\overline{K}^0}}}
+ \newcommand{\PaSq}{\ensuremath{\mathrm{\overline{\widetilde{q}}}}}
+ \newcommand{\PagL}{\ensuremath{\mathrm{\overline{\Lambda}}}}
+ \newcommand{\PagOp}{\ensuremath{\mathrm{\overline{\Omega}^+}}}
+ \newcommand{\PagSm}{\ensuremath{\mathrm{\overline{\Sigma}^-}}}
+ \newcommand{\PagSp}{\ensuremath{\mathrm{\overline{\Sigma}^+}}}
+ \newcommand{\PagSz}{\ensuremath{\mathrm{\overline{\Sigma}^0}}}
+ \newcommand{\PagXp}{\ensuremath{\mathrm{\overline{\Xi}^+}}}
+ \newcommand{\PagXz}{\ensuremath{\mathrm{\Xi^0}}}
+ \newcommand{\Pagne}{\ensuremath{\mathrm{\overline{\nu}_{e}}}}
+ \newcommand{\Pagngm}{\ensuremath{\mathrm{\overline{\nu}_{\mu}}}}
+ \newcommand{\Pagngt}{\ensuremath{\mathrm{\overline{\nu}_{\tau}}}}
+ \newcommand{\Paii}{\ensuremath{\mathrm{a_2(1320)}}}
+ \newcommand{\Pai}{\ensuremath{\mathrm{a_1(1260)}}}
+ \newcommand{\Pap}{\ensuremath{\mathrm{\overline{p}}}}
+ \newcommand{\Paqb}{\ensuremath{\mathrm{\overline{q}_b}}}
+ \newcommand{\Paqc}{\ensuremath{\mathrm{\overline{q}_c}}}
+ \newcommand{\Paqd}{\ensuremath{\mathrm{\overline{q}_d}}}
+ \newcommand{\Paqs}{\ensuremath{\mathrm{\overline{q}_s}}}
+ \newcommand{\Paqt}{\ensuremath{\mathrm{\overline{q}_t}}}
+ \newcommand{\Paqu}{\ensuremath{\mathrm{\overline{q}_u}}}
+ \newcommand{\Paq}{\ensuremath{\mathrm{\overline{q}}}}
+ \newcommand{\Paz}{\ensuremath{\mathrm{a_0(980)}}}
+ \newcommand{\Pbgcia}{\ensuremath{\mathrm{{\chi}_{b1}(2P)}}}
+ \newcommand{\Pbgciia}{\ensuremath{\mathrm{{\chi}_{b2}(2P)}}}
+ \newcommand{\Pbgcii}{\ensuremath{\mathrm{{\chi}_{b2}(1P)}}}
+ \newcommand{\Pbgci}{\ensuremath{\mathrm{{\chi}_{b1}(1P)}}}
+ \newcommand{\Pbgcza}{\ensuremath{\mathrm{{\chi}_{b0}(2P)}}}
+ \newcommand{\Pbgcz}{\ensuremath{\mathrm{{\chi}_{b0}(1P)}}}
+ \newcommand{\Pbi}{\ensuremath{\mathrm{b_1(1235)}}}
+ \newcommand{\PcgLp}{\ensuremath{\mathrm{\Lambda_c^+}}}
+ \newcommand{\PcgS}{\ensuremath{\mathrm{\Sigma_c(2455)}}}
+ \newcommand{\PcgXp}{\ensuremath{\mathrm{\Xi_c^+}}}
+ \newcommand{\PcgXz}{\ensuremath{\mathrm{\Xi_c^0}}}
+ \newcommand{\Pcgcii}{\ensuremath{\mathrm{{\chi}_{c2}(1P)}}}
+ \newcommand{\Pcgci}{\ensuremath{\mathrm{{\chi}_{c1}(1P)}}}
+ \newcommand{\Pcgcz}{\ensuremath{\mathrm{{\chi}_{c0}(1P)}}}
+ \newcommand{\Pcgh}{\ensuremath{\mathrm{{\eta}_{c}(1S)}}}
+ \newcommand{\Pem}{\ensuremath{\mathrm{e}^-}}
+ \newcommand{\Pep}{\ensuremath{\mathrm{e}^+}}
+ \newcommand{\Pe}{\ensuremath{\mathrm{e}}}
+ \newcommand{\Pfia}{\ensuremath{\mathrm{f}_1(1390)}}
+ \newcommand{\Pfib}{\ensuremath{\mathrm{f}_1(1510)}}
+ \newcommand{\Pfiia}{\ensuremath{\mathrm{f}_2(1720)}}
+ \newcommand{\Pfiib}{\ensuremath{\mathrm{f}_2(2010)}}
+ \newcommand{\Pfiic}{\ensuremath{\mathrm{f}_2(2300)}}
+ \newcommand{\Pfiid}{\ensuremath{\mathrm{f}_2(2340)}}
+ \newcommand{\Pfiipr}{\ensuremath{\mathrm{f}^{'}_2(1525)}}%\prime
+ \newcommand{\Pfii}{\ensuremath{\mathrm{f}_2(1270)}}
+ \newcommand{\Pfiv}{\ensuremath{\mathrm{f}_4(2050)}}
+ \newcommand{\Pfi}{\ensuremath{\mathrm{f}_1(1285)}}
+ \newcommand{\Pfza}{\ensuremath{\mathrm{f}_0(1400)}}
+ \newcommand{\Pfzb}{\ensuremath{\mathrm{f}_0(1590)}}
+ \newcommand{\Pfz}{\ensuremath{\mathrm{f}_0(975)}}
+ \newcommand{\PgD}{\ensuremath{\mathrm{\Delta}}}
+ \newcommand{\PgDa}{\ensuremath{\mathrm{\Delta(1232)P_{33}}}}
+ \newcommand{\PgDb}{\ensuremath{\mathrm{\Delta(1620)S_{31}}}}
+ \newcommand{\PgDc}{\ensuremath{\mathrm{\Delta(1700)D_{33}}}}
+ \newcommand{\PgDd}{\ensuremath{\mathrm{\Delta(1900)S_{31}}}}
+ \newcommand{\PgDe}{\ensuremath{\mathrm{\Delta(1905)F_{35}}}}
+ \newcommand{\PgDf}{\ensuremath{\mathrm{\Delta(1910)P_{31}}}}
+ \newcommand{\PgDh}{\ensuremath{\mathrm{\Delta(1920)P_{33}}}}
+ \newcommand{\PgDi}{\ensuremath{\mathrm{\Delta(1930)D_{35}}}}
+ \newcommand{\PgDj}{\ensuremath{\mathrm{\Delta(1950)F_{37}}}}
+ \newcommand{\PgDk}{\ensuremath{\mathrm{\Delta(2420)H_{3,11}}}}
+ \newcommand{\PgL}{\ensuremath{\mathrm{\Lambda}}}
+ \newcommand{\PgLa}{\ensuremath{\mathrm{\Lambda(1405) S_{01}}}}
+ \newcommand{\PgLb}{\ensuremath{\mathrm{\Lambda(1520) D_{03}}}}
+ \newcommand{\PgLc}{\ensuremath{\mathrm{\Lambda(1600) P_{01}}}}
+ \newcommand{\PgLd}{\ensuremath{\mathrm{\Lambda(1670) S_{01}}}}
+ \newcommand{\PgLe}{\ensuremath{\mathrm{\Lambda(1690) D_{03}}}}
+ \newcommand{\PgLf}{\ensuremath{\mathrm{\Lambda(1800) S_{01}}}}
+ \newcommand{\PgLg}{\ensuremath{\mathrm{\Lambda(1810) P_{01}}}}
+ \newcommand{\PgLh}{\ensuremath{\mathrm{\Lambda(1820) F_{05}}}}
+ \newcommand{\PgLi}{\ensuremath{\mathrm{\Lambda(1830) D_{05}}}}
+ \newcommand{\PgLj}{\ensuremath{\mathrm{\Lambda(1890) P_{03}}}}
+ \newcommand{\PgLk}{\ensuremath{\mathrm{\Lambda(2100) G_{07}}}}
+ \newcommand{\PgLl}{\ensuremath{\mathrm{\Lambda(2110) F_{05}}}}
+ \newcommand{\PgLm}{\ensuremath{\mathrm{\Lambda(2350) H_{09}}}}
+ \newcommand{\PgO}{\ensuremath{\mathrm{\Omega}}}
+ \newcommand{\PgOm}{\ensuremath{\mathrm{\Omega^-}}}
+ \newcommand{\PgOma}{\ensuremath{\mathrm{\Omega(2250)^-}}}
+ \newcommand{\PgS}{\ensuremath{\mathrm{\Sigma}}}
+ \newcommand{\PgSa}{\ensuremath{\mathrm{\Sigma(1385) P_{13}}}}
+ \newcommand{\PgSb}{\ensuremath{\mathrm{\Sigma(1660) P_{11}}}}
+ \newcommand{\PgSc}{\ensuremath{\mathrm{\Sigma(1670) D_{13}}}}
+ \newcommand{\PgSd}{\ensuremath{\mathrm{\Sigma(1750) S_{11}}}}
+ \newcommand{\PgSe}{\ensuremath{\mathrm{\Sigma(1775) D_{15}}}}
+ \newcommand{\PgSf}{\ensuremath{\mathrm{\Sigma(1915) F_{15}}}}
+ \newcommand{\PgSg}{\ensuremath{\mathrm{\Sigma(1940) D_{13}}}}
+ \newcommand{\PgSh}{\ensuremath{\mathrm{\Sigma(2030) F_{17}}}}
+ \newcommand{\PgSi}{\ensuremath{\mathrm{\Sigma(2050)}}}
+ \newcommand{\PgSm}{\ensuremath{\mathrm{\Sigma^-}}}
+ \newcommand{\PgSp}{\ensuremath{\mathrm{\Sigma^+}}}
+ \newcommand{\PgSz}{\ensuremath{\mathrm{\Sigma^0}}}
+ \newcommand{\PgU}{\ensuremath{\mathrm{\Upsilon}}}
+ \newcommand{\PgUa}{\ensuremath{\mathrm{\Upsilon(1S)}}}
+ \newcommand{\PgUb}{\ensuremath{\mathrm{\Upsilon(2S)}}}
+ \newcommand{\PgUc}{\ensuremath{\mathrm{\Upsilon(3S)}}}
+ \newcommand{\PgUd}{\ensuremath{\mathrm{\Upsilon(4S)}}}
+ \newcommand{\PgUe}{\ensuremath{\mathrm{\Upsilon(10860)}}}
+ \newcommand{\PgUf}{\ensuremath{\mathrm{\Upsilon(11020)}}}
+ \newcommand{\PgX}{\ensuremath{\mathrm{\Xi}}}
+ \newcommand{\PgXa}{\ensuremath{\mathrm{\Xi(1530)P_{13}}}}
+ \newcommand{\PgXb}{\ensuremath{\mathrm{\Xi(1690)}}}
+ \newcommand{\PgXc}{\ensuremath{\mathrm{\Xi(1820)D_{13}}}}
+ \newcommand{\PgXd}{\ensuremath{\mathrm{\Xi(1950)}}}
+ \newcommand{\PgXe}{\ensuremath{\mathrm{\Xi(2030)}}}
+ \newcommand{\PgXm}{\ensuremath{\mathrm{\Xi^-}}}
+ \newcommand{\PgXz}{\ensuremath{\mathrm{\overline{\Xi}^0}}}
+ \newcommand{\Pgfa}{\ensuremath{\mathrm{\phi(1680)}}}
+ \newcommand{\Pgfiii}{\ensuremath{\mathrm{\phi_3(1850)}}}
+ \newcommand{\Pgf}{\ensuremath{\mathrm{\phi(1020)}}}
+ \newcommand{\Pgg}{\ensuremath{\mathrm{\gamma}}}
+ \newcommand{\Pgha}{\ensuremath{\mathrm{\eta(1295)}}}
+ \newcommand{\Pghb}{\ensuremath{\mathrm{\eta(1440)}}}
+ \newcommand{\Pghpr}{\ensuremath{\mathrm{\eta^{'}(958)}}}%\prime
+ \newcommand{\Pgh}{\ensuremath{\mathrm{\eta}}}
+ \newcommand{\Pgmm}{\ensuremath{\mathrm{\mu^-}}}
+ \newcommand{\Pgmp}{\ensuremath{\mathrm{\mu^+}}}
+ \newcommand{\Pgm}{\ensuremath{\mathrm{\mu}}}
+ \newcommand{\Pgne}{\ensuremath{\mathrm{\nu_{e}}}}
+ \newcommand{\Pgngm}{\ensuremath{\mathrm{\nu_{\mu}}}}
+ \newcommand{\Pgngt}{\ensuremath{\mathrm{\nu_{\tau}}}}
+ \newcommand{\Pgoa}{\ensuremath{\mathrm{\omega(1390)}}}
+ \newcommand{\Pgob}{\ensuremath{\mathrm{\omega(1600)}}}
+ \newcommand{\Pgoiii}{\ensuremath{\mathrm{\omega_3(1670)}}}
+ \newcommand{\Pgo}{\ensuremath{\mathrm{\omega(783)}}}
+ \newcommand{\Pgpa}{\ensuremath{\mathrm{\pi(1300)}}}
+ \newcommand{\Pgpii}{\ensuremath{\mathrm{\pi_2(1670)}}}
+ \newcommand{\Pgpm}{\ensuremath{\mathrm{\pi^-}}}
+ \newcommand{\Pgppm}{\ensuremath{\mathrm{\pi^{\pm }}}}
+ \newcommand{\Pgpp}{\ensuremath{\mathrm{\pi^+}}}
+ \newcommand{\Pgpz}{\ensuremath{\mathrm{\pi^0}}}
+ \newcommand{\Pgp}{\ensuremath{\mathrm{\pi}}}
+ \newcommand{\Pgra}{\ensuremath{\mathrm{\rho(1450)}}}
+ \newcommand{\Pgrb}{\ensuremath{\mathrm{\rho(1700)}}}
+ \newcommand{\Pgriii}{\ensuremath{\mathrm{\rho_3(1690)}}}
+ \newcommand{\Pgr}{\ensuremath{\mathrm{\rho(770)}}}
+ \newcommand{\Pgt}{\ensuremath{\mathrm{\tau}}}
+ \newcommand{\Pgya}{\ensuremath{\mathrm{\psi(3770)}}}
+ \newcommand{\Pgyb}{\ensuremath{\mathrm{\psi(4040)}}}
+ \newcommand{\Pgyc}{\ensuremath{\mathrm{\psi(4160)}}}
+ \newcommand{\Pgyd}{\ensuremath{\mathrm{\psi(4415)}}}
+ \newcommand{\Pgy}{\ensuremath{\mathrm{\psi(2S)}}}
+ \newcommand{\Phia}{\ensuremath{\mathrm{h_1(1170)}}}
+ \newcommand{\Pn}{\ensuremath{\mathrm{n}}}
+ \newcommand{\Pp}{\ensuremath{\mathrm{p}}}
+ \newcommand{\Pqb}{\ensuremath{\mathrm{q_b}}}
+ \newcommand{\Pqc}{\ensuremath{\mathrm{q_c}}}
+ \newcommand{\Pqd}{\ensuremath{\mathrm{q_d}}}
+ \newcommand{\Pqs}{\ensuremath{\mathrm{q_s}}}
+ \newcommand{\Pqt}{\ensuremath{\mathrm{q_t}}}
+ \newcommand{\Pqu}{\ensuremath{\mathrm{q_u}}}
+ \newcommand{\Pq}{\ensuremath{\mathrm{q}}}
+ \newcommand{\PsDipm}{\ensuremath{\mathrm{D_{s1}(2536)^{\pm}}}}
+ \newcommand{\PsDm}{\ensuremath{\mathrm{D_{s}^-}}}
+ \newcommand{\PsDp}{\ensuremath{\mathrm{D_{s}^+}}}
+ \newcommand{\PsDst}{\ensuremath{\mathrm{D_{s}^{\ast}}}}
+\endinput

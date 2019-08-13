@@ -1,4 +1,40 @@
-% Customizable fields and text areas start with % >> below.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%   Style for CMS Computing / Physics Technical Design Reports
+%
+%   Lucas Taylor  4 Feb 2005,   Revised  12 Oct 2005
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%  the following line is edited by the tdr script to change or to pass
+%  additional options:
+\documentclass[11pt,twoside,a4paper,cmspaper]{cms-tdr}
+\def\svnVersion{555e248-D}\def\svnDate{2019/07/24}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}\cmsNoteHeader{AN-19-162}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Common definitions
+%
+%  N.B. use of \providecommand rather than \newcommand means
+%       that a definition is ignored if already specified
+%
+%                                              L. Taylor 18 Feb 2005
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Hyphenations (only need to add here if you get a nasty word break)
+%
+\hyphenation{had-ron-i-za-tion}
+\hyphenation{cal-or-i-me-ter}
+\hyphenation{de-vices}
+%
+% Hyphenations-end
+% % Customizable fields and text areas start with % >> below.
 % Lines starting with the comment character (%) are normally removed before release outside the collaboration, but not those comments ending lines
 
 %%%%%%%%%%%%% local definitions %%%%%%%%%%%%%%%%%%%%%
@@ -16,6 +52,9 @@
 \address[inst1]{California Institute of Technology (US)}
 \author*[inst1]{Olmo Cerri}
 
+% >> Date
+% The date is in yyyy/mm/dd format. Today has been
+% redefined to match, but if the date needs to be fixed, please write it in this fashion.
 \date{\today}
 
 % >> Abstract
@@ -24,7 +63,7 @@
 % 2. **DO NOT use %**                  to comment out sections of the abstract: the extractor will still grab those lines (and they won't be comments any longer!).
 % 3. For PASs: **DO NOT use CMS tex macros.**...in the abstract: CDS MathJax processor used on the abstract doesn't understand them _and_ will only look within $$. The abstracts for papers are hand formatted so macros are okay.
 \abstract{
-   Study to perform a measurement of the branching fraction ratio $R(D^*) \equiv B(B_0 \to D^{*-}\tau^+\nu_\tau) / B(B_0 \to D^{*-}\mu^+\nu_\mu)$ with proton-proton CMS data coming from the 2018 B parking stream. The tau lepton is identified in the full leptonic decay mode $\tau^+ \to \mu^+ \nu_\tau \nu_\mu$.\\ The $R(D^*)$ ratio is sensitive to contributions from non-standard-model particles that violates lepton flavour universality. This parameter, measured at B factories and hadron collider, has been observed to have a tension with SM prediction of about 2 sigma.\\ A multidimensional fit to kinematic distributions of the reconstructed $B_0$ candidate decays from CMS data can provide a competitive measurement with state of art measurement and impact the experimental world average. This result, can be the first measurement of this quantity at CMS and general purpose hadron collider experiments.
+   Your abstract here.
 }
 
 % >> PDF Metadata
@@ -38,16 +77,8 @@ pdftitle={Lepton flavor universality test at CMS with R(D*) measurement in the f
 pdfsubject={CMS},%
 pdfkeywords={CMS, physics, your topics}}
 
-\maketitle
-
-\input{introduction.tex}
-\input{detAndSim.tex}
-\input{candidatesSelection.tex}
-\input{backgrounds.tex}
-\input{signalsExtraction.tex}
-\input{efficiencies.tex}
-\input{conclusions.tex}
-
+\maketitle %maketitle comes after all the front information has been supplied
+% >> Text
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  Begin text %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% **DO NOT REMOVE THE BIBLIOGRAPHY** which is located before the appendix.
 %% You can take the text between here and the bibiliography as an example which you should replace with the actual text of your document.
@@ -58,7 +89,6 @@ pdfkeywords={CMS, physics, your topics}}
 % >> acknowledgments (for journal papers only)
 % The latest version of the acknowledgments will be included from https://twiki.cern.ch/twiki/bin/viewauth/CMS/Internal/PubAcknow as of the date of submission. Modify to match either US or UK English spelling for centre/center, programme/program. For PRL use the short version, for JINST normally use the long version. All others take the middle length version other than exceptional cases.
 \begin{acknowledgments}
-This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation program (grant agreement no 772369) and the United States Department of Energy, Office of High Energy Physics Research under Caltech Contract No. DE-SC0011925. This work was conducted at "\textit{iBanks}", the AI GPU cluster at Caltech. We acknowledge NVIDIA, SuperMicro and the Kavli Foundation for their support of "\textit{iBanks}".
 \end{acknowledgments}
 
 %% **DO NOT REMOVE BIBLIOGRAPHY**
@@ -68,3 +98,6 @@ This project has received funding from the European Research Council (ERC) under
 %\appendix
 %\section{Appendix name}
 %%% DO NOT ADD \end{document}!
+
+\end{document}
+

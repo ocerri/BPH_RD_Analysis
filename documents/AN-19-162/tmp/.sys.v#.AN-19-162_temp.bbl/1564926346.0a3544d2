@@ -1,0 +1,7 @@
+\providecommand{\href}[2]{#2}\begingroup\raggedright\begin{thebibliography}{}%
+\makeatletter
+\providecommand{\hrefCMSnoop }[0]{\@secondoftwo}%
+\makeatother
+\providecommand{\doi}{\texttt{doi:}\begingroup \urlstyle{tt}\Url}
+
+\end{thebibliography}\endgroup

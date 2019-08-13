@@ -1,0 +1,279 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                    %
+%  This is pennames.sty                                              %
+%                                                                    %
+%  It contains the definition of the short names for the PEN         %
+%  Elementary Particle Naming Scheme, described in CNL 203, pp 8-11  %
+%                                                                    %
+%  Version 1.0: Original version -  4 Oct 1991 (evh)                 %
+%          1.1: \def,\relax\ifmmode instead of \mbox                 %
+%               16 Oct 1991 (mg)                                     %
+%          1.2: Corrections for upsilon and psi - 21 Oct 1991 (evh)  %
+%          1.3: Line lenghts < 80 charcaters - 22 Oct 1991 (mg)      %
+%          1.4: Add definitions for NFSS ( instead of \rm)    %
+%               27 May 1993 (mg)                                     %
+%          1.5: Add definitions \PaD, \PaDz, \PaB, \PaBz             %
+%               \Pq, \Paq, \Pqd, \Paqd, \Pqu, \Paqu, \Pqs, \Paqs     %
+%               \Pqc, \Paqc, \Pqb, \Paqb, \Pqt, \Paqt, PaP, PagL     %
+%               \PagSm, \PagSp, \PagSz, \PagXz, \PagXp, \PagOp, \PaSq%
+%               12 Jul 1993 (mg)                                     %
+%          1.6: Include \relax to force expansion of \if (DCa)       %
+%               Add % at end of every command to eliminate possible  %
+%               parasitic white space.                               %
+%                6 Feb 1994 (mg)                                     %
+%          2.0: Adapt to LaTeX2e with \ensuremath command            %
+%                30 Jan 1995 (mg)                                    %
+%          3.0: Make latex2e reference and define                    %
+%               \newcommand and/or \ensuremath is undefined.         %
+%                 3 Apr 1996 (mg)                                    %
+%                                                                    %
+%  Authors: Michel Goossens and Eric van Herwijnen                   %
+%           CERN, Geneva, Switzerland                                %
+%                                                                    %
+%  Last Mod.  3 Apr 1996 (mg)                                        %
+%                                                                    %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ \newcommand{\PAz}{\ensuremath{{A^0}}}
+ \newcommand{\PBm}{\ensuremath{{{B}^{-}}}}
+ \newcommand{\PBpm}{\ensuremath{{{B}^{\pm}}}}
+ \newcommand{\PBp}{\ensuremath{{{B}^{+}}}}
+ \newcommand{\PBz}{\ensuremath{{{B}^0}}}
+ \newcommand{\PB}{\ensuremath{{{B}}}}
+ \newcommand{\PDiz}{\ensuremath{{{D}_{1}(2420)^0}}}
+ \newcommand{\PDm}{\ensuremath{{D^-}}}
+ \newcommand{\PDpm}{\ensuremath{{D^{\pm}}}}
+ \newcommand{\PDp}{\ensuremath{{D^+}}}
+ \newcommand{\PDstiiz}{\ensuremath{{{D}^{\ast}_{2}(2460)^0}}}
+ \newcommand{\PDstpm}{\ensuremath{{{D}^{\ast}(2010)^{\pm}}}}
+ \newcommand{\PDstz}{\ensuremath{{{D}^{\ast}(2010)^0}}}
+ \newcommand{\PDz}{\ensuremath{{D^0}}}
+ \newcommand{\PD}{\ensuremath{{D}}}
+ \newcommand{\PEz}{\ensuremath{{E^0}}}
+ \newcommand{\PHpm}{\ensuremath{{H^{\pm}}}}
+ \newcommand{\PHz}{\ensuremath{{H^0}}}
+ \newcommand{\PJgy}{\ensuremath{{J /\psi(1S)}}}
+ \newcommand{\PKeiii}{\ensuremath{{K_{e3}}}}
+ \newcommand{\PKgmiii}{\ensuremath{{K_{\mu 3}}}}
+ \newcommand{\PKia}{\ensuremath{{K_1(1400)}}}
+ \newcommand{\PKii}{\ensuremath{{K_2(1770)}}}
+ \newcommand{\PKi}{\ensuremath{{K_1(1270)}}}
+ \newcommand{\PKm}{\ensuremath{{K^-}}}
+ \newcommand{\PKpm}{\ensuremath{{K^{\pm}}}}
+ \newcommand{\PKp}{\ensuremath{{K^+}}}
+ \newcommand{\PKsta}{\ensuremath{{K^{\ast}(1370)}}}
+ \newcommand{\PKstb}{\ensuremath{{K^{\ast}(1680)}}}
+ \newcommand{\PKstiii}{\ensuremath{{K^{\ast}_3(1780)}}}
+ \newcommand{\PKstii}{\ensuremath{{K^{\ast}_2(1430)}}}
+ \newcommand{\PKstiv}{\ensuremath{{K^{\ast}_4(2045)}}}
+ \newcommand{\PKstz}{\ensuremath{{K^{\ast}_0(1430)}}}
+ \newcommand{\PKst}{\ensuremath{{K^{\ast}(892)}}}
+ \newcommand{\PKzL}{\ensuremath{{K^0_L}}}
+ \newcommand{\PKzS}{\ensuremath{{K^0_S}}}
+ \newcommand{\PKzeiii}{\ensuremath{{K^0_{e3}}}}
+ \newcommand{\PKzgmiii}{\ensuremath{{K^0_{\mu 3}}}}
+ \newcommand{\PKz}{\ensuremath{{K^0}}}
+ \newcommand{\PK}{\ensuremath{{K}}}
+ \newcommand{\PLpm}{\ensuremath{{L^{\pm}}}}
+ \newcommand{\PLz}{\ensuremath{{L^0}}}
+ \newcommand{\PN}{\ensuremath{{N}}}
+ \newcommand{\PNa}{\ensuremath{{N(1440)P_{11}}}}
+ \newcommand{\PNb}{\ensuremath{{N(1520)D_{13}}}}
+ \newcommand{\PNc}{\ensuremath{{N(1535)S_{11}}}}
+ \newcommand{\PNd}{\ensuremath{{N(1650)S_{11}}}}
+ \newcommand{\PNe}{\ensuremath{{N(1675)D_{15}}}}
+ \newcommand{\PNf}{\ensuremath{{N(1680)F_{15}}}}
+ \newcommand{\PNg}{\ensuremath{{N(1700)D_{13}}}}
+ \newcommand{\PNh}{\ensuremath{{N(1710)P_{11}}}}
+ \newcommand{\PNi}{\ensuremath{{N(1720)P_{13}}}}
+ \newcommand{\PNj}{\ensuremath{{N(2190)G_{17}}}}
+ \newcommand{\PNk}{\ensuremath{{N(2220)H_{19}}}}
+ \newcommand{\PNl}{\ensuremath{{N(2250)G_{19}}}}
+ \newcommand{\PNm}{\ensuremath{{N(2600)I_{1,11}}}}
+ \newcommand{\PSHpm}{\ensuremath{{\widetilde{H}^{\pm_j}}}}
+ \newcommand{\PSHz}{\ensuremath{{\widetilde{H}^0_j}}}
+ \newcommand{\PSWpm}{\ensuremath{{\widetilde{W}^{\pm}}}}
+ \newcommand{\PSZz}{\ensuremath{{\widetilde{Z}^0}}}
+ \newcommand{\PSe}{\ensuremath{{\widetilde{e}}}}
+ \newcommand{\PSgg}{\ensuremath{{\widetilde{\gamma}}}}
+ \newcommand{\PSgm}{\ensuremath{{\widetilde{\mu}}}}
+ \newcommand{\PSgn}{\ensuremath{{\widetilde{\nu}}}}
+ \newcommand{\PSgt}{\ensuremath{{\widetilde{\tau}}}}
+ \newcommand{\PSgxpm}{\ensuremath{{\widetilde{\chi}^{\pm_i}}}}
+ \newcommand{\PSgxz}{\ensuremath{{\widetilde{\chi}^0_i}}}
+ \newcommand{\PSg}{\ensuremath{{\widetilde{g}}}}
+ \newcommand{\PSq}{\ensuremath{{\widetilde{q}}}}
+ \newcommand{\PWR}{\ensuremath{{W_R}}}
+ \newcommand{\PWm}{\ensuremath{{W^-}}}
+ \newcommand{\PWpr}{\ensuremath{{W^{'}}}}%\prime
+ \newcommand{\PWp}{\ensuremath{{W^+}}}
+ \newcommand{\PW}{\ensuremath{{W}}}
+ \newcommand{\PZLR}{\ensuremath{{Z_{LR}}}}
+ \newcommand{\PZgc}{\ensuremath{{Z_{\chi}}}}
+ \newcommand{\PZge}{\ensuremath{{Z_{\eta}}}}
+ \newcommand{\PZgy}{\ensuremath{{Z_{\psi}}}}
+ \newcommand{\PZi}{\ensuremath{{Z_1}}}
+ \newcommand{\PZz}{\ensuremath{{Z^0}}}
+ \newcommand{\PaBz}{\ensuremath{{\overline{B}}^0}}
+ \newcommand{\PaB}{\ensuremath{{\overline{B}}}}
+ \newcommand{\PaDz}{\ensuremath{{\overline{D}^0}}}
+ \newcommand{\PaD}{\ensuremath{\overline{{D}}}}
+ \newcommand{\PaKz}{\ensuremath{{\overline{K}^0}}}
+ \newcommand{\PaSq}{\ensuremath{{\overline{\widetilde{q}}}}}
+ \newcommand{\PagL}{\ensuremath{{\overline{\Lambda}}}}
+ \newcommand{\PagOp}{\ensuremath{{\overline{\Omega}^+}}}
+ \newcommand{\PagSm}{\ensuremath{{\overline{\Sigma}^-}}}
+ \newcommand{\PagSp}{\ensuremath{{\overline{\Sigma}^+}}}
+ \newcommand{\PagSz}{\ensuremath{{\overline{\Sigma}^0}}}
+ \newcommand{\PagXp}{\ensuremath{{\overline{\Xi}^+}}}
+ \newcommand{\PagXz}{\ensuremath{{\Xi^0}}}
+ \newcommand{\Pagne}{\ensuremath{{\overline{\nu}_{e}}}}
+ \newcommand{\Pagngm}{\ensuremath{{\overline{\nu}_{\mu}}}}
+ \newcommand{\Pagngt}{\ensuremath{{\overline{\nu}_{\tau}}}}
+ \newcommand{\Paii}{\ensuremath{{a_2(1320)}}}
+ \newcommand{\Pai}{\ensuremath{{a_1(1260)}}}
+ \newcommand{\Pap}{\ensuremath{{\overline{p}}}}
+ \newcommand{\Paqb}{\ensuremath{{\overline{q}_b}}}
+ \newcommand{\Paqc}{\ensuremath{{\overline{q}_c}}}
+ \newcommand{\Paqd}{\ensuremath{{\overline{q}_d}}}
+ \newcommand{\Paqs}{\ensuremath{{\overline{q}_s}}}
+ \newcommand{\Paqt}{\ensuremath{{\overline{q}_t}}}
+ \newcommand{\Paqu}{\ensuremath{{\overline{q}_u}}}
+ \newcommand{\Paq}{\ensuremath{{\overline{q}}}}
+ \newcommand{\Paz}{\ensuremath{{a_0(980)}}}
+ \newcommand{\Pbgcia}{\ensuremath{{{\chi}_{b1}(2P)}}}
+ \newcommand{\Pbgciia}{\ensuremath{{{\chi}_{b2}(2P)}}}
+ \newcommand{\Pbgcii}{\ensuremath{{{\chi}_{b2}(1P)}}}
+ \newcommand{\Pbgci}{\ensuremath{{{\chi}_{b1}(1P)}}}
+ \newcommand{\Pbgcza}{\ensuremath{{{\chi}_{b0}(2P)}}}
+ \newcommand{\Pbgcz}{\ensuremath{{{\chi}_{b0}(1P)}}}
+ \newcommand{\Pbi}{\ensuremath{{b_1(1235)}}}
+ \newcommand{\PcgLp}{\ensuremath{{\Lambda_c^+}}}
+ \newcommand{\PcgS}{\ensuremath{{\Sigma_c(2455)}}}
+ \newcommand{\PcgXp}{\ensuremath{{\Xi_c^+}}}
+ \newcommand{\PcgXz}{\ensuremath{{\Xi_c^0}}}
+ \newcommand{\Pcgcii}{\ensuremath{{{\chi}_{c2}(1P)}}}
+ \newcommand{\Pcgci}{\ensuremath{{{\chi}_{c1}(1P)}}}
+ \newcommand{\Pcgcz}{\ensuremath{{{\chi}_{c0}(1P)}}}
+ \newcommand{\Pcgh}{\ensuremath{{{\eta}_{c}(1S)}}}
+ \newcommand{\Pem}{\ensuremath{{e}^-}}
+ \newcommand{\Pep}{\ensuremath{{e}^+}}
+ \newcommand{\Pe}{\ensuremath{{e}}}
+ \newcommand{\Pfia}{\ensuremath{{f}_1(1390)}}
+ \newcommand{\Pfib}{\ensuremath{{f}_1(1510)}}
+ \newcommand{\Pfiia}{\ensuremath{{f}_2(1720)}}
+ \newcommand{\Pfiib}{\ensuremath{{f}_2(2010)}}
+ \newcommand{\Pfiic}{\ensuremath{{f}_2(2300)}}
+ \newcommand{\Pfiid}{\ensuremath{{f}_2(2340)}}
+ \newcommand{\Pfiipr}{\ensuremath{{f}^{'}_2(1525)}}%\prime
+ \newcommand{\Pfii}{\ensuremath{{f}_2(1270)}}
+ \newcommand{\Pfiv}{\ensuremath{{f}_4(2050)}}
+ \newcommand{\Pfi}{\ensuremath{{f}_1(1285)}}
+ \newcommand{\Pfza}{\ensuremath{{f}_0(1400)}}
+ \newcommand{\Pfzb}{\ensuremath{{f}_0(1590)}}
+ \newcommand{\Pfz}{\ensuremath{{f}_0(975)}}
+ \newcommand{\PgD}{\ensuremath{{\Delta}}}
+ \newcommand{\PgDa}{\ensuremath{{\Delta(1232)P_{33}}}}
+ \newcommand{\PgDb}{\ensuremath{{\Delta(1620)S_{31}}}}
+ \newcommand{\PgDc}{\ensuremath{{\Delta(1700)D_{33}}}}
+ \newcommand{\PgDd}{\ensuremath{{\Delta(1900)S_{31}}}}
+ \newcommand{\PgDe}{\ensuremath{{\Delta(1905)F_{35}}}}
+ \newcommand{\PgDf}{\ensuremath{{\Delta(1910)P_{31}}}}
+ \newcommand{\PgDh}{\ensuremath{{\Delta(1920)P_{33}}}}
+ \newcommand{\PgDi}{\ensuremath{{\Delta(1930)D_{35}}}}
+ \newcommand{\PgDj}{\ensuremath{{\Delta(1950)F_{37}}}}
+ \newcommand{\PgDk}{\ensuremath{{\Delta(2420)H_{3,11}}}}
+ \newcommand{\PgL}{\ensuremath{{\Lambda}}}
+ \newcommand{\PgLa}{\ensuremath{{\Lambda(1405) S_{01}}}}
+ \newcommand{\PgLb}{\ensuremath{{\Lambda(1520) D_{03}}}}
+ \newcommand{\PgLc}{\ensuremath{{\Lambda(1600) P_{01}}}}
+ \newcommand{\PgLd}{\ensuremath{{\Lambda(1670) S_{01}}}}
+ \newcommand{\PgLe}{\ensuremath{{\Lambda(1690) D_{03}}}}
+ \newcommand{\PgLf}{\ensuremath{{\Lambda(1800) S_{01}}}}
+ \newcommand{\PgLg}{\ensuremath{{\Lambda(1810) P_{01}}}}
+ \newcommand{\PgLh}{\ensuremath{{\Lambda(1820) F_{05}}}}
+ \newcommand{\PgLi}{\ensuremath{{\Lambda(1830) D_{05}}}}
+ \newcommand{\PgLj}{\ensuremath{{\Lambda(1890) P_{03}}}}
+ \newcommand{\PgLk}{\ensuremath{{\Lambda(2100) G_{07}}}}
+ \newcommand{\PgLl}{\ensuremath{{\Lambda(2110) F_{05}}}}
+ \newcommand{\PgLm}{\ensuremath{{\Lambda(2350) H_{09}}}}
+ \newcommand{\PgO}{\ensuremath{{\Omega}}}
+ \newcommand{\PgOm}{\ensuremath{{\Omega^-}}}
+ \newcommand{\PgOma}{\ensuremath{{\Omega(2250)^-}}}
+ \newcommand{\PgS}{\ensuremath{{\Sigma}}}
+ \newcommand{\PgSa}{\ensuremath{{\Sigma(1385) P_{13}}}}
+ \newcommand{\PgSb}{\ensuremath{{\Sigma(1660) P_{11}}}}
+ \newcommand{\PgSc}{\ensuremath{{\Sigma(1670) D_{13}}}}
+ \newcommand{\PgSd}{\ensuremath{{\Sigma(1750) S_{11}}}}
+ \newcommand{\PgSe}{\ensuremath{{\Sigma(1775) D_{15}}}}
+ \newcommand{\PgSf}{\ensuremath{{\Sigma(1915) F_{15}}}}
+ \newcommand{\PgSg}{\ensuremath{{\Sigma(1940) D_{13}}}}
+ \newcommand{\PgSh}{\ensuremath{{\Sigma(2030) F_{17}}}}
+ \newcommand{\PgSi}{\ensuremath{{\Sigma(2050)}}}
+ \newcommand{\PgSm}{\ensuremath{{\Sigma^-}}}
+ \newcommand{\PgSp}{\ensuremath{{\Sigma^+}}}
+ \newcommand{\PgSz}{\ensuremath{{\Sigma^0}}}
+ \newcommand{\PgU}{\ensuremath{{\Upsilon}}}
+ \newcommand{\PgUa}{\ensuremath{{\Upsilon(1S)}}}
+ \newcommand{\PgUb}{\ensuremath{{\Upsilon(2S)}}}
+ \newcommand{\PgUc}{\ensuremath{{\Upsilon(3S)}}}
+ \newcommand{\PgUd}{\ensuremath{{\Upsilon(4S)}}}
+ \newcommand{\PgUe}{\ensuremath{{\Upsilon(10860)}}}
+ \newcommand{\PgUf}{\ensuremath{{\Upsilon(11020)}}}
+ \newcommand{\PgX}{\ensuremath{{\Xi}}}
+ \newcommand{\PgXa}{\ensuremath{{\Xi(1530)P_{13}}}}
+ \newcommand{\PgXb}{\ensuremath{{\Xi(1690)}}}
+ \newcommand{\PgXc}{\ensuremath{{\Xi(1820)D_{13}}}}
+ \newcommand{\PgXd}{\ensuremath{{\Xi(1950)}}}
+ \newcommand{\PgXe}{\ensuremath{{\Xi(2030)}}}
+ \newcommand{\PgXm}{\ensuremath{{\Xi^-}}}
+ \newcommand{\PgXz}{\ensuremath{{\overline{\Xi}^0}}}
+ \newcommand{\Pgfa}{\ensuremath{{\phi(1680)}}}
+ \newcommand{\Pgfiii}{\ensuremath{{\phi_3(1850)}}}
+ \newcommand{\Pgf}{\ensuremath{{\phi(1020)}}}
+ \newcommand{\Pgg}{\ensuremath{{\gamma}}}
+ \newcommand{\Pgha}{\ensuremath{{\eta(1295)}}}
+ \newcommand{\Pghb}{\ensuremath{{\eta(1440)}}}
+ \newcommand{\Pghpr}{\ensuremath{{\eta^{'}(958)}}}%\prime
+ \newcommand{\Pgh}{\ensuremath{{\eta}}}
+ \newcommand{\Pgmm}{\ensuremath{{\mu^-}}}
+ \newcommand{\Pgmp}{\ensuremath{{\mu^+}}}
+ \newcommand{\Pgm}{\ensuremath{{\mu}}}
+ \newcommand{\Pgne}{\ensuremath{{\nu_{e}}}}
+ \newcommand{\Pgngm}{\ensuremath{{\nu_{\mu}}}}
+ \newcommand{\Pgngt}{\ensuremath{{\nu_{\tau}}}}
+ \newcommand{\Pgoa}{\ensuremath{{\omega(1390)}}}
+ \newcommand{\Pgob}{\ensuremath{{\omega(1600)}}}
+ \newcommand{\Pgoiii}{\ensuremath{{\omega_3(1670)}}}
+ \newcommand{\Pgo}{\ensuremath{{\omega(783)}}}
+ \newcommand{\Pgpa}{\ensuremath{{\pi(1300)}}}
+ \newcommand{\Pgpii}{\ensuremath{{\pi_2(1670)}}}
+ \newcommand{\Pgpm}{\ensuremath{{\pi^-}}}
+ \newcommand{\Pgppm}{\ensuremath{{\pi^{\pm }}}}
+ \newcommand{\Pgpp}{\ensuremath{{\pi^+}}}
+ \newcommand{\Pgpz}{\ensuremath{{\pi^0}}}
+ \newcommand{\Pgp}{\ensuremath{{\pi}}}
+ \newcommand{\Pgra}{\ensuremath{{\rho(1450)}}}
+ \newcommand{\Pgrb}{\ensuremath{{\rho(1700)}}}
+ \newcommand{\Pgriii}{\ensuremath{{\rho_3(1690)}}}
+ \newcommand{\Pgr}{\ensuremath{{\rho(770)}}}
+ \newcommand{\Pgt}{\ensuremath{{\tau}}}
+ \newcommand{\Pgya}{\ensuremath{{\psi(3770)}}}
+ \newcommand{\Pgyb}{\ensuremath{{\psi(4040)}}}
+ \newcommand{\Pgyc}{\ensuremath{{\psi(4160)}}}
+ \newcommand{\Pgyd}{\ensuremath{{\psi(4415)}}}
+ \newcommand{\Pgy}{\ensuremath{{\psi(2S)}}}
+ \newcommand{\Phia}{\ensuremath{{h_1(1170)}}}
+ \newcommand{\Pn}{\ensuremath{{n}}}
+ \newcommand{\Pp}{\ensuremath{{p}}}
+ \newcommand{\Pqb}{\ensuremath{{q_b}}}
+ \newcommand{\Pqc}{\ensuremath{{q_c}}}
+ \newcommand{\Pqd}{\ensuremath{{q_d}}}
+ \newcommand{\Pqs}{\ensuremath{{q_s}}}
+ \newcommand{\Pqt}{\ensuremath{{q_t}}}
+ \newcommand{\Pqu}{\ensuremath{{q_u}}}
+ \newcommand{\Pq}{\ensuremath{{q}}}
+ \newcommand{\PsDipm}{\ensuremath{{D_{s1}(2536)^{\pm}}}}
+ \newcommand{\PsDm}{\ensuremath{{D_{s}^-}}}
+ \newcommand{\PsDp}{\ensuremath{{D_{s}^+}}}
+ \newcommand{\PsDst}{\ensuremath{{D_{s}^{\ast}}}}
+\endinput
