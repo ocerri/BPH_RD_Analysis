@@ -1,0 +1,2 @@
+http://cms-analysis.github.io/HiggsAnalysis-CombinedLimit/
+https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit/wiki/commonstatsmethods#goodness-of-fit-tests
