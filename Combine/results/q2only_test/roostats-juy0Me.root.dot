@@ -1,0 +1,23 @@
+digraph model_s{
+"model_s" [ color=red, label="RooSimultaneousOpt\nmodel_s"];
+"pdf_bincat1" [ color=red, label="RooAddPdf\npdf_bincat1"];
+"shapeBkg_mu_cat1_rebinPdf" [ color=red, label="FastVerticalInterpHistPdf2\nshapeBkg_mu_cat1_rebinPdf"];
+"CMS_th1x" [ color=blue, label="RooRealVar\nCMS_th1x"];
+"shapeSig_tau_cat1_rebinPdf" [ color=red, label="FastVerticalInterpHistPdf2\nshapeSig_tau_cat1_rebinPdf"];
+"n_exp_bincat1_proc_mu" [ color=red, label="ProcessNormalization\nn_exp_bincat1_proc_mu"];
+"N_B2mu" [ color=blue, label="RooRealVar\nN_B2mu"];
+"n_exp_bincat1_proc_tau" [ color=red, label="ProcessNormalization\nn_exp_bincat1_proc_tau"];
+"r" [ color=blue, label="RooRealVar\nr"];
+"CMS_channel" [ color=blue, label="RooCategory\nCMS_channel"];
+"n_exp_bincat1_proc_tau" -> "r";
+"n_exp_bincat1_proc_tau" -> "N_B2mu";
+"n_exp_bincat1_proc_mu" -> "N_B2mu";
+"model_s" -> "CMS_channel";
+"model_s" -> "pdf_bincat1";
+"pdf_bincat1" -> "n_exp_bincat1_proc_tau";
+"pdf_bincat1" -> "n_exp_bincat1_proc_mu";
+"pdf_bincat1" -> "shapeBkg_mu_cat1_rebinPdf";
+"pdf_bincat1" -> "shapeSig_tau_cat1_rebinPdf";
+"shapeBkg_mu_cat1_rebinPdf" -> "CMS_th1x";
+"shapeSig_tau_cat1_rebinPdf" -> "CMS_th1x";
+}

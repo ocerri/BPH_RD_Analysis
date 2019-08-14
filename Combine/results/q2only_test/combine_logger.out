@@ -1,125 +1,1100 @@
-INFO: (function: applyOptionsBase) FitterAlgoBase.cc: 112 -- Setting robust fit options to Tolerance=0.1 / Strategy=0 / Type,Algo=Minuit2,Migrad (note that defaults of CascadeMinimizer were taken where option not specified)
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 1/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: doFit) FitterAlgoBase.cc: 334 -- Running RobustFit for POI r. Configured with strategy 0  
-INFO: (function: findCrossing) FitterAlgoBase.cc: 380 -- Searching for crossing at nll = -15.0432, in the interval 0.109199 < r < 1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 2/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 401 -- r lvl-here lvl-there 	stepping 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 3/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.198279    -0.67013  +0.49447    0.089080
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 4/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.135923    +0.37803  -0.67013    0.026724
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 5/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.162647    +0.04949  +0.37803    0.026724
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 6/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.189371    -0.46283  +0.04949    0.026724
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 7/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.170664    -0.08609  -0.46283    0.008017
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 8/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.165052    +0.01052  -0.08609    0.002405
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 9/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.167457    -0.02992  +0.01052    0.002405
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 10/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.165774    -0.00146  -0.02992    0.000722
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 11/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.165268    +0.00694  -0.00146    0.000216
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 12/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.165485    +0.00335  +0.00694    0.000216
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 13/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.165701    -0.00026  +0.00335    0.000216
-INFO: (function: findCrossing) FitterAlgoBase.cc: 380 -- Searching for crossing at nll = -15.0432, in the interval 0.109199 < r < 0.001
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 14/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 401 -- r lvl-here lvl-there 	stepping 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 15/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.098379    +0.47393  +0.49447    -0.010820
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 16/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.087559    +0.41082  +0.47393    -0.010820
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 17/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.076739    +0.30252  +0.41082    -0.010820
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 18/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.065919    +0.14623  +0.30252    -0.010820
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 19/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.055099    -0.06103  +0.14623    -0.010820
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 20/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.062673    +0.08955  -0.06103    -0.003246
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 21/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.059427    +0.02820  +0.08955    -0.003246
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 22/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.056181    -0.03791  +0.02820    -0.003246
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 23/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.058454    +0.00887  -0.03791    -0.000974
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 24/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.057480    -0.01089  +0.00887    -0.000974
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 25/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.058161    +0.00298  -0.01089    -0.000292
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 26/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.057869    -0.00294  +0.00298    -0.000292
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 27/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.058074    +0.00121  -0.00294    -0.000088
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 28/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.057986    -0.00056  +0.00121    -0.000088
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 29/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.058047    +0.00068  -0.00056    -0.000026
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 30/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
 INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
 INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
 INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
-INFO: (function: findCrossing) FitterAlgoBase.cc: 434 -- 0.058021    +0.00015  +0.00068    -0.000026
-DEBUG: (function: runSpecific) FitDiagnostics.cc: 412 -- Fit S+B, status = 0, numBadNLL = 0, covariance quality = 3
-INFO: (function: getNormalizations) FitDiagnostics.cc: 777 -- Generating toy data for evaluating per-bin uncertainties and covariances with post-fit nuisance parameters with 200 toys
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 31/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 32/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 33/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 34/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 35/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 36/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 37/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 38/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 39/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 40/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 41/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 42/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 43/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 44/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 45/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 46/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 47/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 48/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 49/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 50/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 51/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 52/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 53/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 54/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 55/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 56/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 57/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 58/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 59/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 60/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 61/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 62/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 63/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 64/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 65/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 66/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 67/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 68/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 69/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 70/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 71/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 72/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 73/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 74/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 75/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 76/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 77/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 78/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 79/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 80/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 81/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 82/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 83/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 84/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 85/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 86/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 87/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 88/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 89/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 90/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 91/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 92/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 93/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 94/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 95/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 96/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 97/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 98/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 99/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
+INFO: (function: run) Combine.cc: 1054 -- Generating toy 100/100, from parameter values ... 
+INFO: (function: run) Combine.cc: 1058 -- CMS_channel = 0 
+INFO: (function: run) Combine.cc: 1058 -- CMS_th1x = 9.5 
+INFO: (function: run) Combine.cc: 1058 -- N_B2mu = 1000 
+INFO: (function: run) Combine.cc: 1058 -- r = 0.1 
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 195 -- Minimization success! status=0
+INFO: (function: improveOnce) CascadeMinimizer.cc: 167 -- Minimisation configured with Type=Minuit2, Algo=Migrad, strategy=1, tolerance=0.1
+INFO: (function: improveOnce) CascadeMinimizer.cc: 190 -- Minimisation finished with status=-1
+DEBUG: (function: improveOnce) CascadeMinimizer.cc: 196 -- Minimization ended with latest status != 0 or 1
