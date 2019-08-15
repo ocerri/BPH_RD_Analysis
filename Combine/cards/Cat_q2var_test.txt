@@ -1,0 +1,26 @@
+imax *
+jmax 1
+kmax *
+-------------------------------
+shapes * Est_mu_q2-0 ../data/_root/histos4combine/Cat_q2var_test_Est_mu_q2-0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2-1 ../data/_root/histos4combine/Cat_q2var_test_Est_mu_q2-1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2-2 ../data/_root/histos4combine/Cat_q2var_test_Est_mu_q2-2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2-3 ../data/_root/histos4combine/Cat_q2var_test_Est_mu_q2-3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2-0 ../data/_root/histos4combine/Cat_q2var_test_M2_miss_q2-0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2-1 ../data/_root/histos4combine/Cat_q2var_test_M2_miss_q2-1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2-2 ../data/_root/histos4combine/Cat_q2var_test_M2_miss_q2-2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2-3 ../data/_root/histos4combine/Cat_q2var_test_M2_miss_q2-3.root $PROCESS $PROCESS__$SYSTEMATIC
+-------------------------------
+bin Est_mu_q2-0 Est_mu_q2-1 Est_mu_q2-2 Est_mu_q2-3 M2_miss_q2-0 M2_miss_q2-1 M2_miss_q2-2 M2_miss_q2-3
+observation 344 1355 2223 1979 344 1355 2223 1979
+-------------------------------
+bin Est_mu_q2-0 Est_mu_q2-0 Est_mu_q2-1 Est_mu_q2-1 Est_mu_q2-2 Est_mu_q2-2 Est_mu_q2-3 Est_mu_q2-3 M2_miss_q2-0 M2_miss_q2-0 M2_miss_q2-1 M2_miss_q2-1 M2_miss_q2-2 M2_miss_q2-2 M2_miss_q2-3 M2_miss_q2-3
+process tau mu tau mu tau mu tau mu tau mu tau mu tau mu tau mu
+process 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1
+rate 0.0100236669915 0.0626846903489 0.0650146178477 0.253316567117 0.372267854657 0.381578120088 0.545036892663 0.289280100597 0.0100236669915 0.0626846903489 0.0650146178477 0.253316567117 0.372267854657 0.381578120088 0.545036892663 0.289280100597
+-------------------------------
+N_B2mu rateParam * tau 5000
+N_B2mu rateParam * mu 5000
+-------------------------------
+* autoMCStats 0 1 1
+-------------------------------

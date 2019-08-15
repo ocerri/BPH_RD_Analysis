@@ -5,13 +5,15 @@ kmax *
 shapes * cat1 ../data/_root/histos4combine_q2only_test.root $PROCESS $PROCESS__$SYSTEMATIC
 -------------------------------
 bin cat1
-observation 1167
+observation 5855
 -------------------------------
 bin cat1 cat1
 process tau mu
 process 0 1
 rate  1 1
 -------------------------------
-N_B2mu rateParam cat1 tau 1000
-N_B2mu rateParam cat1 mu 1000
+N_B2mu rateParam cat1 tau 5000
+N_B2mu rateParam cat1 mu 5000
+-------------------------------
+* autoMCStats 0 1 1
 -------------------------------
