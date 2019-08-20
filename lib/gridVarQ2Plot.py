@@ -53,7 +53,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic):
             h.GetXaxis().SetLabelSize(0.07)
             h.GetYaxis().SetTitleOffset(1.13)
             h.GetXaxis().SetTitleOffset(1.1)
-            h.GetYaxis().SetTitleSize(0.07)
+            h.GetYaxis().SetTitleSize(0.06)
             h.GetYaxis().SetLabelSize(0.07)
             iunits = xAx_title[vark].find('[') + 1
             h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(1)) + xAx_title[vark][iunits:-1])
@@ -95,7 +95,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic):
             CMS_lumi.CMS_lumi(pad, -1, 33, 0.75*1.5, 0.6*1.5)
 
             if i_pad == 1:
-                leg = rt.TLegend(0.65, 0.5, 0.9, 0.8)
+                leg = rt.TLegend(0.65, 0.4, 0.9, 0.7)
                 leg.SetTextFont(42)
                 leg.SetTextAlign(12)
                 leg.SetLineWidth(0)
