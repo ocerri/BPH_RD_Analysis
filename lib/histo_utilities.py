@@ -248,7 +248,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
     pad1.Draw()
     pad1.cd()
 
-    leg = rt.TLegend(0.6, 0.7, 0.9, 0.9)
+    leg = rt.TLegend(0.6, 0.5, 0.9, 0.7)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
     c_out.cd(1)
@@ -294,6 +294,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
             h.GetXaxis().SetLabelSize(0.12)
             h.GetXaxis().SetTickSize(0.07)
             h.SetYTitle('Ratio w/ {}'.format(tag[0]))
+            h.SetXTitle(h_list_in[0].GetXaxis().GetTitle())
             h.SetTitle("")
             h.DrawCopy(draw_opt)
 
