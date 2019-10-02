@@ -1,0 +1,3 @@
+pis_pt > 0.6 && pis_N_valid_hits>10 && pis_norm_chi2 < 3 && sigd_pis_PV > 2 && sigd_Ks_PV > 2 && Ks_N_valid_hits > 4 && Ks_pt > 1.5 && Ks_norm_chi2 < 3.
+
+Tevts->Draw("mass_DstKs>>h(30,5,5.8)","pis_pt > 0.6 && pis_N_valid_hits>10 && pis_norm_chi2 < 3 && sigd_pis_PV > 2 && sigd_Ks_PV > 2 && Ks_N_valid_hits > 4 && Ks_pt > 1.5 && Ks_norm_chi2 < 3.")

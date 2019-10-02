@@ -13,7 +13,7 @@ def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag=''):
 
     if dobj.__class__ == rt.RooPlot:
         dobj.Draw()
-    elif dobj[0].__class__ in [rt.TH1F, rt.TH1D, rt.TH2D]:
+    elif dobj[0].__class__ in [rt.TH1F, rt.TH1D, rt.TH2D, rt.TGraph, rt.TGraphAsymmErrors]:
         for i, o in enumerate(dobj):
             do = ''
             if not (opt is None):
@@ -40,10 +40,13 @@ def extarct(t, branches = []):
         branches = t.keys()
     l = {}
     for k in branches:
-        print 'Loading branch', k
+#         print 'Loading branch', k
         m = []
         for i, e in enumerate(t.array(k)):
-            m += list(e)
+            if e.__class__ == np.float32:
+                m += [e]
+            else:
+                m += list(e)
         l[k] = np.array(m)
 
     return l
