@@ -29,6 +29,7 @@ lumi_13TeV = "20.1 fb^{-1}"
 lumi_8TeV  = "19.7 fb^{-1}"
 lumi_7TeV  = "5.1 fb^{-1}"
 lumi_sqrtS = ""
+integrated_lumi= 0
 
 drawLogo      = False
 
@@ -55,38 +56,43 @@ def CMS_lumi(pad, iPeriod, iPosX, cmsTextSize=cmsTextSize, lumiTextSize=lumiText
 
     pad.cd()
 
-    lumiText = ""
-    if( iPeriod==1 ):
-        lumiText += lumi_7TeV
-        lumiText += " (7 TeV)"
-    elif ( iPeriod==2 ):
-        lumiText += lumi_8TeV
-        lumiText += " (8 TeV)"
+    lumiText = ''
+    if integrated_lumi:
+        lumiText = '{:.1f}'.format(integrated_lumi) + ' fb^{-1} (13 TeV)'
+        if( outOfFrame ):
+            lumiText = '#scale[0.85]{' + lumiText + '}'
+    else:
+        if( iPeriod==1 ):
+            lumiText += lumi_7TeV
+            lumiText += " (7 TeV)"
+        elif ( iPeriod==2 ):
+            lumiText += lumi_8TeV
+            lumiText += " (8 TeV)"
 
-    elif( iPeriod==3 ):
-        lumiText = lumi_8TeV
-        lumiText += " (8 TeV)"
-        lumiText += " + "
-        lumiText += lumi_7TeV
-        lumiText += " (7 TeV)"
-    elif ( iPeriod==4 ):
-        lumiText += lumi_13TeV
-        lumiText += " (13 TeV)"
-    elif ( iPeriod==7 ):
-        if( outOfFrame ):lumiText += "#scale[0.85]{"
-        lumiText += lumi_13TeV
-        lumiText += " (13 TeV)"
-        lumiText += " + "
-        lumiText += lumi_8TeV
-        lumiText += " (8 TeV)"
-        lumiText += " + "
-        lumiText += lumi_7TeV
-        lumiText += " (7 TeV)"
-        if( outOfFrame): lumiText += "}"
-    elif ( iPeriod==12 ):
-        lumiText += "8 TeV"
-    elif ( iPeriod==0 ):
-        lumiText += lumi_sqrtS
+        elif( iPeriod==3 ):
+            lumiText = lumi_8TeV
+            lumiText += " (8 TeV)"
+            lumiText += " + "
+            lumiText += lumi_7TeV
+            lumiText += " (7 TeV)"
+        elif ( iPeriod==4 ):
+            lumiText += lumi_13TeV
+            lumiText += " (13 TeV)"
+        elif ( iPeriod==7 ):
+            if( outOfFrame ):lumiText += "#scale[0.85]{"
+            lumiText += lumi_13TeV
+            lumiText += " (13 TeV)"
+            lumiText += " + "
+            lumiText += lumi_8TeV
+            lumiText += " (8 TeV)"
+            lumiText += " + "
+            lumiText += lumi_7TeV
+            lumiText += " (7 TeV)"
+            if( outOfFrame): lumiText += "}"
+        elif ( iPeriod==12 ):
+            lumiText += "8 TeV"
+        elif ( iPeriod==0 ):
+            lumiText += lumi_sqrtS
 
     if lumiText:
         print lumiText
