@@ -57,8 +57,11 @@ def extarct_multiple(fname, branches = [], flag=''):
     l = {}
     for b in branches:
         l[b] = []
-
-    flist = glob(fname)
+    
+    if not isinstance(fname, list):
+        flist = glob(fname)
+    else:
+        flist = fname
 
     for i,f in enumerate(flist):
         t = ur.open(f)
