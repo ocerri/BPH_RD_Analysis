@@ -53,7 +53,8 @@ def EstimateDispersion(aux, w=None):
 def create_TH1D(x, name='h', title=None, binning=[None, None, None], weights=None, h2clone=None, axis_title = ['',''], opt=''):
     if title is None:
         title = name
-    if (x.shape[0] == 0):
+    
+    if (x.shape[0] == 0 and np.sum([b is None for b in binning])):
         print 'Empty sample'
         h = rt.TH1D(name, title, 1, 0, 1)
     elif not h2clone is None:
@@ -167,7 +168,7 @@ def create_prof1D(x, y, name='h', title=None, binning=[None, None, None], h2clon
 def create_TH2D(sample, name='h', title=None, binning=[None, None, None, None, None, None], weights=None, axis_title = ['','', '']):
     if title is None:
         title = name
-    if (sample.shape[0] == 0):
+    if (sample.shape[0] == 0 and np.sum([b is None for b in binning])):
         print 'Empty sample'
         h = rt.TH2D(name, title, 1, 0, 1, 1, 0, 1)
     elif len(binning) == 2:
