@@ -1,7 +1,7 @@
 import os
 
 def getLumiReport(datasets_loc):
-    prescale = {'A':1./6., 'B':1./6., 'C':1./6., 'D':1./3.}
+    prescale = {'A':1./6., 'B':1./6., 'C':1./6., 'D':1./5.}
     lumi_max = 40.9907935037
     
     lumi_dic = {'A':{}, 'B':{}, 'C':{}, 'D':{}}
