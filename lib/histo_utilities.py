@@ -230,7 +230,7 @@ def rootTH2_to_np(h, cut = None, Norm = False):
             pos[iy, ix] = [x,y]
     return arr, pos
 
-def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bounds = [0.1, 4], draw_opt = 'E1'):
+def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bounds = [0.1, 4], draw_opt = 'E1', leg_pos=[0.7,0.8,0.9,0.95]):
     h_list = []
     if in_tags == None:
         tag = []
@@ -249,7 +249,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
     pad1.Draw()
     pad1.cd()
 
-    leg = rt.TLegend(0.6, 0.5, 0.9, 0.7)
+    leg = rt.TLegend(leg_pos[0], leg_pos[1], leg_pos[2], leg_pos[3])
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
     c_out.cd(1)
@@ -258,7 +258,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
         if i == 0:
             h.GetXaxis().SetLabelSize(0)
             h.GetXaxis().SetTitle("")
-            h.GetYaxis().SetRangeUser(0, 1.05*max(map(lambda x: x.GetMaximum(), h_list)))
+            h.GetYaxis().SetRangeUser(0, 1.1*max(map(lambda x: x.GetMaximum(), h_list)))
             h.GetYaxis().SetTitleOffset(1.5)
             h.GetYaxis().SetTitleSize(0.05)
             h.GetYaxis().SetLabelSize(0.05)
