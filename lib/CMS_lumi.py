@@ -93,20 +93,17 @@ def CMS_lumi(pad, iPeriod, iPosX, cmsTextSize=cmsTextSize, lumiTextSize=lumiText
             lumiText += "8 TeV"
         elif ( iPeriod==0 ):
             lumiText += lumi_sqrtS
-
-
+    
     latex = rt.TLatex()
     latex.SetNDC()
     latex.SetTextAngle(0)
     latex.SetTextColor(rt.kBlack)
-
     extraTextSize = extraOverCmsTextSize*cmsTextSize
-
     latex.SetTextFont(42)
     latex.SetTextAlign(31)
-    latex.SetTextSize(lumiTextSize*t)
     
-    latex.DrawLatex(0.87*(1-r),1-t+lumiTextOffset*t,lumiText)
+    latex.SetTextSize(lumiTextSize*t)
+    latex.DrawLatex(1-r,1-t+lumiTextOffset*t,lumiText)
 
     if( outOfFrame ):
         latex.SetTextFont(cmsTextFont)

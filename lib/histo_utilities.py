@@ -286,6 +286,8 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
     ln.SetLineColor(h_list_in[0].GetLineColor())
     ln.SetLineStyle(7)
     ln.DrawLine(h.GetXaxis().GetXmin(), 1, h.GetXaxis().GetXmax(), 1)
+    
+    hratio_list = [None]
 
     for i, h in enumerate(h_list):
         if i == 0:
@@ -309,6 +311,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
         else:
             h.Divide(h_list[0])
             h.DrawCopy("same"+draw_opt)
+            hratio_list.append(h)
 
 
     pad2.Update()
@@ -316,6 +319,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
     c_out.pad1 = pad1
     c_out.pad2 = pad2
     c_out.h_list = h_list
+    c_out.hratio_list = hratio_list
     c_out.leg = leg
 
     return c_out
