@@ -318,6 +318,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
 
     c_out.pad1 = pad1
     c_out.pad2 = pad2
+    c_out.ln = ln
     c_out.h_list = h_list
     c_out.hratio_list = hratio_list
     c_out.leg = leg

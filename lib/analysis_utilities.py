@@ -13,7 +13,7 @@ def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag=''):
 
     if dobj.__class__ == rt.RooPlot:
         dobj.Draw()
-    elif dobj[0].__class__ in [rt.TH1F, rt.TH1D, rt.TH2D, rt.TGraph, rt.TGraphAsymmErrors]:
+    elif dobj[0].__class__ in [rt.TH1F, rt.TH1D, rt.TH2D, rt.TGraph, rt.TGraphErrors, rt.TGraphAsymmErrors]:
         for i, o in enumerate(dobj):
             do = ''
             if not (opt is None):
