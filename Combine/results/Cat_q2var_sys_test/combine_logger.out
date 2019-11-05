@@ -1,0 +1,1 @@
+INFO: (function: applyOptionsBase) FitterAlgoBase.cc: 112 -- Setting robust fit options to Tolerance=0.1 / Strategy=0 / Type,Algo=Minuit2,Migrad (note that defaults of CascadeMinimizer were taken where option not specified)

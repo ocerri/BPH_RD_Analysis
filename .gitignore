@@ -5,3 +5,4 @@ data/_root
 */.sys.v*
 */*/.sys.v*
 *.root
+*.pyc
