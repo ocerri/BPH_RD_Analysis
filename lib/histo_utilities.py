@@ -50,7 +50,15 @@ def EstimateDispersion(aux, w=None):
     disp_unc = 0.5*np.hypot(e_up, e_dwn)
     return disp_est, disp_unc
 
-def create_TH1D(x, name='h', title=None, binning=[None, None, None], weights=None, h2clone=None, axis_title = ['',''], opt=''):
+def create_TH1D(x, name='h', title=None, 
+                binning=[None, None, None], 
+                weights=None, 
+                h2clone=None, 
+                axis_title = ['',''], 
+                opt='',
+                scale_histo=None,
+                minEmptyBins=None
+               ):
     if title is None:
         title = name
     
@@ -94,6 +102,14 @@ def create_TH1D(x, name='h', title=None, binning=[None, None, None], weights=Non
         x[x>M] = M
 
     rtnp.fill_hist(h, x, weights=weights)
+    if not scale_histo is None:
+        h.Scale(scale_histo)
+        
+    if not minEmptyBins is None:
+        for i in range(1, h.GetNbinsX()+1):
+            if h.GetBinContent(i) == 0:
+                h.SetBinContent(i, minEmptyBins)
+    
     h.SetXTitle(axis_title[0])
     h.SetYTitle(axis_title[1])
     h.binning = binning

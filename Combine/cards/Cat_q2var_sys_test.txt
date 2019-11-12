@@ -12,15 +12,15 @@ shapes * M2_miss_q2-2 ../data/_root/histos4combine/Cat_q2var_sys_test_M2_miss_q2
 shapes * M2_miss_q2-3 ../data/_root/histos4combine/Cat_q2var_sys_test_M2_miss_q2-3.root $PROCESS $PROCESS__$SYSTEMATIC
 -------------------------------
 bin Est_mu_q2-0 Est_mu_q2-1 Est_mu_q2-2 Est_mu_q2-3 M2_miss_q2-0 M2_miss_q2-1 M2_miss_q2-2 M2_miss_q2-3
-observation 345 1862 2329 909 345 1862 2329 909
+observation 6912 31841 42192 18160 6912 31841 42192 18160
 -------------------------------
 bin Est_mu_q2-0 Est_mu_q2-0 Est_mu_q2-1 Est_mu_q2-1 Est_mu_q2-2 Est_mu_q2-2 Est_mu_q2-3 Est_mu_q2-3 M2_miss_q2-0 M2_miss_q2-0 M2_miss_q2-1 M2_miss_q2-1 M2_miss_q2-2 M2_miss_q2-2 M2_miss_q2-3 M2_miss_q2-3
 process tau mu tau mu tau mu tau mu tau mu tau mu tau mu tau mu
 process 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1
-rate 0.00337538039344 0.0722323755933 0.0650505313678 0.374774132419 0.53774402463 0.397555718104 0.389840502397 0.148643181664 0.00337538039344 0.0722323755933 0.0650505313678 0.374774132419 0.53774402463 0.397555718104 0.389840502397 0.148643181664
+rate 0.00467264266063 0.0725611354288 0.0662678566154 0.37903549031 0.545374786524 0.400441039956 0.3836847142 0.147962334305 0.00467264266063 0.0725611354288 0.0662678566154 0.37903549031 0.545374786524 0.400441039956 0.3836847142 0.147962334305
 -------------------------------
-N_B2mu rateParam * tau 5000
-N_B2mu rateParam * mu 5000
+N_B2mu rateParam * tau 82587.5
+N_B2mu rateParam * mu 82587.5
 -------------------------------
 B0pT lnN 1.50 1.50 1.50 1.50 1.50 1.50 1.50 1.50 1.50 1.50 1.50 1.50 1.50 1.50 1.50 1.50
 * autoMCStats 10 1 1

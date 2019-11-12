@@ -8,7 +8,7 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import tdrstyle
 tdrstyle.setTDRStyle()
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic):
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4):
     canvas = rt.TCanvas('c_out', 'c_out', 50, 50, 2*600, 400*binning['q2'][0])
     canvas.SetTickx(0)
     canvas.SetTicky(0)
@@ -44,6 +44,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic):
             h_dic = histo[cat_name]
 
             h = h_dic['data'].Clone('h_aux_data_'+cat_name)
+            if 'data' in scale_dic.keys(): h.Scale(scale_dic['data'])
             h.SetLineColor(1)
             h.SetLineWidth(1)
             h.SetMarkerColor(1)
@@ -57,17 +58,20 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic):
             h.GetYaxis().SetLabelSize(0.07)
             iunits = xAx_title[vark].find('[') + 1
             h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(1)) + xAx_title[vark][iunits:-1])
-            h.GetYaxis().SetRangeUser(0, max_entries[vark]*1.2)
-
+            max_y = max_entries[vark]*1.2
+            if 'data' in scale_dic.keys(): 
+                max_y *= scale_dic['data']
+            h.GetYaxis().SetRangeUser(min_y, max_y)
+            
             h_tau = h_dic['tau'].Clone('h_aux_tau_'+cat_name)
-            h_tau.Scale(scale_dic['tau'])
+            if 'tau' in scale_dic.keys(): h_tau.Scale(scale_dic['tau'])
             h_tau.SetLineWidth(0)
             h_tau.SetFillColor(rt.kRed-4)
             h_tau.SetFillStyle(1)
             h_tau.Sumw2(0)
 
             h_mu = h_dic['mu'].Clone('h_aux_mu_'+cat_name)
-            h_mu.Scale(scale_dic['mu'])
+            if 'mu' in scale_dic.keys(): h_mu.Scale(scale_dic['mu'])
             h_mu.Add(h_tau)
             h_mu.SetLineWidth(0)
             h_mu.SetFillColor(rt.kAzure+1)
