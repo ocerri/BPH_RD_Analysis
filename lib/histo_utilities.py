@@ -2,15 +2,17 @@ import numpy as np
 import ROOT as rt
 import root_numpy as rtnp
 import matplotlib.pyplot as plt
+from array import array
 
 std_color_list = [1, 2, 4, 8, 6, 28, 43, 7, 25]
 
-def SetMaxToMaxHist(hlist):
+def SetMaxToMaxHist(hlist, f=1.1):
     m = []
     for h in hlist:
         m.append(h.GetMaximum())
 
-    hlist[0].SetMaximum(1.05*max(m))
+    hlist[0].SetMaximum(f*max(m))
+    return f*max(m)
 
 def quantile(a, p, weight=None, f=None):
     if a.shape[0] == 0:
@@ -69,7 +71,7 @@ def create_TH1D(x, name='h', title=None,
         h = h2clone.Clone(name)
         h.SetTitle(title)
         h.Reset()
-    elif isinstance(binning, np.ndarray):
+    elif isinstance(binning, np.ndarray) or isinstance(binning, array):
         h = rt.TH1D(name, title, len(binning)-1, binning)
     elif len(binning) == 3:
         if binning[1] is None:
