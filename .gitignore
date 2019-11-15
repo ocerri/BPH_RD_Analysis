@@ -10,3 +10,4 @@ data/_root
 *.root
 *.pyc
 .ipynb_checkpoints
+Combine/results/*
