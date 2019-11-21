@@ -64,19 +64,22 @@ def extarct_multiple(fname, branches = [], flag=''):
         flist = fname
 
     for i,f in enumerate(flist):
-        t = ur.open(f)
-        if 'outA;1' in t.keys():
-            t=t['outA']['Tevts']
-            for k in branches:
-                if flag=='data' and k[:2] == 'MC':
-                    continue
-                if not (k in t.keys()):
-                    continue
-                for i, e in enumerate(t.array(k)):
-                    try:
-                        l[k] += list(e)
-                    except:
-                        l[k] += [e]
+        try:
+            t = ur.open(f)
+            if 'outA;1' in t.keys():
+                t=t['outA']['Tevts']
+                for k in branches:
+                    if flag=='data' and k[:2] == 'MC':
+                        continue
+                    if not (k in t.keys()):
+                        continue
+                    for i, e in enumerate(t.array(k)):
+                        try:
+                            l[k] += list(e)
+                        except:
+                            l[k] += [e]
+        except:
+            print 'Error in file:', f
 
     for b in branches:
         l[b] = np.array(l[b])
