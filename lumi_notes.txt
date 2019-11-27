@@ -3,3 +3,4 @@ https://cms-service-lumi.web.cern.ch/cms-service-lumi/brilwsdoc.html
 
 export PATH=$HOME/.local/bin:/cvmfs/cms-bril.cern.ch/brilconda/bin:$PATH
 brilcalc lumi -u /fb --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -i /afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions18/13TeV/ReReco/Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt --hltpath HLT_Mu?_IP?\* --byls -o test_lumi.csv
+brilcalc lumi -u /fb --precision 2f --normtag /cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_PHYSICS.json -i processedLumis.json --hltpath HLT_Mu\*_IP?_part0_v?
