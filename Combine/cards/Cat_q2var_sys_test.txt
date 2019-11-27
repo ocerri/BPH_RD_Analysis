@@ -1,26 +1,28 @@
 imax *
-jmax 1
+jmax 2
 kmax *
 -------------------------------
-shapes * Est_mu_q2-0 ../data/_root/histos4combine/Cat_q2var_sys_test_Est_mu_q2-0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Est_mu_q2-1 ../data/_root/histos4combine/Cat_q2var_sys_test_Est_mu_q2-1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Est_mu_q2-2 ../data/_root/histos4combine/Cat_q2var_sys_test_Est_mu_q2-2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Est_mu_q2-3 ../data/_root/histos4combine/Cat_q2var_sys_test_Est_mu_q2-3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2-0 ../data/_root/histos4combine/Cat_q2var_sys_test_M2_miss_q2-0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2-1 ../data/_root/histos4combine/Cat_q2var_sys_test_M2_miss_q2-1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2-2 ../data/_root/histos4combine/Cat_q2var_sys_test_M2_miss_q2-2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2-3 ../data/_root/histos4combine/Cat_q2var_sys_test_M2_miss_q2-3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin0 ../data/_root/histos4combine/Cat_q2var_sys_test_Est_mu_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin1 ../data/_root/histos4combine/Cat_q2var_sys_test_Est_mu_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin2 ../data/_root/histos4combine/Cat_q2var_sys_test_Est_mu_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin3 ../data/_root/histos4combine/Cat_q2var_sys_test_Est_mu_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin0 ../data/_root/histos4combine/Cat_q2var_sys_test_M2_miss_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin1 ../data/_root/histos4combine/Cat_q2var_sys_test_M2_miss_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin2 ../data/_root/histos4combine/Cat_q2var_sys_test_M2_miss_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin3 ../data/_root/histos4combine/Cat_q2var_sys_test_M2_miss_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
 -------------------------------
-bin Est_mu_q2-0 Est_mu_q2-1 Est_mu_q2-2 Est_mu_q2-3 M2_miss_q2-0 M2_miss_q2-1 M2_miss_q2-2 M2_miss_q2-3
-observation 361 1986 2369 890 361 1986 2369 890
+bin Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin3 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin3
+observation 3737 10839 11162 14216 3738 10840 11163 14216
 -------------------------------
-bin Est_mu_q2-0 Est_mu_q2-0 Est_mu_q2-1 Est_mu_q2-1 Est_mu_q2-2 Est_mu_q2-2 Est_mu_q2-3 Est_mu_q2-3 M2_miss_q2-0 M2_miss_q2-0 M2_miss_q2-1 M2_miss_q2-1 M2_miss_q2-2 M2_miss_q2-2 M2_miss_q2-3 M2_miss_q2-3
-process tau mu tau mu tau mu tau mu tau mu tau mu tau mu tau mu
-process 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1
-rate 0.0 0.0724908452283 0.0845771144279 0.379269112921 0.567164179104 0.398400717435 0.3407960199 0.143636499514 0.0 0.0724908452283 0.0845771144279 0.379269112921 0.567164179104 0.398400717435 0.3407960199 0.143636499514
+bin Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3
+process tau mu Hc tau mu Hc tau mu Hc tau mu Hc tau mu Hc tau mu Hc tau mu Hc tau mu Hc
+process 0 1 2 0 1 2 0 1 2 0 1 2 0 1 2 0 1 2 0 1 2 0 1 2
+rate 0.00303814831179 0.102011758022 0.0131250097255 0.0493422148585 0.297003438599 0.191379858404 0.258649378767 0.278276221852 0.374267417326 0.688970258062 0.322708581527 0.421227714544 0.00303814831179 0.102011758022 0.0131250097255 0.0493422148585 0.297003438599 0.191379858404 0.258649378767 0.278276221852 0.374267417326 0.688970258062 0.322708581527 0.421227714544
 -------------------------------
-N_B2mu rateParam * tau 5000
-N_B2mu rateParam * mu 5000
+N_B2mu rateParam * tau 36040.0 [0,47945]
+N_B2mu rateParam * mu 36040.0 [0,47945]
+N_B2DstHc rateParam * Hc 669.3 [0,47945]
 -------------------------------
-* autoMCStats 10 1 1
+B0pT shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+* autoMCStats 0 1 1
 -------------------------------

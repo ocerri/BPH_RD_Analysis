@@ -2,15 +2,17 @@ import numpy as np
 import ROOT as rt
 import root_numpy as rtnp
 import matplotlib.pyplot as plt
+from array import array
 
 std_color_list = [1, 2, 4, 8, 6, 28, 43, 7, 25]
 
-def SetMaxToMaxHist(hlist):
+def SetMaxToMaxHist(hlist, f=1.1):
     m = []
     for h in hlist:
         m.append(h.GetMaximum())
 
-    hlist[0].SetMaximum(1.05*max(m))
+    hlist[0].SetMaximum(f*max(m))
+    return f*max(m)
 
 def quantile(a, p, weight=None, f=None):
     if a.shape[0] == 0:
@@ -50,7 +52,15 @@ def EstimateDispersion(aux, w=None):
     disp_unc = 0.5*np.hypot(e_up, e_dwn)
     return disp_est, disp_unc
 
-def create_TH1D(x, name='h', title=None, binning=[None, None, None], weights=None, h2clone=None, axis_title = ['',''], opt=''):
+def create_TH1D(x, name='h', title=None, 
+                binning=[None, None, None], 
+                weights=None, 
+                h2clone=None, 
+                axis_title = ['',''], 
+                opt='',
+                scale_histo=None,
+                minEmptyBins=None
+               ):
     if title is None:
         title = name
     
@@ -61,7 +71,7 @@ def create_TH1D(x, name='h', title=None, binning=[None, None, None], weights=Non
         h = h2clone.Clone(name)
         h.SetTitle(title)
         h.Reset()
-    elif isinstance(binning, np.ndarray):
+    elif isinstance(binning, np.ndarray) or isinstance(binning, array):
         h = rt.TH1D(name, title, len(binning)-1, binning)
     elif len(binning) == 3:
         if binning[1] is None:
@@ -94,6 +104,14 @@ def create_TH1D(x, name='h', title=None, binning=[None, None, None], weights=Non
         x[x>M] = M
 
     rtnp.fill_hist(h, x, weights=weights)
+    if not scale_histo is None:
+        h.Scale(scale_histo)
+        
+    if not minEmptyBins is None:
+        for i in range(1, h.GetNbinsX()+1):
+            if h.GetBinContent(i) == 0:
+                h.SetBinContent(i, minEmptyBins)
+    
     h.SetXTitle(axis_title[0])
     h.SetYTitle(axis_title[1])
     h.binning = binning

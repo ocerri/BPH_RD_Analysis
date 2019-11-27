@@ -1,0 +1,24 @@
+Running and saving the best-fit snapshot:
+combine -M MultiDimFit --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 --saveWorkspace -n _myanalysis_bestfit -v9 myanalysis.ws.root &> logs/myanalysis_bestfit.log
+Profiling with [bgexp] group of nuisances frozen to best-fit values:
+combine -M MaxLikelihoodFit --freezeNuisanceGroups bgexp        --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 -d higgsCombine_myanalysis_bestfit.MultiDimFit.mH120.root -w w --snapshotName "MultiDimFit" -n _frozen_bgexp -v9 &> logs/frozen_bgexp.log
+Profiling with [exp] group of nuisances frozen to best-fit values:
+combine -M MaxLikelihoodFit --freezeNuisanceGroups exp        --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 -d higgsCombine_myanalysis_bestfit.MultiDimFit.mH120.root -w w --snapshotName "MultiDimFit" -n _frozen_exp -v9 &> logs/frozen_exp.log
+Profiling with [sigtheo] group of nuisances frozen to best-fit values:
+combine -M MaxLikelihoodFit --freezeNuisanceGroups sigtheo        --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 -d higgsCombine_myanalysis_bestfit.MultiDimFit.mH120.root -w w --snapshotName "MultiDimFit" -n _frozen_sigtheo -v9 &> logs/frozen_sigtheo.log
+Profiling with [bgtheo] group of nuisances frozen to best-fit values:
+combine -M MaxLikelihoodFit --freezeNuisanceGroups bgtheo        --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 -d higgsCombine_myanalysis_bestfit.MultiDimFit.mH120.root -w w --snapshotName "MultiDimFit" -n _frozen_bgtheo -v9 &> logs/frozen_bgtheo.log
+Profiling with [theo] group of nuisances frozen to best-fit values:
+combine -M MaxLikelihoodFit --freezeNuisanceGroups theo        --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 -d higgsCombine_myanalysis_bestfit.MultiDimFit.mH120.root -w w --snapshotName "MultiDimFit" -n _frozen_theo -v9 &> logs/frozen_theo.log
+Profiling with [bg] group of nuisances frozen to best-fit values:
+combine -M MaxLikelihoodFit --freezeNuisanceGroups bg        --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 -d higgsCombine_myanalysis_bestfit.MultiDimFit.mH120.root -w w --snapshotName "MultiDimFit" -n _frozen_bg -v9 &> logs/frozen_bg.log
+Profiling with all nuisances frozen to best-fit values:
+#TODO --profilingMode none is not working?
+combine -M MaxLikelihoodFit --freezeNuisanceGroups exp,theo  --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 -d higgsCombine_myanalysis_bestfit.MultiDimFit.mH120.root -w w --snapshotName "MultiDimFit" -n _frozen_all -v9 &> logs/frozen_all.log
+Profiling with no nuisances frozen:
+combine -M MaxLikelihoodFit                                  --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 -d higgsCombine_myanalysis_bestfit.MultiDimFit.mH120.root -w w --snapshotName "MultiDimFit" -n _frozen_none -v9 &> logs/frozen_none.log
+Profiling with all nuisances frozen (and not using the snapshot, so frozen to default values):
+#TODO --profilingMode none is not working?
+combine -M MaxLikelihoodFit --freezeNuisanceGroups exp,theo  --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 myanalysis.ws.root                                      -n _frozen_all_mlf -v9 &> logs/frozen_all_mlf.log
+Profiling with no nuisances frozen (and not using the snapshot):
+combine -M MaxLikelihoodFit                                  --robustFit 1 --minimizerTolerance 0.00000001 --minimizerStrategy 2 myanalysis.ws.root                                      -n _frozen_none_mlf -v9 &> logs/frozen_none_mlf.log
