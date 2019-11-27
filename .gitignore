@@ -9,3 +9,4 @@ data/_root
 */*/.sys.v*
 *.root
 *.pyc
+tmp
