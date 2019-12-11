@@ -1,0 +1,36 @@
+imax *
+jmax 3
+kmax *
+--------------------------------------------------------------
+shapes * Est_mu_q2bin0 ../data/_root/histos4combine/v4_Est_mu_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin1 ../data/_root/histos4combine/v4_Est_mu_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin2 ../data/_root/histos4combine/v4_Est_mu_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin3 ../data/_root/histos4combine/v4_Est_mu_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin0 ../data/_root/histos4combine/v4_M2_miss_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin1 ../data/_root/histos4combine/v4_M2_miss_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin2 ../data/_root/histos4combine/v4_M2_miss_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin3 ../data/_root/histos4combine/v4_M2_miss_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+--------------------------------------------------------------
+bin Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin3 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin3
+observation 3607 9990 10248 13482 3607 9990 10247 13482
+--------------------------------------------------------------
+bin Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3
+process tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst
+process 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3
+rate 0.0090 0.1016 0.0262 0.0413 0.0534 0.2768 0.2389 0.2298 0.2373 0.2683 0.4154 0.3156 0.7003 0.3534 0.3195 0.4133 0.0090 0.1016 0.0262 0.0413 0.0534 0.2768 0.2389 0.2298 0.2373 0.2683 0.4154 0.3156 0.7003 0.3534 0.3195 0.4133
+--------------------------------------------------------------
+N_B2mu rateParam * tau 35363.3 [0,44792]
+N_B2mu rateParam * mu 35363.3 [0,44792]
+N_B2DstHc rateParam * Hc 191.6 [0,44792]
+N_B2Dstst rateParam * Dstst 658.5 [0,44792]
+--------------------------------------------------------------
+B0pT shape 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. -
+B2DstCLNR0 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+B2DstCLNR1 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+B2DstCLNR2 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+B2DstCLNRhoSq shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+* autoMCStats 0 1 1
+--------------------------------------------------------------
+B2DstFF group = B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq
+bkgMC_norm group = N_B2DstHc N_B2Dstst
+all_card group = N_B2mu N_B2DstHc N_B2Dstst B0pT

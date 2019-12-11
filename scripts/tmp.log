@@ -1,0 +1,50 @@
+ |                                                                                                                 | 
+ |  times   message                                                                                                | 
+ |                                                                                                                 | 
+ |    983   Error in BeamRemnants::setKinematics: kinematics construction failed                                   | 
+ |    115   Error in Pythia::next: hadronLevel failed; try again                                                   | 
+ |    558   Error in SpaceShower::pT2nearThreshold: stuck in loop                                                  | 
+ |     66   Error in SpaceShower::pT2nearThreshold: xPDF = 0                                                       | 
+ |    109   Error in StringFragmentation::fragment: stuck in joining                                               | 
+ |      6   Error in StringFragmentation::fragmentToJunction: caught in junction flavour loop                      | 
+ |     24   Warning in MultipartonInteractions::pTnext: weight above unity                                         | 
+ |     16   Warning in PhaseSpace2to2tauyz::finalKin: failed after mass assignment                                 | 
+ |     36   Warning in Pythia::check: energy-momentum not quite conserved                                          | 
+ |    159   Warning in Pythia::check: not quite matched particle energy/momentum/mass                              | 
+ | 302122   Warning in SpaceShower::pT2nextQCD: small daughter PDF                                                 | 
+ | 126376   Warning in SpaceShower::pT2nextQCD: weight above unity                                                 | 
+ |    429   Warning in StringFragmentation::fragmentToJunction: bad convergence junction rest frame                | 
+ |                                                                                                                 | 
+ *-------  End PYTHIA Error and Warning Messages Statistics  ------------------------------------------------------* 
+
+------------------------------------
+GenXsecAnalyzer:
+------------------------------------
+Before Filter: total cross section = 1.489e+08 +- 1.308e+05 pb
+Filter efficiency (taking into account weights)= (145) / (300000) = 4.833e-04 +- 4.013e-05
+Filter efficiency (event-level)= (145) / (300000) = 4.833e-04 +- 4.013e-05    [TO BE USED IN MCM]
+
+After filter: final cross section = 7.195e+04 +- 5.974e+03 pb
+After filter: final fraction of events with negative weights = 0.000e+00 +- 0.000e+00
+After filter: final equivalent lumi for 1M events (1/fb) = 1.390e-02 +- 1.604e-05
+
+=============================================
+
+MessageLogger Summary
+
+ type     category        sev    module        subroutine        count    total
+ ---- -------------------- -- ---------------- ----------------  -----    -----
+    1 DataNotUnderstood    -w Pythia8Generator                      34       34
+    2 GenXSecAnalyzer      -w GenXSecAnalyzer:                       7        7
+
+ type    category    Examples: run/evt        run/evt          run/evt
+ ---- -------------------- ---------------- ---------------- ----------------
+    1 DataNotUnderstood    Run: 1 Lumi: 1   Run: 1 Lumi: 1   Run: 1 Lumi: 1
+    2 GenXSecAnalyzer      PostGlobalEndRun PostGlobalEndRun PostGlobalEndRun
+
+Severity    # Occurrences   Total Occurrences
+--------    -------------   -----------------
+Warning                41                  41
+
+dropped waiting message count 0
+At post, CPU service is NOT available.
