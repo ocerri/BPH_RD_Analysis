@@ -8,7 +8,7 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import tdrstyle
 tdrstyle.setTDRStyle()
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=False, logy=False):
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False):
     col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'Dstst': rt.kViolet-7}
     
     canvas = rt.TCanvas('c_out', 'c_out', 50, 50, 2*600, 400*len(binning['q2'])-1)
@@ -181,7 +181,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                 g_up.SetPoint(2*i+1, x_up, 1)
                 g_down.SetPoint(2*i+1, x_up, 1)
                 
-                h_dr.GetYaxis().SetRangeUser(0.7, 1.3)
+                h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
                 h_dr.GetYaxis().SetTitleOffset(0.35)
                 h_dr.GetYaxis().SetTitleSize(0.2)
                 h_dr.GetYaxis().SetLabelSize(0.2)

@@ -1,32 +1,32 @@
  |                                                                                                                 | 
  |  times   message                                                                                                | 
  |                                                                                                                 | 
- |    983   Error in BeamRemnants::setKinematics: kinematics construction failed                                   | 
- |    115   Error in Pythia::next: hadronLevel failed; try again                                                   | 
- |    558   Error in SpaceShower::pT2nearThreshold: stuck in loop                                                  | 
- |     66   Error in SpaceShower::pT2nearThreshold: xPDF = 0                                                       | 
- |    109   Error in StringFragmentation::fragment: stuck in joining                                               | 
- |      6   Error in StringFragmentation::fragmentToJunction: caught in junction flavour loop                      | 
+ |    989   Error in BeamRemnants::setKinematics: kinematics construction failed                                   | 
+ |    140   Error in Pythia::next: hadronLevel failed; try again                                                   | 
+ |    621   Error in SpaceShower::pT2nearThreshold: stuck in loop                                                  | 
+ |     36   Error in SpaceShower::pT2nearThreshold: xPDF = 0                                                       | 
+ |    136   Error in StringFragmentation::fragment: stuck in joining                                               | 
+ |      4   Error in StringFragmentation::fragmentToJunction: caught in junction flavour loop                      | 
  |     24   Warning in MultipartonInteractions::pTnext: weight above unity                                         | 
- |     16   Warning in PhaseSpace2to2tauyz::finalKin: failed after mass assignment                                 | 
- |     36   Warning in Pythia::check: energy-momentum not quite conserved                                          | 
- |    159   Warning in Pythia::check: not quite matched particle energy/momentum/mass                              | 
- | 302122   Warning in SpaceShower::pT2nextQCD: small daughter PDF                                                 | 
- | 126376   Warning in SpaceShower::pT2nextQCD: weight above unity                                                 | 
- |    429   Warning in StringFragmentation::fragmentToJunction: bad convergence junction rest frame                | 
+ |     15   Warning in PhaseSpace2to2tauyz::finalKin: failed after mass assignment                                 | 
+ |     31   Warning in Pythia::check: energy-momentum not quite conserved                                          | 
+ |    129   Warning in Pythia::check: not quite matched particle energy/momentum/mass                              | 
+ | 307220   Warning in SpaceShower::pT2nextQCD: small daughter PDF                                                 | 
+ | 127247   Warning in SpaceShower::pT2nextQCD: weight above unity                                                 | 
+ |    398   Warning in StringFragmentation::fragmentToJunction: bad convergence junction rest frame                | 
  |                                                                                                                 | 
  *-------  End PYTHIA Error and Warning Messages Statistics  ------------------------------------------------------* 
 
 ------------------------------------
 GenXsecAnalyzer:
 ------------------------------------
-Before Filter: total cross section = 1.489e+08 +- 1.308e+05 pb
-Filter efficiency (taking into account weights)= (145) / (300000) = 4.833e-04 +- 4.013e-05
-Filter efficiency (event-level)= (145) / (300000) = 4.833e-04 +- 4.013e-05    [TO BE USED IN MCM]
+Before Filter: total cross section = 1.487e+08 +- 1.307e+05 pb
+Filter efficiency (taking into account weights)= (139) / (300000) = 4.633e-04 +- 3.929e-05
+Filter efficiency (event-level)= (139) / (300000) = 4.633e-04 +- 3.929e-05    [TO BE USED IN MCM]
 
-After filter: final cross section = 7.195e+04 +- 5.974e+03 pb
+After filter: final cross section = 6.889e+04 +- 5.842e+03 pb
 After filter: final fraction of events with negative weights = 0.000e+00 +- 0.000e+00
-After filter: final equivalent lumi for 1M events (1/fb) = 1.390e-02 +- 1.604e-05
+After filter: final equivalent lumi for 1M events (1/fb) = 1.452e-02 +- 1.787e-05
 
 =============================================
 
@@ -40,7 +40,7 @@ MessageLogger Summary
  type    category    Examples: run/evt        run/evt          run/evt
  ---- -------------------- ---------------- ---------------- ----------------
     1 DataNotUnderstood    Run: 1 Lumi: 1   Run: 1 Lumi: 1   Run: 1 Lumi: 1
-    2 GenXSecAnalyzer      PostGlobalEndRun PostGlobalEndRun PostGlobalEndRun
+    2 GenXSecAnalyzer      End Run: 1       End Run: 1       End Run: 1
 
 Severity    # Occurrences   Total Occurrences
 --------    -------------   -----------------

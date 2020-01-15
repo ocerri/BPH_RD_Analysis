@@ -6,8 +6,8 @@ from glob import glob
 import operator
 ops = {'>': operator.gt, '<': operator.lt, }
 
-def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag=''):
-    c = rt.TCanvas('c'+tag, 'c'+tag, 50, 50, 800, 600)
+def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600]):
+    c = rt.TCanvas('c'+tag, 'c'+tag, 50, 50, size[0], size[1])
     c.SetTickx(0)
     c.SetTicky(0)
 
