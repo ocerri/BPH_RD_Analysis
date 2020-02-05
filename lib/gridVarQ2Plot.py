@@ -162,9 +162,9 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                 h_dr.GetYaxis().SetTitle('RD/MC')
                 h_tot = h_dic['total'].Clone('h_aux_total_'+cat_name)
                 g_up = rt.TGraph()
-                g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h.GetBinWidth(1), 1)
+                g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
                 g_down = rt.TGraph()
-                g_down.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h.GetBinWidth(1), 1)
+                g_down.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
                 for i in range(1, h_dr.GetNbinsX()+1):
                     c = h_dr.GetBinContent(i)
                     e = h_dr.GetBinError(i)

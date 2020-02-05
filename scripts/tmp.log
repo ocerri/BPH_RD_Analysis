@@ -1,32 +1,23 @@
- |                                                                                                                 | 
- |  times   message                                                                                                | 
- |                                                                                                                 | 
- |    989   Error in BeamRemnants::setKinematics: kinematics construction failed                                   | 
- |    140   Error in Pythia::next: hadronLevel failed; try again                                                   | 
- |    621   Error in SpaceShower::pT2nearThreshold: stuck in loop                                                  | 
- |     36   Error in SpaceShower::pT2nearThreshold: xPDF = 0                                                       | 
- |    136   Error in StringFragmentation::fragment: stuck in joining                                               | 
- |      4   Error in StringFragmentation::fragmentToJunction: caught in junction flavour loop                      | 
- |     24   Warning in MultipartonInteractions::pTnext: weight above unity                                         | 
- |     15   Warning in PhaseSpace2to2tauyz::finalKin: failed after mass assignment                                 | 
- |     31   Warning in Pythia::check: energy-momentum not quite conserved                                          | 
- |    129   Warning in Pythia::check: not quite matched particle energy/momentum/mass                              | 
- | 307220   Warning in SpaceShower::pT2nextQCD: small daughter PDF                                                 | 
- | 127247   Warning in SpaceShower::pT2nextQCD: weight above unity                                                 | 
- |    398   Warning in StringFragmentation::fragmentToJunction: bad convergence junction rest frame                | 
+ |      3   Warning in MultipartonInteractions::pTnext: weight above unity                                         | 
+ |      2   Warning in PhaseSpace2to2tauyz::finalKin: failed after mass assignment                                 | 
+ |      7   Warning in Pythia::check: energy-momentum not quite conserved                                          | 
+ |     15   Warning in Pythia::check: not quite matched particle energy/momentum/mass                              | 
+ |  51333   Warning in SpaceShower::pT2nextQCD: small daughter PDF                                                 | 
+ |  20835   Warning in SpaceShower::pT2nextQCD: weight above unity                                                 | 
+ |     81   Warning in StringFragmentation::fragmentToJunction: bad convergence junction rest frame                | 
  |                                                                                                                 | 
  *-------  End PYTHIA Error and Warning Messages Statistics  ------------------------------------------------------* 
 
 ------------------------------------
 GenXsecAnalyzer:
 ------------------------------------
-Before Filter: total cross section = 1.487e+08 +- 1.307e+05 pb
-Filter efficiency (taking into account weights)= (139) / (300000) = 4.633e-04 +- 3.929e-05
-Filter efficiency (event-level)= (139) / (300000) = 4.633e-04 +- 3.929e-05    [TO BE USED IN MCM]
+Before Filter: total cross section = 1.491e+08 +- 3.210e+05 pb
+Filter efficiency (taking into account weights)= (492) / (50000) = 9.840e-03 +- 4.414e-04
+Filter efficiency (event-level)= (492) / (50000) = 9.840e-03 +- 4.414e-04    [TO BE USED IN MCM]
 
-After filter: final cross section = 6.889e+04 +- 5.842e+03 pb
+After filter: final cross section = 1.467e+06 +- 6.589e+04 pb
 After filter: final fraction of events with negative weights = 0.000e+00 +- 0.000e+00
-After filter: final equivalent lumi for 1M events (1/fb) = 1.452e-02 +- 1.787e-05
+After filter: final equivalent lumi for 1M events (1/fb) = 6.817e-04 +- 2.087e-08
 
 =============================================
 
@@ -40,11 +31,10 @@ MessageLogger Summary
  type    category    Examples: run/evt        run/evt          run/evt
  ---- -------------------- ---------------- ---------------- ----------------
     1 DataNotUnderstood    Run: 1 Lumi: 1   Run: 1 Lumi: 1   Run: 1 Lumi: 1
-    2 GenXSecAnalyzer      End Run: 1       End Run: 1       End Run: 1
+    2 GenXSecAnalyzer      PostGlobalEndRun PostGlobalEndRun PostGlobalEndRun
 
 Severity    # Occurrences   Total Occurrences
 --------    -------------   -----------------
 Warning                41                  41
 
 dropped waiting message count 0
-At post, CPU service is NOT available.
