@@ -5,6 +5,7 @@ data/cmsRD/Parking*
 data/cmsRD/Run*
 data/cmsRD/skimmed
 data/_root
+.sys.v*
 */.sys.v*
 */*/.sys.v*
 *.root
