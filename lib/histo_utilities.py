@@ -266,8 +266,11 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
     # pad1.SetGridx()
     pad1.Draw()
     pad1.cd()
-
-    leg = rt.TLegend(leg_pos[0], leg_pos[1], leg_pos[2], leg_pos[3])
+    
+    if not leg_pos is None:
+        leg = rt.TLegend(leg_pos[0], leg_pos[1], leg_pos[2], leg_pos[3])
+    else:
+        leg = rt.TLegend(0, 0, 1, 1)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
     c_out.cd(1)
@@ -284,24 +287,24 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
             h.DrawCopy(draw_opt)
         else:
             h.DrawCopy(draw_opt+"same")
+        
 
         leg.AddEntry(h, tag[i], "lep")
-
-    leg.Draw("same")
+    if not leg_pos is None:
+        leg.Draw("same")
 
     c_out.cd()
     pad2 = rt.TPad("pad2", "pad2", 0, 0, 1, 0.3)
     pad2.SetTopMargin(0.03)
     pad2.SetBottomMargin(0.25)
     pad2.SetLeftMargin(0.15)
-    # pad2.SetGrid()
     pad2.Draw()
     pad2.cd()
     
     h = h_list[0]
     ln = rt.TLine(h.GetXaxis().GetXmin(), 1, h.GetXaxis().GetXmax(), 1)
-    ln.SetLineWidth(3)
-    ln.SetLineColor(h_list_in[0].GetLineColor())
+    ln.SetLineWidth(2)
+    ln.SetLineColor(rt.kGray)
     ln.SetLineStyle(7)
     ln.DrawLine(h.GetXaxis().GetXmin(), 1, h.GetXaxis().GetXmax(), 1)
     
@@ -331,7 +334,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
             h.DrawCopy("same"+draw_opt)
             hratio_list.append(h)
 
-
+    ln.DrawLine(h.GetXaxis().GetXmin(), 1, h.GetXaxis().GetXmax(), 1)
     pad2.Update()
 
     c_out.pad1 = pad1
