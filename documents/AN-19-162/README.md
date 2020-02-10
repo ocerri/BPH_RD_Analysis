@@ -1,2 +1,5 @@
 AN-19-162 area:
 Lepton flavor universality test at CMS with R(D*) measurement in the full leptonic tau final state
+
+To install: ``git clone https://gitlab.cern.ch/tdr/notes/AN-19-162.git --recursive``
+To generate the pdf run ``./make.sh``
