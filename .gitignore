@@ -14,3 +14,9 @@ tmp
 */*/tmp
 .ipynb_checkpoints
 Combine/results/*
+*.gz
+*.out
+*.log
+*.aux
+documents/AN-19-162/*
+!documents/AN-19-162/README.md

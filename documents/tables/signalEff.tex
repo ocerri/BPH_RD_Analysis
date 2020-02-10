@@ -1,0 +1,87 @@
+\documentclass[a4paper,12pt,twoside]{book}
+
+\usepackage{setspace}
+\usepackage{balance}
+\usepackage[font={small,it}]{caption}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{listings}
+\usepackage{slashed}
+\usepackage{hyperref}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+\usepackage{floatflt}
+\usepackage{float}
+%\usepackage{rotating}
+\usepackage{chngcntr}
+\usepackage{nicefrac}
+\usepackage{relsize}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{accents}
+\usepackage{color}
+%\usepackage[amssymb, cdot, mediumqspace, thickqspace]{SIunits}
+\usepackage{booktabs}
+\usepackage{braket}
+\usepackage{appendix}
+\usepackage{pdfpages}
+\usepackage{midpage}
+\usepackage{makecell}
+
+\usepackage[a4paper,top=3.5cm,bottom=3.5cm,left=3cm,right=2.5cm]{geometry}
+
+%%Watermark (Scritta Draft)
+%\usepackage[printwatermark]{xwatermark}
+%\newwatermark[allpages,color=lightgray!50,angle=60,scale=5,xpos=0,ypos=0]{DRAFT}
+
+\let\mtcleardoublepage\cleardoublepage
+\renewcommand{\cleardoublepage}{\clearpage{\pagestyle{plain}\mtcleardoublepage}}
+
+
+%opening
+\title{Hadronic recoil in the W boson production at LHC for a W mass measurement with the CMS experiment}
+\author{Olmo Cerri}
+\affil{\href{https://www.df.unipi.it/}{Dipartimento di Fisica "E. Fermi" - Universit\`a di Pisa}}
+\date{\today}
+
+%Numerazione reset ogni section
+%\counterwithin{figure}{section}
+%\counterwithin{equation}{section}
+%\counterwithin{table}{section}
+
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
+
+%Interlinea 1.5
+\onehalfspacing
+
+\newcommand{\attention}[1]{{\Large \textcolor{red}{!A!: \textsc{#1}}}}
+
+
+\begin{document}
+
+% Mid pT category
+\begin{center}
+  \begin{tabular}{ c | c | c | c | c | c}
+  \hline
+  	 & $B\to D^*\mu$ & $B\to D^*\tau$ & $B\to D^{**}\mu$ & $B\to D^*H_c$ & BPH1 - 2018D\\
+    \hline
+    Pythia xsec [pb] & $1.5 \cdot\ 10^8$ & $1.5 \cdot\ 10^8$ & $1.5 \cdot\ 10^8$ & $1.5 \cdot\ 10^8$ & - \\
+    Forced decay BR [\%] & 0.135 & 0.023 & 0.018 & 0.017 & - \\
+    Eff CMSSW filter [\%] & 0.70 & 0.13 & 0.48 & 0.05 & - \\
+    Eff ntuplizer [\%] & 2.0 & 2.5 & 2.0 & 2.4 & - \\
+    Eff selection (mid) [\%] & 10.3 & 11.4 & 2.6 & 7.8 & 8.7 \\
+    %Eff selection (high) [\%] & 10.3 & 11.4 & 8.7 \\
+    Evts/fb$^{-1}$ & 2943 & 130 & 70 & 25 & 8800 \\
+    \hline
+    \hline
+    \# CRAB jobs (15h) & 40k & 25k & 10k & 10k & - \\
+    Candidates (mid) & 82k & 9.3k & 2.2k & 2.7k & 46.8k \\
+    Lumi [fb$^{-1}$] & 28 & 72 & 31 & 108 & 5.3 \\
+  \end{tabular}
+\end{center}
+
+\end{document}
