@@ -1,7 +1,6 @@
 - Understand where the taus are lost in the analysis selection.
-- Understand fully wha't the proper approximation to do to reconstruct the B pT
-- Cut B kinematics to reduce the effect of the approximation.
-- Startd data-MC comparison in side variables (B pT, muon pT etc etc)
+- Data-MC comparison in side variables (B pT, muon pT etc etc)
+- What if I use the probe muons in the analysis? Probably I can go lower in the pT of the muon, do I gain anything?
 
 There are some events in which the B muon is soft and the TrgMu is something else (plot the MC_mu_pt spectrum and try to get where the Muons below generation thr are coming form)
 

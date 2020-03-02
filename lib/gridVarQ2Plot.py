@@ -8,7 +8,9 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import tdrstyle
 tdrstyle.setTDRStyle()
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False):
+col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'Dstst': rt.kViolet-7}
+
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1):
     col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'Dstst': rt.kViolet-7}
     
     canvas = rt.TCanvas('c_out', 'c_out', 50, 50, 2*600, 400*len(binning['q2'])-1)
@@ -131,7 +133,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
             if logy:
                 pad.SetLogy()
 
-            if i_pad == 1:
+            if i_pad == iPad_legend:
                 leg = rt.TLegend(0.65, 0.4, 0.9, 0.7)
                 leg.SetTextFont(42)
                 leg.SetTextAlign(12)

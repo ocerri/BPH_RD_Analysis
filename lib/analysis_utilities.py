@@ -90,3 +90,8 @@ def createSel(d, cut):
     for k, v in cut.iteritems():
         sel = np.logical_and(sel, ops[v[0]](d[k], v[1]) )
     return sel
+
+def getEff(k,N):
+    e = k/float(N)
+    de = np.sqrt(e*(1-e)/N)
+    return [e, de]
