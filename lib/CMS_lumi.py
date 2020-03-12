@@ -30,6 +30,7 @@ lumi_8TeV  = "19.7 fb^{-1}"
 lumi_7TeV  = "5.1 fb^{-1}"
 lumi_sqrtS = ""
 integrated_lumi= 0
+integrated_lumi_string = ''
 
 drawLogo      = False
 
@@ -57,7 +58,9 @@ def CMS_lumi(pad, iPeriod, iPosX, cmsTextSize=cmsTextSize, lumiTextSize=lumiText
     pad.cd()
 
     lumiText = ''
-    if integrated_lumi:
+    if integrated_lumi_string:
+        lumiText = integrated_lumi_string
+    elif integrated_lumi:
         lumiText = '{:.1f}'.format(integrated_lumi) + ' fb^{-1} (13 TeV)'
         if( outOfFrame ):
             lumiText = '#scale[0.85]{' + lumiText + '}'

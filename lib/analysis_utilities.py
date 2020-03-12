@@ -2,6 +2,8 @@ import numpy as np
 import uproot as ur
 import ROOT as rt
 from glob import glob
+import yaml
+import os
 
 import operator
 ops = {'>': operator.gt, '<': operator.lt, }
@@ -57,7 +59,7 @@ def extarct_multiple(fname, branches = [], flag=''):
     l = {}
     for b in branches:
         l[b] = []
-    
+
     if not isinstance(fname, list):
         flist = glob(fname)
     else:
@@ -95,3 +97,43 @@ def getEff(k,N):
     e = k/float(N)
     de = np.sqrt(e*(1-e)/N)
     return [e, de]
+
+class DSetLoader(object):
+    def __init__(self, in_sample,
+                 candLoc='/storage/user/ocerri/BPhysics/data/cmsMC_private/',
+                 candDir='ntuples_B2DstMu',
+                 site_loc_conf = '/mnt/hadoop/store/user/ocerri',
+                 sampleFile = '/storage/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml'
+                 ):
+        samples = yaml.load(open(sampleFile))['samples']
+        if not in_sample in samples.keys():
+            raise
+        self.sample = in_sample
+        self.candLoc = candLoc
+        self.candDir = candDir
+
+        self.MINIAOD_dirs = []
+        for part in samples[self.sample]['parts']:
+            aux = glob(part)
+            if len(aux) > 0:
+                aux = os.path.dirname(part)
+            else:
+                aux = glob(site_loc_conf + part[:-38].replace('ocerri-','') + '/*/*')
+            self.MINIAOD_dirs += aux
+
+        self.full_name = samples[self.sample]['dataset']
+        self.ntuples_dir = glob(os.path.join(self.candLoc, self.full_name, self.candDir))[0]
+        self.skimmed_dir = os.path.join(self.ntuples_dir, 'skimmed')
+
+        effMCgenFile = os.path.join(self.candLoc, self.full_name, 'effMCgenerator.yaml')
+        if os.path.isfile(effMCgenFile):
+            self.effMCgen = yaml.load(open(effMCgenFile, 'r'))
+
+        effCandFile = os.path.join(self.ntuples_dir, 'effCAND.yaml')
+        if os.path.isfile(effCandFile):
+            self.effCand = yaml.load(open(effCandFile, 'r'))
+
+    def getSkimEff(self, catName):
+        with open(self.skimmed_dir + '/{}.log'.format(catName), 'r') as f:
+            aux = f.readlines()[-1][:-1].split(' ')
+            return [float(aux[1])*1e-2, float(aux[3])*1e-2]
