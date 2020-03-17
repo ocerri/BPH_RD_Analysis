@@ -116,14 +116,20 @@ class DSetLoader(object):
         for part in samples[self.sample]['parts']:
             aux = glob(part)
             if len(aux) > 0:
-                aux = os.path.dirname(part)
+                aux = [os.path.dirname(part)]
             else:
                 aux = glob(site_loc_conf + part[:-38].replace('ocerri-','') + '/*/*')
             self.MINIAOD_dirs += aux
 
         self.full_name = samples[self.sample]['dataset']
-        self.ntuples_dir = glob(os.path.join(self.candLoc, self.full_name, self.candDir))[0]
-        self.skimmed_dir = os.path.join(self.ntuples_dir, 'skimmed')
+
+        res = glob(os.path.join(self.candLoc, self.full_name, self.candDir))
+        if res:
+            self.ntuples_dir = res[0]
+            self.skimmed_dir = os.path.join(self.ntuples_dir, 'skimmed')
+        else:
+            self.ntuples_dir = ''
+            self.skimmed_dir = ''
 
         effMCgenFile = os.path.join(self.candLoc, self.full_name, 'effMCgenerator.yaml')
         if os.path.isfile(effMCgenFile):
@@ -133,7 +139,12 @@ class DSetLoader(object):
         if os.path.isfile(effCandFile):
             self.effCand = yaml.load(open(effCandFile, 'r'))
 
-    def getSkimEff(self, catName):
-        with open(self.skimmed_dir + '/{}.log'.format(catName), 'r') as f:
-            aux = f.readlines()[-1][:-1].split(' ')
-            return [float(aux[1])*1e-2, float(aux[3])*1e-2]
+    def getSkimEff(self, catName='probe'):
+        if catName is 'probe':
+            with open(self.skimmed_dir + '/selTree.log', 'r') as f:
+                aux = f.readlines()[-1][:-1].split(' ')
+                return [float(aux[1])*1e-2, float(aux[3])*1e-2]
+        else:
+            with open(self.skimmed_dir + '/{}.log'.format(catName), 'r') as f:
+                aux = f.readlines()[-1][:-1].split(' ')
+                return [float(aux[1])*1e-2, float(aux[3])*1e-2]

@@ -12,12 +12,12 @@ col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'Dstst': rt.kV
 
 def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1):
     col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'Dstst': rt.kViolet-7}
-    
+
     canvas = rt.TCanvas('c_out', 'c_out', 50, 50, 2*600, 400*len(binning['q2'])-1)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
     canvas.Divide(2, len(binning['q2'])-1, 0.001, 0.001)
-    
+
     canvas.dnd = []
 
     vars_to_plot = ['M2_miss', 'Est_mu']
@@ -29,7 +29,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                  'Hc'   : 'B#rightarrow D*H_{c}',
                  'Dstst': 'B#rightarrow D**#mu#nu'
                 }
-    
+
     rt.TGaxis.SetMaxDigits(3)
 
     max_entries = dict(zip(vars_to_plot, [0]*len(vars_to_plot)))
@@ -44,13 +44,13 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
         q2_h = binning['q2'][i_q2 + 1]
         q2_txt = '{:.1f} <  q^{{2}}  < {:.1f} GeV^{{2}}'.format(q2_l, q2_h)
 
-        for i_v, vark in enumerate(vars_to_plot):            
+        for i_v, vark in enumerate(vars_to_plot):
             cat_name = vark+'_q2bin'+str(i_q2)
             h_dic = histo[cat_name]
-            
+
             i_pad = i_q2*2 + i_v + 1
             pad_master = canvas.cd(i_pad)
-            
+
             if not draw_pulls:
                 pad = rt.TPad('pmain_'+cat_name, 'pmain_'+cat_name, 0, 0, 1, 1)
                 pad.SetBottomMargin(0.2)
@@ -79,34 +79,43 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
             iunits = xAx_title[vark].find('[') + 1
             h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + xAx_title[vark][iunits:-1])
             max_y = max_entries[vark]*1.3
-            if 'data' in scale_dic.keys(): 
+            if 'data' in scale_dic.keys():
                 max_y *= scale_dic['data']
             h.GetYaxis().SetRangeUser(min_y, max_y)
-            
-            
-            h_Dstst = h_dic['Dstst'].Clone('h_aux_Dstst_'+cat_name)
-            if 'Dstst' in scale_dic.keys(): h_Dstst.Scale(scale_dic['Dstst'])
-            h_Dstst.SetLineWidth(0)
-            h_Dstst.SetFillColor(col_dic['Dstst'])
-            h_Dstst.SetFillStyle(1)
-            h_Dstst.Sumw2(0)
-            
-            h_Hc = h_dic['Hc'].Clone('h_aux_Hc_'+cat_name)
-            if 'Hc' in scale_dic.keys(): h_Hc.Scale(scale_dic['Hc'])
-            h_Hc.Add(h_Dstst)
-            h_Hc.SetLineWidth(0)
-            h_Hc.SetFillColor(col_dic['Hc'])
-            h_Hc.SetFillStyle(1)
-            h_Hc.Sumw2(0)
-            
+            h_list = [h]
+
+            if 'Dstst' in h_dic.keys():
+                h_Dstst = h_dic['Dstst'].Clone('h_aux_Dstst_'+cat_name)
+                if 'Dstst' in scale_dic.keys(): h_Dstst.Scale(scale_dic['Dstst'])
+                h_Dstst.SetLineWidth(0)
+                h_Dstst.SetFillColor(col_dic['Dstst'])
+                h_Dstst.SetFillStyle(1)
+                h_Dstst.Sumw2(0)
+                h_list.append(h_Dstst)
+
+            if 'Hc' in h_dic.keys():
+                h_Hc = h_dic['Hc'].Clone('h_aux_Hc_'+cat_name)
+                if 'Hc' in scale_dic.keys(): h_Hc.Scale(scale_dic['Hc'])
+                if 'Dstst' in h_dic.keys():
+                    h_Hc.Add(h_Dstst)
+                h_Hc.SetLineWidth(0)
+                h_Hc.SetFillColor(col_dic['Hc'])
+                h_Hc.SetFillStyle(1)
+                h_Hc.Sumw2(0)
+                h_list.append(h_Hc)
+
             h_tau = h_dic['tau'].Clone('h_aux_tau_'+cat_name)
             if 'tau' in scale_dic.keys(): h_tau.Scale(scale_dic['tau'])
-            h_tau.Add(h_Hc)
+            if 'Hc' in h_dic.keys():
+                h_tau.Add(h_Hc)
+            elif 'Dstst' in h_dic.keys():
+                h_tau.Add(h_Dstst)
             h_tau.SetLineWidth(0)
             h_tau.SetFillColor(col_dic['tau'])
             h_tau.SetFillStyle(1)
             h_tau.Sumw2(0)
-            
+            h_list.append(h_tau)
+
             h_mu = h_dic['mu'].Clone('h_aux_mu_'+cat_name)
             if 'mu' in scale_dic.keys(): h_mu.Scale(scale_dic['mu'])
             h_mu.Add(h_tau)
@@ -114,13 +123,16 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
             h_mu.SetFillColor(col_dic['mu'])
             h_mu.SetFillStyle(1)
             h_mu.Sumw2(0)
-            
-            
+            h_list.append(h_mu)
+
+
             h.Draw('E1')
             h_mu.DrawCopy('SAME')
             h_tau.Draw('SAME')
-            h_Hc.Draw('SAME')
-            h_Dstst.Draw('SAME')
+            if 'Hc' in h_dic.keys():
+                h_Hc.Draw('SAME')
+            if 'Dstst' in h_dic.keys():
+                h_Dstst.Draw('SAME')
             h.Draw('SAMEE1') #Draw it a second time to bring it in foreground
 
             l = rt.TLatex()
@@ -142,12 +154,14 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                 leg.AddEntry(h, label_dic['data'], 'lep')
                 leg.AddEntry(h_mu, label_dic['mu'], 'f')
                 leg.AddEntry(h_tau, label_dic['tau'], 'f')
-                leg.AddEntry(h_Hc, label_dic['Hc'], 'f')
-                leg.AddEntry(h_Dstst, label_dic['Dstst'], 'f')
+                if 'Hc' in h_dic.keys():
+                    leg.AddEntry(h_Hc, label_dic['Hc'], 'f')
+                if 'Dstst' in h_dic.keys():
+                    leg.AddEntry(h_Dstst, label_dic['Dstst'], 'f')
                 leg.Draw()
                 canvas.dnd.append(leg)
-                
-            canvas.dnd.append([pad, h, h_tau, h_mu, h_Hc, h_Dstst])    
+
+            canvas.dnd.append([pad, h_list])
 
             if draw_pulls:
                 pad_master.cd()
@@ -159,7 +173,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                 pad.SetLeftMargin(0.13)
                 pad.Draw()
                 pad.cd()
-                
+
                 h_dr = h.Clone('h_aux_dataratio_'+cat_name)
                 h_dr.GetYaxis().SetTitle('RD/MC')
                 h_tot = h_dic['total'].Clone('h_aux_total_'+cat_name)
@@ -182,7 +196,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                     g_down.SetPoint(2*i, x_up, (c_MC-e_MC)/c_MC)
                 g_up.SetPoint(2*i+1, x_up, 1)
                 g_down.SetPoint(2*i+1, x_up, 1)
-                
+
                 h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
                 h_dr.GetYaxis().SetTitleOffset(0.35)
                 h_dr.GetYaxis().SetTitleSize(0.2)
@@ -192,9 +206,9 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                 h_dr.GetXaxis().SetTitleSize(0.22)
                 h_dr.GetXaxis().SetLabelSize(0.22)
                 h_dr.GetXaxis().SetTickSize(0.07)
-                
+
                 h_dr.Draw('E1')
-                
+
                 g_up.SetFillColor(rt.kGray)
                 g_up.SetFillStyle(1)
                 g_up.Draw('F')
@@ -209,7 +223,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                 x_high = h_tot.GetBinCenter(i)+0.5*h.GetBinWidth(i)
                 l.DrawLine(x_low, 1, x_high, 1)
                 h_dr.Draw('sameE') #redraw it to bring it to front
-                
+
                 canvas.dnd.append([pad, h_dr, h_tot, g_up, g_down])
 
     canvas.Draw()

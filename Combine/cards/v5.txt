@@ -12,20 +12,19 @@ shapes * M2_miss_q2bin2 ../data/_root/histos4combine/v5_M2_miss_q2bin2.root $PRO
 shapes * M2_miss_q2bin3 ../data/_root/histos4combine/v5_M2_miss_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
 --------------------------------------------------------------
 bin Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin3 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin3
-observation 11627 26905 24779 38790 11628 26907 24782 38791
+observation 12640 29223 26878 42054 12639 29224 26880 42053
 --------------------------------------------------------------
 bin Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3
 process tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst
 process 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3
-rate 25.4570 11457.2332 23.4241 139.8602 274.3421 25969.7194 186.9827 677.0801 1135.0520 23339.1273 391.7924 756.1406 4105.5725 36313.0096 404.4540 1005.0078 25.4570 11457.2332 23.4241 139.8602 274.3421 25969.7194 186.9827 677.0801 1135.0520 23339.1273 391.7924 756.1406 4105.5725 36313.0096 404.4540 1005.0078
+rate 25.8901 12459.9853 23.3499 149.3617 279.0095 28242.6233 186.3902 723.0781 1154.3624 25381.7983 390.5509 807.5096 4175.4197 39491.1718 403.1723 1073.2839 25.8901 12459.9853 23.3499 149.3617 279.0095 28242.6233 186.3902 723.0781 1154.3624 25381.7983 390.5509 807.5096 4175.4197 39491.1718 403.1723 1073.2839
 --------------------------------------------------------------
 xsecpp2bbXlumi lnN 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8 1.8
-b2B0Had lnN 1.5 1.5 1.5 - 1.5 1.5 1.5 - 1.5 1.5 1.5 - 1.5 1.5 1.5 - 1.5 1.5 1.5 - 1.5 1.5 1.5 - 1.5 1.5 1.5 - 1.5 1.5 1.5 -
-b2BpHad lnN - - - 1.5 - - - 1.5 - - - 1.5 - - - 1.5 - - - 1.5 - - - 1.5 - - - 1.5 - - - 1.5
+b2B0Had lnN 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 -
 tauEff lnN 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - -
 muEff lnN - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - -
 HcEff lnN - - 1.252 - - - 1.252 - - - 1.252 - - - 1.252 - - - 1.252 - - - 1.252 - - - 1.252 - - - 1.252 -
-DststEff lnN - - - 1.621 - - - 1.621 - - - 1.621 - - - 1.621 - - - 1.621 - - - 1.621 - - - 1.621 - - - 1.621
+DststEff lnN - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3.
 --------------------------------------------------------------
 trgSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
 muonIdSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
@@ -37,6 +36,6 @@ B2DstCLNRhoSq shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 
 * autoMCStats 0 1 1
 --------------------------------------------------------------
 B2DstFF group = B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq
-normMC group = xsecpp2bbXlumi b2B0Had b2BpHad
+normMC group = xsecpp2bbXlumi b2B0Had
 effMC group = tauEff muEff HcEff DststEff
 allShape group = trgSF muonIdSF B0pT B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq
