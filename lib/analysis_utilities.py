@@ -8,10 +8,14 @@ import os
 import operator
 ops = {'>': operator.gt, '<': operator.lt, }
 
-def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600]):
+def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600], mL=None, mR=None, mT=None, mB=None):
     c = rt.TCanvas('c'+tag, 'c'+tag, 50, 50, size[0], size[1])
     c.SetTickx(0)
     c.SetTicky(0)
+    if not mL is None: c.SetLeftMargin(mL)
+    if not mR is None: c.SetRightMargin(mR)
+    if not mT is None: c.SetTopMargin(mT)
+    if not mB is None: c.SetBottomMargin(mB)
 
     if dobj.__class__ == rt.RooPlot:
         dobj.Draw()
@@ -138,6 +142,8 @@ class DSetLoader(object):
         effCandFile = os.path.join(self.ntuples_dir, 'effCAND.yaml')
         if os.path.isfile(effCandFile):
             self.effCand = yaml.load(open(effCandFile, 'r'))
+        else:
+            print 'CAND efficiency file missing.'
 
     def getSkimEff(self, catName='probe'):
         if catName is 'probe':

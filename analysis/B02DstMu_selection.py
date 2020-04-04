@@ -17,64 +17,65 @@ def trigger_selection(j, ev, cat):
     aux &= abs(ev.trgMu_eta[j]) < 1.5
     return aux
 
-def candidate_selection(j, ev, skipCut=None):
+def candidate_selection(j, ev, skipCut=[]):
     aux = True
-    if not skipCut == 1:
+    if not (1 in skipCut):
         aux &= ev.pval_piK[j] > 0.1
-    if not skipCut == 2:
+    if not (2 in skipCut):
         aux &= ev.K_pt[j] > 0.8
-    if not skipCut == 3:
+    if not (3 in skipCut):
         aux &= abs(ev.K_eta[j]) < 2.4
-    if not skipCut == 4:
+    if not (4 in skipCut):
         aux &= ev.sigdxy_K_PV[j] > 2
-    if not skipCut == 5:
+    if not (5 in skipCut):
         aux &= ev.pi_pt[j] > 0.8
-    if not skipCut == 6:
+    if not (6 in skipCut):
         aux &= abs(ev.pi_eta[j]) < 2.4
-    if not skipCut == 7:
+    if not (7 in skipCut):
         aux &= ev.sigdxy_pi_PV[j] > 2
-    if not skipCut == 8:
+    if not (8 in skipCut):
         aux &= abs(ev.mass_piK[j] - 1.864) < 0.05
-    if not skipCut == 9:
+        aux &= ev.mass_piK_hKK[j] > 1.91 and ev.mass_piK_hpipi[j] < 1.83
+    if not (9 in skipCut):
         aux &= ev.sigdxy_vtxD0_PV[j] > 2
     if not aux:
         return False
 
-    if not skipCut == 10:
+    if not (10 in skipCut):
         aux = ev.pis_pt[j] > 0.4
-    if not skipCut == 11:
+    if not (11 in skipCut):
         aux &= abs(ev.pis_eta[j]) < 2.4
-    if not skipCut == 12:
+    if not (12 in skipCut):
         aux &= ev.sigdxy_pis_PV[j] > 2
-    if not skipCut == 13:
+    if not (13 in skipCut):
         aux &= ev.pval_D0pis[j] > 0.1
 
-    if not skipCut == 14:
-        aux &= abs(ev.mass_D0pis[j] - 2.01) < 0.03
-    if not skipCut == 15:
-        aux &= 1e3*abs(ev.mass_D0pis[j] - ev.mass_piK[j] - 0.14543) < 2.5
+    if not (14 in skipCut):
+        aux &= abs(ev.mass_D0pis[j] - 2.01026) < 0.03
+    if not (15 in skipCut):
+        aux &= 1e3*abs(ev.mass_D0pis[j] - ev.mass_piK[j] - 0.14543) < 2.
 
-    if not skipCut == 16:
+    if not (16 in skipCut):
         aux &= ev.pval_D0pismu[j] > 0.1
-    if not skipCut == 17:
+    if not (17 in skipCut):
         aux &= ev.cos_D0pismu_PV[j] > 0.99
-    if not skipCut == 18:
+    if not (18 in skipCut):
         aux &= ev.q2_D0pismu[j] > -2.
-    if not skipCut == 19:
+    if not (19 in skipCut):
         aux &= ev.q2_D0pismu[j] < 12
-    if not skipCut == 20:
+    if not (20 in skipCut):
         aux &= ev.mass_D0pismu[j] < 7.
     if not aux:
         return False
 
-    if not skipCut == 21 and not ev.nTksAdd[j] == 0:
+    if not (21 in skipCut) and not ev.nTksAdd[j] == 0:
         idx_st = 0
         for jjj in range(j):
             idx_st += int(ev.nTksAdd[jjj])
 
         idx_stop = int(idx_st + ev.nTksAdd[j])
         for jj in range(idx_st, idx_stop):
-            if ev.tksAdd_massVis[jj] < 5.28:
+            if ev.tksAdd_massVis[jj] < 5.28 and ev.tksAdd_cos_PV[jj]>0.95:
                 return False
 
     return True

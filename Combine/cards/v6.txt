@@ -1,0 +1,41 @@
+imax *
+jmax 3
+kmax *
+--------------------------------------------------------------
+shapes * Est_mu_q2bin0 ../data/_root/histos4combine/v6_Est_mu_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin1 ../data/_root/histos4combine/v6_Est_mu_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin2 ../data/_root/histos4combine/v6_Est_mu_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin3 ../data/_root/histos4combine/v6_Est_mu_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin0 ../data/_root/histos4combine/v6_M2_miss_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin1 ../data/_root/histos4combine/v6_M2_miss_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin2 ../data/_root/histos4combine/v6_M2_miss_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin3 ../data/_root/histos4combine/v6_M2_miss_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * SingleAddTkMassHad ../data/_root/histos4combine/v6_SingleAddTkMassHad.root $PROCESS $PROCESS__$SYSTEMATIC
+--------------------------------------------------------------
+bin Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin3 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin3 SingleAddTkMassHad
+observation 12866 29984 27934 44001 12868 29984 27931 44000 16309
+--------------------------------------------------------------
+bin Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3 SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad
+process tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst
+process 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3
+rate 28.6369 12658.4180 25.3496 176.2048 294.0589 28815.1712 192.9199 898.7800 1191.6538 26057.6536 399.6384 1165.7146 4291.7500 40711.8644 413.7190 1758.9366 28.6369 12658.4180 25.3496 176.2048 294.0589 28815.1712 192.9199 898.7800 1191.6538 26057.6536 399.6384 1165.7146 4291.7500 40711.8644 413.7190 1758.9366 371.2109 9087.7280 288.9929 6835.8060
+--------------------------------------------------------------
+xsecpp2bbXlumi lnN 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9
+b2B0Had lnN 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 -
+muEff lnN - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - -
+HcEff lnN - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 -
+DststEff lnN - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3.
+--------------------------------------------------------------
+trgSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+muonIdSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+B0pT shape 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. -
+B2DstCLNR0 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+B2DstCLNR1 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+B2DstCLNR2 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+B2DstCLNRhoSq shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+* autoMCStats 0 1 1
+--------------------------------------------------------------
+B2DstFF group = B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq
+normMC group = xsecpp2bbXlumi b2B0Had
+effMC group = muEff HcEff DststEff
+allShape group = trgSF muonIdSF B0pT B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq

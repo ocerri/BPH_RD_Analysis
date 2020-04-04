@@ -105,7 +105,10 @@ def create_TH1D(x, name='h', title=None,
 
     rtnp.fill_hist(h, x, weights=weights)
     if not scale_histo is None:
-        h.Scale(scale_histo)
+        if scale_histo == 'norm':
+            h.Scale(1./h.Integral())
+        else:
+            h.Scale(scale_histo)
         
     if not minEmptyBins is None:
         for i in range(1, h.GetNbinsX()+1):
