@@ -39,8 +39,10 @@ parser.add_argument ('--function', type=str, default='main', help='Function to p
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on', nargs='+')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
 parser.add_argument ('--maxEntries', type=int, default=1e15, help='Max number of events to be processed')
-parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high', 'none'], choices=['low', 'mid', 'high'], help='Category(ies)', nargs='+')
+parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
 parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
+parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
+parser.add_argument ('--skipCut', type=str, default='', choices=['all', '16', '17'], help='Cut to skip')
 ######## Arguments not for user #####################
 parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
 parser.add_argument ('--jN', type=int, default=None, help='Job number')
@@ -64,8 +66,8 @@ filesLocMap = {
 #
 #
 #
-'dataB2DstMu': RDloc+'*_RDntuplizer_B2DstMu_200327_CAND.root'
-# 'dataB2DstMu': RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_B2DstMu_200320_CAND.root',
+'dataB2DstMu': RDloc+'*_RDntuplizer_B2DstMu_200410_CAND.root'
+# 'dataB2DstMu': RDloc+'*_RDntuplizer_B2DstMu_200327_CAND.root'
 # 'dataCombDmstMum': RDloc + 'Run2018D-05May2019promptD-v1_RDntuplizer_combDmstMum_200320_CAND.root'
 }
 
@@ -83,7 +85,14 @@ class Container(object):
 fBfield = rt.TFile.Open('../data/calibration/bFieldMap_2Dover3D.root', 'r')
 hBfieldMapsRatio = fBfield.Get('bfieldMap')
 def get_bFieldCorr3D(phi, eta, verbose=False):
+    print hBfieldMapsRatio.GetXaxis().FindBin(phi), hBfieldMapsRatio.GetYaxis().FindBin(eta)
+    print phi, eta
+    if np.abs(eta) > 2.4:
+        eta = 2.39*np.sign(eta)
+    if np.abs(phi) > np.pi:
+        phi = phi - 2*np.pi*np.sign(phi)
     idx = hBfieldMapsRatio.GetBin(hBfieldMapsRatio.GetXaxis().FindBin(phi), hBfieldMapsRatio.GetYaxis().FindBin(eta))
+    print idx
     return 1./hBfieldMapsRatio.GetBinContent(idx)
 
 def correctPt(pt, eta, phi, corr=None, smear=0):
@@ -133,7 +142,7 @@ def extractEventInfos(j, ev, corr=None):
     m_B0   = 5.27963
 
     e = Container()
-    # print ''
+    # print '------> <-----'
     e.K_eta = ev.K_refitpiK_eta[j]
     e.K_phi = ev.K_refitpiK_phi[j]
     e.K_pt = correctPt(ev.K_refitpiK_pt[j], e.K_eta, e.K_phi, corr, 3e-3)
@@ -208,9 +217,12 @@ def extractEventInfos(j, ev, corr=None):
     e.massVis_wTk = [] #np.zeros(idx_stop - idx_st)
     e.massHad_wTk = [] #np.zeros(idx_stop - idx_st)
     e.massMuTk = [] #np.zeros(idx_stop - idx_st)
+    # e.mass2MissTk = [] #np.zeros(idx_stop - idx_st)
 
     for jj in range(idx_st, idx_stop):
         eta = ev.tksAdd_eta[jj]
+        if np.abs(eta) >= 2.4:
+            continue
         phi = ev.tksAdd_phi[jj]
         pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 6e-3)
         p4_tk = rt.TLorentzVector()
@@ -272,11 +284,12 @@ def makeSelection(inputs):
         ev_output = []
         for j in range(ev.pval_piK.size()):
             idxTrg = int(ev.mu_trgMu_idx[j])
+            evEx = extractEventInfos(j, ev, corr)
+
             if not cat is None:
-                if not trigger_selection(idxTrg, ev, cat):
+                if not trigger_selection(idxTrg, ev, evEx, cat):
                     continue
 
-            evEx = extractEventInfos(j, ev, corr)
             if not skipCut == 'all':
                 if not candidate_selection(j, ev, evEx, skipCut):
                     continue
@@ -300,9 +313,9 @@ def makeSelection(inputs):
                    evEx.massVis_wTk[0], evEx.massVis_wTk[1],
                    evEx.massHad_wTk[0], evEx.massHad_wTk[1],
                    evEx.massMuTk[0], evEx.massMuTk[1],
-                   trigger_selection(idxTrg, ev, categories['low']),
-                   trigger_selection(idxTrg, ev, categories['mid']),
-                   trigger_selection(idxTrg, ev, categories['high']),
+                   trigger_selection(idxTrg, ev, evEx, categories['low']),
+                   trigger_selection(idxTrg, ev, evEx, categories['mid']),
+                   trigger_selection(idxTrg, ev, evEx, categories['high']),
                    ev.N_vertexes
                   )
             if not 'data' in n:
@@ -361,7 +374,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
             print filepath
             raise
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
-        N_evts_per_job = 300000
+        N_evts_per_job = 100000
     else:
         d = os.path.dirname(filepath) + '/skimmed/'
         if not os.path.isdir(d):
@@ -582,8 +595,9 @@ if __name__ == "__main__":
             print 'No dataset provided'
             exit()
 
-        recreate = file_loc.keys()
-        # recreate = []
+        recreate = []
+        if args.recreate:
+            recreate = file_loc.keys()
 
         if 'none' in args.cat:
             print 'Running w/o category (ignoring other categories)'
@@ -594,14 +608,15 @@ if __name__ == "__main__":
             #     create_dSet(n, fp, None, skipCut='all', applyCorrections=args.applyCorr)
 
         else:
-            # for cn in args.cat:
-            #     for n, fp in file_loc.iteritems():
-            #         create_dSet(n, fp, categories[cn], applyCorrections=args.applyCorr)
-
             skip = []
-            # skip.append([6, 11, 12]) #Mass D0, D* and D*-D0 (m piK)
+            # # skip.append([6, 11, 12]) #Mass D0, D* and D*-D0 (m piK)
             # skip.append([16]) #Visible mass (m D0pismu)
-            skip.append([17]) #Additional tracks
+            # skip.append([17]) #Additional tracks
+            if args.skipCut:
+                skip.append([int(args.skipCut)])
+            else:
+                skip.append([])
+
             for idx in skip:
                 for cn in args.cat:
                     for n, fp in file_loc.iteritems():

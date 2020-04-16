@@ -9,13 +9,16 @@ def exclusiveTrigger(j, ev, trgAcc, trgNegate = []):
                 return False
     return True
 
-def trigger_selection(j, ev, cat):
-    aux = exclusiveTrigger(j, ev, 'HLT_' + cat.trg)
-    aux &= ev.trgMu_pt[j] > cat.min_pt
-    aux &= ev.trgMu_pt[j] < cat.max_pt
-    aux &= ev.trgMu_sigdxy[j] > cat.minIP
-    aux &= abs(ev.trgMu_eta[j]) < 1.5
-    return aux
+def trigger_selection(j, ev, evEx, cat):
+    if not exclusiveTrigger(j, ev, 'HLT_' + cat.trg):
+        return False
+    if evEx.mu_pt < cat.min_pt or evEx.mu_pt > cat.max_pt:
+        return False
+    if not ev.trgMu_sigdxy[j] > cat.minIP:
+        return False
+    if not abs(ev.trgMu_eta[j]) < 1.5:
+        return False
+    return True
 
 def candidate_selection(j, ev, e, skipCut=[]):
     if not (1 in skipCut):

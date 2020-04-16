@@ -17,7 +17,7 @@ label_dic = {'data' : 'Data',
              'Dstst': 'B#rightarrow D**#mu#nu'
             }
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1):
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False):
     canvas = rt.TCanvas('c_out', 'c_out', 50, 50, 2*600, 400*len(binning['q2'])-1)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
@@ -77,9 +77,11 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
             h.GetYaxis().SetLabelSize(0.07)
             iunits = xAx_title[vark].find('[') + 1
             h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + xAx_title[vark][iunits:-1])
-            max_y = max_entries[vark]*1.3
-            if 'data' in scale_dic.keys():
-                max_y *= scale_dic['data']
+            max_y = 1.3*h.GetMaximum()
+            if max_y_shared:
+                max_y = max_entries[vark]*1.3
+                if 'data' in scale_dic.keys():
+                    max_y *= scale_dic['data']
             h.GetYaxis().SetRangeUser(min_y, max_y)
             h_list = [h]
 
@@ -291,7 +293,7 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
     l.SetTextAlign(11)
     l.SetTextSize(0.06)
     l.SetTextFont(42)
-    l.DrawLatexNDC(0.18, 0.85, 'N_lowMassAddTks = 1')
+    l.DrawLatexNDC(0.18, 0.85, 'N_goodAddTks = 1')
 
     CMS_lumi.CMS_lumi(pad, -1, 33, cmsTextSize=0.75*1.2, lumiTextSize=0.6*1.2)
     if logy:
