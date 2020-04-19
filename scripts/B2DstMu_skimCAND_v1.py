@@ -34,7 +34,7 @@ from B02DstMu_selection import candidate_selection, trigger_selection, candidate
 
 import argparse
 parser = argparse.ArgumentParser()
-#Example: python B2DstMu_skimCAND_v1.py --maxEntries 80000 --applyCorr
+#Example: python B2DstMu_skimCAND_v1.py -d mu_PU20 --maxEntries 80000 --applyCorr
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on', nargs='+')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
@@ -51,22 +51,23 @@ args = parser.parse_args()
 #############################################################################
 ####                          Datset declaration                         ####
 #############################################################################
-MCloc = '../data/cmsMC_private/BPH_Tag-'
+MCloc = '../data/cmsMC_private/'
+MCend = '/ntuples_B2DstMu/out_CAND_*.root'
 RDloc = '../data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {
-'mu_PU0' : MCloc+'B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3/ntuples_B2DstMu/out_CAND_*.root',
-'mu_PU20': MCloc+'B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3/ntuples_B2DstMu/out_CAND_*.root',
-'mu_PU35': MCloc+'B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU35_10-2-3/ntuples_B2DstMu/out_CAND_*.root',
-'mu_HQETPU0': MCloc+'B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_HQET2_central_PU0_10-2-3/ntuples_B2DstMu/out_CAND_*.root',
-'tau_PU0': MCloc+'B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3/ntuples_B2DstMu/out_CAND_*.root',
-'tau'   : MCloc+'B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3/ntuples_B2DstMu/out_CAND_*.root',
-'Hc'    : MCloc+'B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3/ntuples_B2DstMu/out_CAND_*.root',
-'Dstst' : MCloc+'Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3/ntuples_B2DstMu/out_CAND_*.root',
+'mu_HQETPU0'  : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_HQET2_central_PU0_10-2-3'+MCend,
+'mu_PU0'      : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
+'mu_PU20'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+'mu_PU35'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU35_10-2-3'+MCend,
+'mu_PUc0'     : MCloc+'BP_Tag_B0_MuNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'tau_PU0'     : MCloc+'B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
+'tau_PU20'    : MCloc+'BPH_Tag-B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+'Hc_PU20'     : MCloc+'BPH_Tag-B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3'+MCend,
+'Dstst_PU20'  : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
 #
 #
-#
-'dataB2DstMu': RDloc+'*_RDntuplizer_B2DstMu_200410_CAND.root'
+'dataB2DstMu' : RDloc+'*_RDntuplizer_B2DstMu_200410_CAND.root'
 # 'dataB2DstMu': RDloc+'*_RDntuplizer_B2DstMu_200327_CAND.root'
 # 'dataCombDmstMum': RDloc + 'Run2018D-05May2019promptD-v1_RDntuplizer_combDmstMum_200320_CAND.root'
 }
@@ -213,11 +214,12 @@ def extractEventInfos(j, ev, corr=None):
     idx_stop = int(idx_st + ev.nTksAdd[j])
 
     e.N_goodAddTks = 0
-    e.tkPt = [] #np.zeros(idx_stop - idx_st)
-    e.massVis_wTk = [] #np.zeros(idx_stop - idx_st)
-    e.massHad_wTk = [] #np.zeros(idx_stop - idx_st)
-    e.massMuTk = [] #np.zeros(idx_stop - idx_st)
-    # e.mass2MissTk = [] #np.zeros(idx_stop - idx_st)
+    e.tkCharge = []
+    e.tkPt = []
+    e.massVis_wTk = []
+    e.massHad_wTk = []
+    e.massMuTk = []
+    e.mass2MissTk = []
 
     for jj in range(idx_st, idx_stop):
         eta = ev.tksAdd_eta[jj]
@@ -234,12 +236,14 @@ def extractEventInfos(j, ev, corr=None):
         if mVis_wTk < m_B0 and ev.tksAdd_cos_PV[jj]>0.95:
             e.N_goodAddTks += 1
             idx, e.tkPt = insertOrdered(e.tkPt, pt)
+            e.tkCharge.insert(idx, ev.tksAdd_charge[jj])
             e.massVis_wTk.insert(idx, mVis_wTk)
             e.massHad_wTk.insert(idx, (p4_Dst + p4_tk).M())
             e.massMuTk.insert(idx, (p4_mu + p4_tk).M())
+            e.mass2MissTk.insert(idx, (p4_B - p4_vis - p4_tk).M2())
 
     if e.N_goodAddTks < 2:
-        for l in [e.tkPt, e.massVis_wTk, e.massHad_wTk, e.massMuTk]:
+        for l in [e.tkCharge, e.tkPt, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk]:
             l += [0, 0]
 
     return e
@@ -309,10 +313,12 @@ def makeSelection(inputs):
                    evEx.mass_piK, evEx.mass_D0pis, evEx.mass_D0pismu,
                    ev.pval_D0pismu[j], ev.cos_D0pismu_PV[j], ev.cosT_D0pismu_PV[j],
                    evEx.N_goodAddTks,
+                   evEx.tkCharge[0], evEx.tkCharge[1],
                    evEx.tkPt[0], evEx.tkPt[1],
                    evEx.massVis_wTk[0], evEx.massVis_wTk[1],
                    evEx.massHad_wTk[0], evEx.massHad_wTk[1],
                    evEx.massMuTk[0], evEx.massMuTk[1],
+                   evEx.mass2MissTk[0], evEx.mass2MissTk[1],
                    trigger_selection(idxTrg, ev, evEx, categories['low']),
                    trigger_selection(idxTrg, ev, evEx, categories['mid']),
                    trigger_selection(idxTrg, ev, evEx, categories['high']),
@@ -398,8 +404,13 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
         print 'Already present'
     else:
         tree = rt.TChain('outA/Tevts')
+        hAllNvtx = rt.TH1D('hAllNvtx', 'hAllNvtx', 101, -0.5, 100.5)
         for fn in glob(filepath):
             tree.Add(fn)
+            fAux = rt.TFile.Open(fn, 'READ')
+            hAux = fAux.Get('trgF/hAllNvts')
+            hAllNvtx.Add(hAux)
+            fAux.Close()
         print 'Computing events from {} files'.format(tree.GetNtrees())
         N_cand_in = min(maxEntries, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
@@ -417,10 +428,12 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
                        'mass_piK', 'mass_D0pis', 'mass_D0pismu',
                        'pval_D0pismu', 'cos_D0pismu_PV', 'cosT_D0pismu_PV',
                        'N_goodAddTks',
+                       'tkCharge_0', 'tkCharge_1',
                        'tkPt_0', 'tkPt_1',
                        'tkMassVis_0', 'tkMassVis_1',
                        'tkMassHad_0', 'tkMassHad_1',
                        'tkMassMuTk_0', 'tkMassMuTk_1',
+                       'tkMassMiss2_0', 'tkMassMiss2_1',
                        'cat_low', 'cat_mid', 'cat_high',
                        'N_vtx'
                       ]
@@ -511,6 +524,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
         if not os.path.isdir(os.path.dirname(fskimmed_name)):
             os.makedirs(os.path.dirname(fskimmed_name))
         rtnp.array2root(dset.to_records(), fskimmed_name, treename='Tevts', mode='RECREATE')
+        fAux = rt.TFile.Open(fskimmed_name, 'UPDATE')
+        hAllNvtx.Write()
+        fAux.Close()
 
         with open(logfile, 'w') as f:
             ln = 'Number of candidates per events\n{'
@@ -601,18 +617,21 @@ if __name__ == "__main__":
 
         if 'none' in args.cat:
             print 'Running w/o category (ignoring other categories)'
+            sc = []
+            if args.skipCut == 'all':
+                sc = 'all'
             for n, fp in file_loc.iteritems():
-                    create_dSet(n, fp, cat=None, applyCorrections=args.applyCorr)
+                    create_dSet(n, fp, cat=None, skipCut=sc, applyCorrections=args.applyCorr)
 
-            # for n, fp in file_loc.iteritems():
-            #     create_dSet(n, fp, None, skipCut='all', applyCorrections=args.applyCorr)
 
         else:
             skip = []
+            if args.skipCut == 'all':
+                skip.append('all')
             # # skip.append([6, 11, 12]) #Mass D0, D* and D*-D0 (m piK)
             # skip.append([16]) #Visible mass (m D0pismu)
             # skip.append([17]) #Additional tracks
-            if args.skipCut:
+            elif args.skipCut:
                 skip.append([int(args.skipCut)])
             else:
                 skip.append([])
