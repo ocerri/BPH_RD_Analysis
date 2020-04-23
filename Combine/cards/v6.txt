@@ -5,36 +5,32 @@ kmax *
 shapes * Est_mu_q2bin0 ../data/_root/histos4combine/v6_Est_mu_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
 shapes * Est_mu_q2bin1 ../data/_root/histos4combine/v6_Est_mu_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
 shapes * Est_mu_q2bin2 ../data/_root/histos4combine/v6_Est_mu_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Est_mu_q2bin3 ../data/_root/histos4combine/v6_Est_mu_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Est_mu_q2bin4 ../data/_root/histos4combine/v6_Est_mu_q2bin4.root $PROCESS $PROCESS__$SYSTEMATIC
 shapes * M2_miss_q2bin0 ../data/_root/histos4combine/v6_M2_miss_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
 shapes * M2_miss_q2bin1 ../data/_root/histos4combine/v6_M2_miss_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
 shapes * M2_miss_q2bin2 ../data/_root/histos4combine/v6_M2_miss_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2bin3 ../data/_root/histos4combine/v6_M2_miss_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2bin4 ../data/_root/histos4combine/v6_M2_miss_q2bin4.root $PROCESS $PROCESS__$SYSTEMATIC
 shapes * SingleAddTkMassHad ../data/_root/histos4combine/v6_SingleAddTkMassHad.root $PROCESS $PROCESS__$SYSTEMATIC
 --------------------------------------------------------------
-bin Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin3 Est_mu_q2bin4 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin3 M2_miss_q2bin4 SingleAddTkMassHad
-observation 12932 30158 28139 35846 8568 12931 30157 28138 35843 8567 16355
+bin Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin2 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin2 SingleAddTkMassHad
+observation 32093 65991 56844 32093 65991 56844 21909
 --------------------------------------------------------------
-bin Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin4 Est_mu_q2bin4 Est_mu_q2bin4 Est_mu_q2bin4 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin4 M2_miss_q2bin4 M2_miss_q2bin4 M2_miss_q2bin4 SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad
-process tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst
-process 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3
-rate 29.1474 12719.0737 25.6913 179.9834 294.8767 28985.6809 195.2953 899.5505 1200.0686 26247.4890 401.2305 1178.2094 3231.7869 33113.9436 323.7352 1566.3574 1099.9161 7982.3681 93.1539 205.1710 29.1474 12719.0737 25.6913 179.9834 294.8767 28985.6809 195.2953 899.5505 1200.0686 26247.4890 401.2305 1178.2094 3231.7869 33113.9436 323.7352 1566.3574 1099.9161 7982.3681 93.1539 205.1710 372.9992 9089.6013 284.4973 6884.9462
+bin Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad
+process tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst
+process 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3
+rate 76.5582 24473.3065 63.7780 483.3994 1505.5533 47208.5937 628.5084 1920.8734 3787.2824 38130.9148 390.6071 1805.0544 76.5582 24473.3065 63.7780 483.3994 1505.5533 47208.5937 628.5084 1920.8734 3787.2824 38130.9148 390.6071 1805.0544 418.8979 9704.6370 304.6081 7173.6205
 --------------------------------------------------------------
-xsecpp2bbXlumi lnN 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9
-b2B0Had lnN 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 -
-muEff lnN - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - - - 1.030 - -
-HcEff lnN - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 -
-DststEff lnN - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3.
+xsecpp2bbXlumi lnN 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9
+b2B0Had lnN 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 - 2 2 2 -
+muEff lnN - 1.031 - - - 1.031 - - - 1.031 - - - 1.031 - - - 1.031 - - - 1.031 - - - 1.031 - -
+HcEff lnN - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 - - - 1.253 -
+DststEff lnN - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3. - - - 3.
 --------------------------------------------------------------
-trgSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
-muonIdSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
-B0pT shape 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. -
-B2DstCLNR0 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
-B2DstCLNR1 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
-B2DstCLNR2 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
-B2DstCLNRhoSq shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+trgSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+muonIdSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+B0pT shape 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. -
+B2DstCLNR0 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+B2DstCLNR1 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+B2DstCLNR2 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
+B2DstCLNRhoSq shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -
 * autoMCStats 0 1 1
 --------------------------------------------------------------
 B2DstFF group = B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq

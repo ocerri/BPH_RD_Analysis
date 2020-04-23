@@ -41,7 +41,7 @@ parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='
 parser.add_argument ('--maxEntries', type=int, default=1e15, help='Max number of events to be processed')
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
 parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
-parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
+parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
 parser.add_argument ('--skipCut', type=str, default='', choices=['all', '16', '17'], help='Cut to skip')
 ######## Arguments not for user #####################
 parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
@@ -59,15 +59,22 @@ filesLocMap = {
 'mu_HQETPU0'  : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_HQET2_central_PU0_10-2-3'+MCend,
 'mu_PU0'      : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
 'mu_PU20'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-'mu_PU35'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU35_10-2-3'+MCend,
 'mu_PUc0'     : MCloc+'BP_Tag_B0_MuNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'mu_PU35'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU35_10-2-3'+MCend,
+#
 'tau_PU0'     : MCloc+'B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
 'tau_PU20'    : MCloc+'BPH_Tag-B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+'tau_PUc0'    : MCloc+'BP_Tag_B0_TauNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+#
 'Hc_PU20'     : MCloc+'BPH_Tag-B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3'+MCend,
+'Hc_PUc0'     : MCloc+'BP_Tag_B0_DmstHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+#
 'Dstst_PU20'  : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+'Dstst_PUc0'  : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 #
-'dataB2DstMu' : RDloc+'*_RDntuplizer_B2DstMu_200410_CAND.root'
+'dataB2DstMu' : RDloc+'*_RDntuplizer_B2DstMu_200416_CAND.root'
+# 'dataB2DstMu' : RDloc+'*_RDntuplizer_B2DstMu_200410_CAND.root'
 # 'dataB2DstMu': RDloc+'*_RDntuplizer_B2DstMu_200327_CAND.root'
 # 'dataCombDmstMum': RDloc + 'Run2018D-05May2019promptD-v1_RDntuplizer_combDmstMum_200320_CAND.root'
 }
@@ -86,14 +93,11 @@ class Container(object):
 fBfield = rt.TFile.Open('../data/calibration/bFieldMap_2Dover3D.root', 'r')
 hBfieldMapsRatio = fBfield.Get('bfieldMap')
 def get_bFieldCorr3D(phi, eta, verbose=False):
-    print hBfieldMapsRatio.GetXaxis().FindBin(phi), hBfieldMapsRatio.GetYaxis().FindBin(eta)
-    print phi, eta
     if np.abs(eta) > 2.4:
         eta = 2.39*np.sign(eta)
     if np.abs(phi) > np.pi:
         phi = phi - 2*np.pi*np.sign(phi)
     idx = hBfieldMapsRatio.GetBin(hBfieldMapsRatio.GetXaxis().FindBin(phi), hBfieldMapsRatio.GetYaxis().FindBin(eta))
-    print idx
     return 1./hBfieldMapsRatio.GetBinContent(idx)
 
 def correctPt(pt, eta, phi, corr=None, smear=0):
@@ -322,6 +326,7 @@ def makeSelection(inputs):
                    trigger_selection(idxTrg, ev, evEx, categories['low']),
                    trigger_selection(idxTrg, ev, evEx, categories['mid']),
                    trigger_selection(idxTrg, ev, evEx, categories['high']),
+                   ev.trgMu_HLT_Mu12_IP6[idxTrg], ev.trgMu_HLT_Mu9_IP6[idxTrg], ev.trgMu_HLT_Mu7_IP4[idxTrg],
                    ev.N_vertexes
                   )
             if not 'data' in n:
@@ -435,6 +440,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
                        'tkMassMuTk_0', 'tkMassMuTk_1',
                        'tkMassMiss2_0', 'tkMassMiss2_1',
                        'cat_low', 'cat_mid', 'cat_high',
+                       'muPass_Mu12_IP6', 'muPass_Mu9_IP6', 'muPass_Mu7_IP4',
                        'N_vtx'
                       ]
         if not 'data' in n:
