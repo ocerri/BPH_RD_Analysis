@@ -224,7 +224,9 @@ def extractEventInfos(j, ev, corr=None):
     e.massHad_wTk = []
     e.massMuTk = []
     e.mass2MissTk = []
+    e.massVisTk12 = 0
 
+    p4_tk1 = None
     for jj in range(idx_st, idx_stop):
         eta = ev.tksAdd_eta[jj]
         if np.abs(eta) >= 2.4:
@@ -245,6 +247,10 @@ def extractEventInfos(j, ev, corr=None):
             e.massHad_wTk.insert(idx, (p4_Dst + p4_tk).M())
             e.massMuTk.insert(idx, (p4_mu + p4_tk).M())
             e.mass2MissTk.insert(idx, (p4_B - p4_vis - p4_tk).M2())
+        if e.N_goodAddTks == 1:
+            p4_tk1 = p4_tk.Clone('p4_tk1')
+        elif e.N_goodAddTks == 2:
+            e.massVisTk12 = (p4_vis + p4_tk1 + p4_tk).M()
 
     if e.N_goodAddTks < 2:
         for l in [e.tkCharge, e.tkPt, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk]:
@@ -323,6 +329,7 @@ def makeSelection(inputs):
                    evEx.massHad_wTk[0], evEx.massHad_wTk[1],
                    evEx.massMuTk[0], evEx.massMuTk[1],
                    evEx.mass2MissTk[0], evEx.mass2MissTk[1],
+                   evEx.massVisTk12,
                    trigger_selection(idxTrg, ev, evEx, categories['low']),
                    trigger_selection(idxTrg, ev, evEx, categories['mid']),
                    trigger_selection(idxTrg, ev, evEx, categories['high']),
@@ -439,6 +446,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
                        'tkMassHad_0', 'tkMassHad_1',
                        'tkMassMuTk_0', 'tkMassMuTk_1',
                        'tkMassMiss2_0', 'tkMassMiss2_1',
+                       'tkMassVis12',
                        'cat_low', 'cat_mid', 'cat_high',
                        'muPass_Mu12_IP6', 'muPass_Mu9_IP6', 'muPass_Mu7_IP4',
                        'N_vtx'
