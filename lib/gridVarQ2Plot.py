@@ -8,16 +8,47 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import tdrstyle
 tdrstyle.setTDRStyle()
 
-col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'Dstst': rt.kViolet-7}
+col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'BpDstst': rt.kViolet-7, 'B0Dstst': rt.kMagenta-4}
 
 label_dic = {'data' : 'Data',
              'mu'   : 'B#rightarrow D*#mu#nu',
              'tau'  : 'B#rightarrow D*#tau#nu',
              'Hc'   : 'B#rightarrow D*H_{c}',
-             'Dstst': 'B#rightarrow D**#mu#nu'
+             'BpDstst': 'B^{+}#rightarrow D**#mu#nu',
+             'B0Dstst': 'B_{0}#rightarrow D**#mu#nu'
             }
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False):
+fillStyleVar = [1, 3345, 3354]
+sampleDstst = {
+'BpDstst': ['DstPip', 'DstPipPi0'],
+'B0Dstst': ['DstPi0', 'DstPipPim', 'DstPi0Pi0']
+}
+
+
+def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name=''):
+    leg = rt.TLegend(loc[0], loc[1], loc[2], loc[3])
+    leg.SetTextFont(42)
+    leg.SetTextAlign(12)
+    leg.SetLineWidth(0)
+    leg.SetBorderSize(0)
+    leg.AddEntry(h_list[0], label_dic['data'], 'lep')
+    for n in ['mu', 'tau', 'Hc']:
+        for h in h_list:
+            if 'h_aux_'+n+cat_name == h.GetName():
+                leg.AddEntry(h, label_dic[n], 'f')
+                break
+    for k, sampleList in sampleDstst.iteritems():
+        present = np.sum([n in h_dic.keys() for n in sampleList])
+        if not present: continue
+        h = rt.TH1D('hAuxLeg_'+k, 'hAuxLeg_'+k, 1, 0, 1)
+        h.SetLineWidth(0)
+        h.SetFillColor(col_dic[k])
+        h.SetFillStyle(1)
+        canvas.dnd.append(h)
+        leg.AddEntry(h, label_dic[k], 'f')
+    return leg
+
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True):
     canvas = rt.TCanvas('c_out', 'c_out', 50, 50, 2*600, 400*len(binning['q2'])-1)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
@@ -85,56 +116,40 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
             h.GetYaxis().SetRangeUser(min_y, max_y)
             h_list = [h]
 
-            if 'Dstst' in h_dic.keys():
-                h_Dstst = h_dic['Dstst'].Clone('h_aux_Dstst_'+cat_name)
-                if 'Dstst' in scale_dic.keys(): h_Dstst.Scale(scale_dic['Dstst'])
-                h_Dstst.SetLineWidth(0)
-                h_Dstst.SetFillColor(col_dic['Dstst'])
-                h_Dstst.SetFillStyle(1)
-                h_Dstst.Sumw2(0)
-                h_list.append(h_Dstst)
-
-            if 'Hc' in h_dic.keys():
-                h_Hc = h_dic['Hc'].Clone('h_aux_Hc_'+cat_name)
-                if 'Hc' in scale_dic.keys(): h_Hc.Scale(scale_dic['Hc'])
-                if 'Dstst' in h_dic.keys():
-                    h_Hc.Add(h_Dstst)
-                h_Hc.SetLineWidth(0)
-                h_Hc.SetFillColor(col_dic['Hc'])
-                h_Hc.SetFillStyle(1)
-                h_Hc.Sumw2(0)
-                h_list.append(h_Hc)
-
-            h_tau = h_dic['tau'].Clone('h_aux_tau_'+cat_name)
-            if 'tau' in scale_dic.keys(): h_tau.Scale(scale_dic['tau'])
-            if 'Hc' in h_dic.keys():
-                h_tau.Add(h_Hc)
-            elif 'Dstst' in h_dic.keys():
-                h_tau.Add(h_Dstst)
-            h_tau.SetLineWidth(0)
-            h_tau.SetFillColor(col_dic['tau'])
-            h_tau.SetFillStyle(1)
-            h_tau.Sumw2(0)
-            h_list.append(h_tau)
-
-            h_mu = h_dic['mu'].Clone('h_aux_mu_'+cat_name)
-            if 'mu' in scale_dic.keys(): h_mu.Scale(scale_dic['mu'])
-            h_mu.Add(h_tau)
-            h_mu.SetLineWidth(0)
-            h_mu.SetFillColor(col_dic['mu'])
-            h_mu.SetFillStyle(1)
-            h_mu.Sumw2(0)
-            h_list.append(h_mu)
+            for k, sampleList in sampleDstst.iteritems():
+                for iproc, procName in enumerate(sampleList):
+                    if not procName in h_dic.keys(): continue
+                    h = h_dic[procName].Clone('h_aux_'+procName+'_'+cat_name)
+                    if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
+                    h.SetLineWidth(0)
+                    h.SetFillColor(col_dic[k])
+                    h.SetFillStyle(1)
+                    if not mergeDstst: h.SetFillStyle(fillStyleVar[iproc])
+                    h.Sumw2(0)
+                    hh = h_list[-1]
+                    if not hh.GetName() == 'h_aux_data_'+cat_name:
+                        h.Add(hh)
+                    h_list.append(h)
 
 
-            h.Draw('E1')
-            h_mu.DrawCopy('SAME')
-            h_tau.Draw('SAME')
-            if 'Hc' in h_dic.keys():
-                h_Hc.Draw('SAME')
-            if 'Dstst' in h_dic.keys():
-                h_Dstst.Draw('SAME')
-            h.Draw('SAMEE1') #Draw it a second time to bring it in foreground
+            procOrder = ['Hc', 'tau', 'mu']
+            for iProc, procName in enumerate(procOrder):
+                if not procName in h_dic.keys(): continue
+                h = h_dic[procName].Clone('h_aux_'+procName+'_'+cat_name)
+                if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
+                h.SetLineWidth(0)
+                h.SetFillColor(col_dic[procName])
+                h.SetFillStyle(1)
+                h.Sumw2(0)
+                hh = h_list[-1]
+                if not hh.GetName() == 'h_aux_data_'+cat_name:
+                    h.Add(hh)
+                h_list.append(h)
+
+            h_list[0].Draw('E1')
+            for h in reversed(h_list[1:]):
+                h.Draw('SAME')
+            h_list[0].Draw('SAMEE1') #Draw it a second time to bring it in foreground
 
             l = rt.TLatex()
             l.SetTextAlign(11)
@@ -147,18 +162,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                 pad.SetLogy()
 
             if i_pad == iPad_legend:
-                leg = rt.TLegend(0.65, 0.4, 0.9, 0.7)
-                leg.SetTextFont(42)
-                leg.SetTextAlign(12)
-                leg.SetLineWidth(0)
-                leg.SetBorderSize(0)
-                leg.AddEntry(h, label_dic['data'], 'lep')
-                leg.AddEntry(h_mu, label_dic['mu'], 'f')
-                leg.AddEntry(h_tau, label_dic['tau'], 'f')
-                if 'Hc' in h_dic.keys():
-                    leg.AddEntry(h_Hc, label_dic['Hc'], 'f')
-                if 'Dstst' in h_dic.keys():
-                    leg.AddEntry(h_Dstst, label_dic['Dstst'], 'f')
+                leg = createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name='_'+cat_name)
                 leg.Draw()
                 canvas.dnd.append(leg)
 
@@ -175,7 +179,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                 pad.Draw()
                 pad.cd()
 
-                h_dr = h.Clone('h_aux_dataratio_'+cat_name)
+                h_dr = h_list[0].Clone('h_aux_dataratio_'+cat_name)
                 h_dr.GetYaxis().SetTitle('RD/MC')
                 h_tot = h_dic['total'].Clone('h_aux_total_'+cat_name)
                 g_up = rt.TGraph()
@@ -189,8 +193,8 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
                     e_MC = h_tot.GetBinError(i)
                     h_dr.SetBinContent(i, c/c_MC)
                     h_dr.SetBinError(i, e/c_MC)
-                    x_low = h_tot.GetBinCenter(i) - 0.5*h.GetBinWidth(i)
-                    x_up = h_tot.GetBinCenter(i) + 0.5*h.GetBinWidth(i)
+                    x_low = h_tot.GetBinCenter(i) - 0.5*h_tot.GetBinWidth(i)
+                    x_up = h_tot.GetBinCenter(i) + 0.5*h_tot.GetBinWidth(i)
                     g_up.SetPoint(2*i-1, x_low, (c_MC+e_MC)/c_MC)
                     g_up.SetPoint(2*i, x_up, (c_MC+e_MC)/c_MC)
                     g_down.SetPoint(2*i-1, x_low, (c_MC-e_MC)/c_MC)
@@ -231,7 +235,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic, min_y=1e-4, draw_pulls=F
     return canvas
 
 
-def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False):
+def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, mergeDstst=True):
     canvas = rt.TCanvas('c_SingleAddTkMassHad', 'c_SingleAddTkMassHad', 50, 50, 600, 450)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
@@ -269,7 +273,7 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
     h.GetYaxis().SetRangeUser(min_y, max_y)
     h_list = [h]
 
-    procOrder = ['tau', 'Hc', 'mu', 'Dstst']
+    procOrder = ['tau', 'Hc', 'mu']
     for iProc, procName in enumerate(procOrder):
         if not procName in h_dic.keys(): continue
         h = h_dic[procName].Clone('h_aux_'+procName)
@@ -282,6 +286,21 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
         if not hh.GetName() == 'h_aux_data':
             h.Add(hh)
         h_list.append(h)
+
+    for k, sampleList in sampleDstst.iteritems():
+        for iproc, procName in enumerate(sampleList):
+            if not procName in h_dic.keys(): continue
+            h = h_dic[procName].Clone('h_aux_'+procName)
+            if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
+            h.SetLineWidth(0)
+            h.SetFillColor(col_dic[k])
+            h.SetFillStyle(1)
+            if not mergeDstst: h.SetFillStyle(fillStyleVar[iproc])
+            h.Sumw2(0)
+            hh = h_list[-1]
+            if not hh.GetName() == 'h_aux_data':
+                h.Add(hh)
+            h_list.append(h)
 
 
     h_list[0].Draw('E1')
@@ -299,17 +318,9 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
     if logy:
         pad.SetLogy()
 
-    leg = rt.TLegend(0.65, 0.4, 0.9, 0.7)
-    leg.SetTextFont(42)
-    leg.SetTextAlign(12)
-    leg.SetLineWidth(0)
-    leg.SetBorderSize(0)
-    leg.AddEntry(h_list[0], label_dic['data'], 'lep')
-    for h in h_list[1:]:
-        leg.AddEntry(h, label_dic[h.GetName().replace('h_aux_', '')], 'f')
+    leg = createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7])
     leg.Draw()
 
-    canvas.dnd.append(leg)
     canvas.dnd.append([pad, h_list])
 
     if draw_pulls:
@@ -379,7 +390,7 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
     return canvas
 
 
-def plot_SingleAddTkMassVis(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False):
+def plot_SingleAddTkMassVis(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, mergeDstst=True):
     canvas = rt.TCanvas('c_SingleAddTkMassVis', 'c_SingleAddTkMassVis', 50, 50, 600, 450)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
@@ -417,7 +428,7 @@ def plot_SingleAddTkMassVis(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
     h.GetYaxis().SetRangeUser(min_y, max_y)
     h_list = [h]
 
-    procOrder = ['tau', 'Hc', 'Dstst', 'mu']
+    procOrder = ['tau', 'Hc', 'mu']
     for iProc, procName in enumerate(procOrder):
         if not procName in h_dic.keys(): continue
         h = h_dic[procName].Clone('h_aux_'+procName)
@@ -430,6 +441,21 @@ def plot_SingleAddTkMassVis(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
         if not hh.GetName() == 'h_aux_data':
             h.Add(hh)
         h_list.append(h)
+
+    for k, sampleList in sampleDstst.iteritems():
+        for iproc, procName in enumerate(sampleList):
+            if not procName in h_dic.keys(): continue
+            h = h_dic[procName].Clone('h_aux_'+procName)
+            if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
+            h.SetLineWidth(0)
+            h.SetFillColor(col_dic[k])
+            h.SetFillStyle(1)
+            if not mergeDstst: h.SetFillStyle(fillStyleVar[iproc])
+            h.Sumw2(0)
+            hh = h_list[-1]
+            if not hh.GetName() == 'h_aux_data':
+                h.Add(hh)
+            h_list.append(h)
 
 
     h_list[0].Draw('E1')
@@ -447,18 +473,9 @@ def plot_SingleAddTkMassVis(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
     if logy:
         pad.SetLogy()
 
-    leg = rt.TLegend(0.15, 0.45, 0.35, 0.75)
-    leg.SetTextFont(42)
-    leg.SetTextAlign(12)
-    leg.SetLineWidth(0)
-    leg.SetFillStyle(0)
-    leg.SetBorderSize(0)
-    leg.AddEntry(h_list[0], label_dic['data'], 'lep')
-    for h in h_list[1:]:
-        leg.AddEntry(h, label_dic[h.GetName().replace('h_aux_', '')], 'f')
+    leg = createLegend(h_list, h_dic, canvas, loc=[0.15, 0.45, 0.35, 0.75])
     leg.Draw()
 
-    canvas.dnd.append(leg)
     canvas.dnd.append([pad, h_list])
 
     if draw_pulls:
