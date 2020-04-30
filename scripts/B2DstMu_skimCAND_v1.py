@@ -36,7 +36,7 @@ import argparse
 parser = argparse.ArgumentParser()
 #Example: python B2DstMu_skimCAND_v1.py -d mu_PU20 --maxEntries 80000 --applyCorr
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
-parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on', nargs='+')
+parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
 parser.add_argument ('--maxEntries', type=int, default=1e15, help='Max number of events to be processed')
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
@@ -56,21 +56,29 @@ MCend = '/ntuples_B2DstMu/out_CAND_*.root'
 RDloc = '../data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {
-'mu_HQETPU0'  : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_HQET2_central_PU0_10-2-3'+MCend,
-'mu_PU0'      : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
-'mu_PU20'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-'mu_PUc0'     : MCloc+'BP_Tag_B0_MuNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'mu_PU35'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU35_10-2-3'+MCend,
+'mu_HQETPU0'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_HQET2_central_PU0_10-2-3'+MCend,
+'mu_PU0'         : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
+'mu_PU20'        : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+'mu_PUc0'        : MCloc+'BP_Tag_B0_MuNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'mu_PU35'        : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU35_10-2-3'+MCend,
 #
-'tau_PU0'     : MCloc+'B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
-'tau_PU20'    : MCloc+'BPH_Tag-B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-'tau_PUc0'    : MCloc+'BP_Tag_B0_TauNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'tau_PU0'        : MCloc+'B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
+'tau_PU20'       : MCloc+'BPH_Tag-B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+'tau_PUc0'       : MCloc+'BP_Tag_B0_TauNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'Hc_PU20'     : MCloc+'BPH_Tag-B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3'+MCend,
-'Hc_PUc0'     : MCloc+'BP_Tag_B0_DmstHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'Hc_PU20'        : MCloc+'BPH_Tag-B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3'+MCend,
+'Hc_PUc0'        : MCloc+'BP_Tag_B0_DmstHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'Dstst_PU20'  : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-'Dstst_PUc0'  : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstPip_PU20'     : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+'DstPip_PUc0'     : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+#
+'DstPi0_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
+#
+'DstPipPi0_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstst_PipPi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+#
+'DstPipPim_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_PipPim_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+#
+'DstPi0Pi0_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 #
 'dataB2DstMu' : RDloc+'*_RDntuplizer_B2DstMu_200416_CAND.root'
@@ -620,7 +628,10 @@ if __name__ == "__main__":
     if args.function == 'main':
         file_loc = {}
         for n in args.dataset:
-            file_loc[n] = filesLocMap[n]
+            for kn in filesLocMap.keys():
+                if not re.match(n, kn) is None:
+                    print 'Adding', kn
+                    file_loc[kn] = filesLocMap[kn]
         if len(file_loc.keys()) == 0:
             print 'No dataset provided'
             exit()
@@ -628,6 +639,7 @@ if __name__ == "__main__":
         recreate = []
         if args.recreate:
             recreate = file_loc.keys()
+        print '-'*50 + '\n'
 
         if 'none' in args.cat:
             print 'Running w/o category (ignoring other categories)'
