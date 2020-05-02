@@ -237,20 +237,33 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
     canvas.Draw()
     return canvas
 
-
-def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, mergeDstst=True):
-    canvas = rt.TCanvas('c_SingleAddTkMassHad', 'c_SingleAddTkMassHad', 50, 50, 600, 450)
+def plot_SingleCategory(CMS_lumi,
+                        h_dic,
+                        scale_dic={},
+                        min_y=1e-4,
+                        draw_pulls=False,
+                        pulls_ylim=[0.8, 1.2],
+                        logy=False,
+                        mergeDstst=True,
+                        tag='',
+                        xtitle='',
+                        addText='',
+                        addTextPos=[0.18, 0.83],
+                        legLoc=[0.65, 0.4, 0.9, 0.7]
+                        ):
+    if len(tag) > 0 and not tag[0] == '_':
+        tag = '_' + tag
+    canvas = rt.TCanvas('c_'+tag, 'c_'+tag, 50, 50, 600, 450)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
     canvas.dnd = []
     pad_master = canvas.cd()
 
-    h_dic = histo['SingleAddTkMassHad']
     if not draw_pulls:
-        pad = rt.TPad('pmain_SingleAddTkMassHad', 'pmain_SingleAddTkMassHad', 0, 0, 1, 1)
+        pad = rt.TPad('pmain'+tag, 'pmain'+tag, 0, 0, 1, 1)
         pad.SetBottomMargin(0.2)
     else:
-        pad = rt.TPad('pmain_SingleAddTkMassHad', 'pmain_SingleAddTkMassHad', 0, 0.25, 1, 1)
+        pad = rt.TPad('pmain'+tag, 'pmain'+tag, 0, 0.25, 1, 1)
         pad.SetBottomMargin(0.)
     pad.SetTopMargin(0.07)
     pad.SetRightMargin(0.05)
@@ -258,13 +271,13 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
     pad.Draw()
     pad.cd()
 
-    h = h_dic['data'].Clone('h_aux_data')
+    h = h_dic['data'].Clone('h_aux_data'+tag)
     if 'data' in scale_dic.keys(): h.Scale(scale_dic['data'])
     h.SetLineColor(1)
     h.SetLineWidth(1)
     h.SetMarkerColor(1)
     h.SetMarkerStyle(20)
-    h.GetXaxis().SetTitle('Total candidate hadronic mass [GeV]')
+    h.GetXaxis().SetTitle(xtitle+' [GeV]')
     h.GetXaxis().SetTitleSize(0.07)
     h.GetXaxis().SetLabelSize(0.07)
     h.GetYaxis().SetTitleOffset(1.16)
@@ -279,21 +292,21 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
     procOrder = ['tau', 'Hc', 'mu']
     for iProc, procName in enumerate(procOrder):
         if not procName in h_dic.keys(): continue
-        h = h_dic[procName].Clone('h_aux_'+procName)
+        h = h_dic[procName].Clone('h_aux'+tag+'_'+procName)
         if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
         h.SetLineWidth(0)
         h.SetFillColor(col_dic[procName])
         h.SetFillStyle(1)
         h.Sumw2(0)
         hh = h_list[-1]
-        if not hh.GetName() == 'h_aux_data':
+        if not hh.GetName() == 'h_aux_data'+tag:
             h.Add(hh)
         h_list.append(h)
 
     for k, sampleList in sampleDstst.iteritems():
         for iproc, procName in enumerate(sampleList):
             if not procName in h_dic.keys(): continue
-            h = h_dic[procName].Clone('h_aux_'+procName)
+            h = h_dic[procName].Clone('h_aux'+tag+'_'+procName)
             if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
             h.SetLineWidth(0)
             h.SetFillColor(col_dic[k])
@@ -301,7 +314,7 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
             if not mergeDstst: h.SetFillStyle(fillStyleVar[iproc])
             h.Sumw2(0)
             hh = h_list[-1]
-            if not hh.GetName() == 'h_aux_data':
+            if not hh.GetName() == 'h_aux_data'+tag:
                 h.Add(hh)
             h_list.append(h)
 
@@ -311,24 +324,25 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
         h.Draw('SAME')
     h_list[0].Draw('SAMEE1') #Draw it a second time to bring it in foreground
 
-    l = rt.TLatex()
-    l.SetTextAlign(11)
-    l.SetTextSize(0.05)
-    l.SetTextFont(42)
-    l.DrawLatexNDC(0.18, 0.83, '#splitline{N_goodAddTks = 1}{Positive tracks}')
+    if addText:
+        l = rt.TLatex()
+        l.SetTextAlign(11)
+        l.SetTextSize(0.05)
+        l.SetTextFont(42)
+        l.DrawLatexNDC(addTextPos[0], addTextPos[1], addText)
 
     CMS_lumi.CMS_lumi(pad, -1, 33, cmsTextSize=0.75*1.2, lumiTextSize=0.6*1.2)
     if logy:
         pad.SetLogy()
 
-    leg = createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7])
+    leg = createLegend(h_list, h_dic, canvas, loc=legLoc)
     leg.Draw()
     canvas.dnd.append([pad, h_list, leg])
 
     if draw_pulls:
         pad_master.cd()
 
-        pad = rt.TPad('ppull_SingleAddTkMassHad', 'ppull_SingleAddTkMassHad', 0, 0, 1, 0.25)
+        pad = rt.TPad('ppull'+tag, 'ppull'+tag, 0, 0, 1, 0.25)
         pad.SetBottomMargin(0.5)
         pad.SetTopMargin(0)
         pad.SetRightMargin(0.05)
@@ -336,9 +350,9 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
         pad.Draw()
         pad.cd()
 
-        h_dr = h_list[0].Clone('h_aux_dataratio')
+        h_dr = h_list[0].Clone('h_aux_dataratio'+tag)
         h_dr.GetYaxis().SetTitle('RD/MC')
-        h_tot = h_dic['total'].Clone('h_aux_total')
+        h_tot = h_dic['total'].Clone('h_aux_total'+tag)
         g_up = rt.TGraph()
         g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
         g_down = rt.TGraph()
@@ -384,161 +398,7 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
         x_low = h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1)
         x_high = h_tot.GetBinCenter(i)+0.5*h_tot.GetBinWidth(i)
         l.DrawLine(x_low, 1, x_high, 1)
-        h_dr.Draw('sameE') #redraw it to bring it to front
-
-        canvas.dnd.append([pad, h_dr, h_tot, g_up, g_down])
-
-    canvas.Draw()
-    return canvas
-
-
-def plot_SingleAddTkMassVis(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, mergeDstst=True):
-    canvas = rt.TCanvas('c_SingleAddTkMassVis', 'c_SingleAddTkMassVis', 50, 50, 600, 450)
-    canvas.SetTickx(0)
-    canvas.SetTicky(0)
-    canvas.dnd = []
-    pad_master = canvas.cd()
-
-    h_dic = histo['SingleAddTkMassVis']
-    if not draw_pulls:
-        pad = rt.TPad('pmain_SingleAddTkMassVis', 'pmain_SingleAddTkMassVis', 0, 0, 1, 1)
-        pad.SetBottomMargin(0.2)
-    else:
-        pad = rt.TPad('pmain_SingleAddTkMassVis', 'pmain_SingleAddTkMassVis', 0, 0.25, 1, 1)
-        pad.SetBottomMargin(0.)
-    pad.SetTopMargin(0.07)
-    pad.SetRightMargin(0.05)
-    pad.SetLeftMargin(0.13)
-    pad.Draw()
-    pad.cd()
-
-    h = h_dic['data'].Clone('h_aux_data')
-    if 'data' in scale_dic.keys(): h.Scale(scale_dic['data'])
-    h.SetLineColor(1)
-    h.SetLineWidth(1)
-    h.SetMarkerColor(1)
-    h.SetMarkerStyle(20)
-    h.GetXaxis().SetTitle('Total candidate visible mass [GeV]')
-    h.GetXaxis().SetTitleSize(0.07)
-    h.GetXaxis().SetLabelSize(0.07)
-    h.GetYaxis().SetTitleOffset(1.16)
-    h.GetXaxis().SetTitleOffset(1.1)
-    h.GetYaxis().SetTitleSize(0.06)
-    h.GetYaxis().SetLabelSize(0.07)
-    h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + 'GeV')
-    max_y = np.max([hhh.GetMaximum() for hhh in h_dic.values()])*1.3
-    h.GetYaxis().SetRangeUser(min_y, max_y)
-    h_list = [h]
-
-    procOrder = ['tau', 'Hc', 'mu']
-    for iProc, procName in enumerate(procOrder):
-        if not procName in h_dic.keys(): continue
-        h = h_dic[procName].Clone('h_aux_'+procName)
-        if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
-        h.SetLineWidth(0)
-        h.SetFillColor(col_dic[procName])
-        h.SetFillStyle(1)
-        h.Sumw2(0)
-        hh = h_list[-1]
-        if not hh.GetName() == 'h_aux_data':
-            h.Add(hh)
-        h_list.append(h)
-
-    for k, sampleList in sampleDstst.iteritems():
-        for iproc, procName in enumerate(sampleList):
-            if not procName in h_dic.keys(): continue
-            h = h_dic[procName].Clone('h_aux_'+procName)
-            if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
-            h.SetLineWidth(0)
-            h.SetFillColor(col_dic[k])
-            h.SetFillStyle(1)
-            if not mergeDstst: h.SetFillStyle(fillStyleVar[iproc])
-            h.Sumw2(0)
-            hh = h_list[-1]
-            if not hh.GetName() == 'h_aux_data':
-                h.Add(hh)
-            h_list.append(h)
-
-
-    h_list[0].Draw('E1')
-    for h in reversed(h_list[1:]):
-        h.Draw('SAME')
-    h_list[0].Draw('SAMEE1') #Draw it a second time to bring it in foreground
-
-    l = rt.TLatex()
-    l.SetTextAlign(11)
-    l.SetTextSize(0.05)
-    l.SetTextFont(42)
-    l.DrawLatexNDC(0.18, 0.83, '#splitline{N_goodAddTks = 2}{Negative and positive tracks}')
-
-    CMS_lumi.CMS_lumi(pad, -1, 33, cmsTextSize=0.75*1.2, lumiTextSize=0.6*1.2)
-    if logy:
-        pad.SetLogy()
-
-    leg = createLegend(h_list, h_dic, canvas, loc=[0.15, 0.45, 0.35, 0.75])
-    leg.Draw()
-    canvas.dnd.append([pad, h_list, leg])
-
-    if draw_pulls:
-        pad_master.cd()
-
-        pad = rt.TPad('ppull_SingleAddTkMassVis', 'ppull_SingleAddTkMassVis', 0, 0, 1, 0.25)
-        pad.SetBottomMargin(0.5)
-        pad.SetTopMargin(0)
-        pad.SetRightMargin(0.05)
-        pad.SetLeftMargin(0.13)
-        pad.Draw()
-        pad.cd()
-
-        h_dr = h_list[0].Clone('h_aux_dataratio')
-        h_dr.GetYaxis().SetTitle('RD/MC')
-        h_tot = h_dic['total'].Clone('h_aux_total')
-        g_up = rt.TGraph()
-        g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
-        g_down = rt.TGraph()
-        g_down.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
-        for i in range(1, h_dr.GetNbinsX()+1):
-            c = h_dr.GetBinContent(i)
-            e = h_dr.GetBinError(i)
-            c_MC = h_tot.GetBinContent(i)
-            e_MC = h_tot.GetBinError(i)
-            h_dr.SetBinContent(i, c/c_MC)
-            h_dr.SetBinError(i, e/c_MC)
-            x_low = h_tot.GetBinCenter(i) - 0.5*h_tot.GetBinWidth(i)
-            x_up = h_tot.GetBinCenter(i) + 0.5*h_tot.GetBinWidth(i)
-            g_up.SetPoint(2*i-1, x_low, (c_MC+e_MC)/c_MC)
-            g_up.SetPoint(2*i, x_up, (c_MC+e_MC)/c_MC)
-            g_down.SetPoint(2*i-1, x_low, (c_MC-e_MC)/c_MC)
-            g_down.SetPoint(2*i, x_up, (c_MC-e_MC)/c_MC)
-        g_up.SetPoint(2*i+1, x_up, 1)
-        g_down.SetPoint(2*i+1, x_up, 1)
-
-        h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
-        h_dr.GetYaxis().SetTitleOffset(0.35)
-        h_dr.GetYaxis().SetTitleSize(0.2)
-        h_dr.GetYaxis().SetLabelSize(0.2)
-        h_dr.GetYaxis().SetNdivisions(402)
-        h_dr.GetXaxis().SetTitleOffset(0.95)
-        h_dr.GetXaxis().SetTitleSize(0.22)
-        h_dr.GetXaxis().SetLabelSize(0.22)
-        h_dr.GetXaxis().SetTickSize(0.07)
-
-        h_dr.Draw('E1')
-
-        g_up.SetFillColor(rt.kGray)
-        g_up.SetFillStyle(1)
-        g_up.Draw('F')
-        g_down.SetFillColor(rt.kGray)
-        g_down.SetFillStyle(1)
-        g_down.Draw('F')
-        l = rt.TLine()
-        l.SetLineColor(rt.kGray+1)
-        l.SetLineWidth(1)
-        l.SetLineStyle(9)
-        x_low = h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1)
-        x_high = h_tot.GetBinCenter(i)+0.5*h_tot.GetBinWidth(i)
-        l.DrawLine(x_low, 1, x_high, 1)
-        h_dr.Draw('sameE') #redraw it to bring it to front
+        h_dr.Draw('sameE1') #redraw it to bring it to front
 
         canvas.dnd.append([pad, h_dr, h_tot, g_up, g_down])
 

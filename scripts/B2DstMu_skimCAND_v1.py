@@ -72,7 +72,8 @@ filesLocMap = {
 'DstPip_PU20'     : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
 'DstPip_PUc0'     : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'DstPi0_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
+'DstPi0_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstPi0nR_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
 #
 'DstPipPi0_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstst_PipPi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
@@ -360,7 +361,9 @@ def makeSelection(inputs):
                         ev.MC_pi_pt, ev.MC_pi_eta, ev.MC_pi_phi,
                         ev.MC_K_pt, ev.MC_K_eta, ev.MC_K_phi,
                         ev.MC_pis_pt, ev.MC_pis_eta, ev.MC_pis_phi,
-                        ev.MC_idxCand == j
+                        ev.MC_idxCand == j,
+                        ev.MC_muMotherPdgId, ev.MC_munuSisterPdgId,
+                        ev.MC_DstMotherPdgId, ev.MC_DstSisPdgId_heavy, ev.MC_DstSisPdgId_light
                        )
             if 'mu' in n or 'tau' in n:
                 aux += (ev.wh_CLNCentral,
@@ -477,7 +480,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
                             'MC_pi_pt', 'MC_pi_eta', 'MC_pi_phi',
                             'MC_K_pt', 'MC_K_eta', 'MC_K_phi',
                             'MC_pis_pt', 'MC_pis_eta', 'MC_pis_phi',
-                            'MC_idxMatch'
+                            'MC_idxMatch',
+                            'MC_muMotherPdgId', 'MC_munuSisterPdgId',
+                            'MC_DstMotherPdgId', 'MC_DstSisterPdgId_heavy', 'MC_DstSisterPdgId_light'
                            ]
         if 'mu' in n or 'tau' in n:
             leafs_names += ['wh_CLNCentral',
