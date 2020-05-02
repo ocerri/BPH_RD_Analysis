@@ -8,7 +8,7 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import tdrstyle
 tdrstyle.setTDRStyle()
 
-col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'BpDstst': rt.kViolet-7, 'B0Dstst': rt.kMagenta-4}
+col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'BpDstst': rt.kOrange-3, 'B0Dstst': rt.kViolet-7}
 
 label_dic = {'data' : 'Data',
              'mu'   : 'B#rightarrow D*#mu#nu',
@@ -162,7 +162,10 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 pad.SetLogy()
 
             if i_pad == iPad_legend:
-                leg = createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name='_'+cat_name)
+                loc=[0.6, 0.35, 0.92, 0.7]
+                if draw_pulls:
+                    loc=[0.6, 0.25, 0.92, 0.7]
+                leg = createLegend(h_list, h_dic, canvas, loc=loc, cat_name='_'+cat_name)
                 leg.Draw()
                 canvas.dnd.append(leg)
 
@@ -227,7 +230,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 x_low = h_tot.GetBinCenter(1)-0.5*h.GetBinWidth(1)
                 x_high = h_tot.GetBinCenter(i)+0.5*h.GetBinWidth(i)
                 l.DrawLine(x_low, 1, x_high, 1)
-                h_dr.Draw('sameE') #redraw it to bring it to front
+                h_dr.Draw('sameE1') #redraw it to bring it to front
 
                 canvas.dnd.append([pad, h_dr, h_tot, g_up, g_down])
 
@@ -320,8 +323,7 @@ def plot_SingleAddTkMassHad(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
 
     leg = createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7])
     leg.Draw()
-
-    canvas.dnd.append([pad, h_list])
+    canvas.dnd.append([pad, h_list, leg])
 
     if draw_pulls:
         pad_master.cd()
@@ -475,8 +477,7 @@ def plot_SingleAddTkMassVis(CMS_lumi, histo, scale_dic, min_y=1e-4, draw_pulls=F
 
     leg = createLegend(h_list, h_dic, canvas, loc=[0.15, 0.45, 0.35, 0.75])
     leg.Draw()
-
-    canvas.dnd.append([pad, h_list])
+    canvas.dnd.append([pad, h_list, leg])
 
     if draw_pulls:
         pad_master.cd()

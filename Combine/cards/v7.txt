@@ -12,12 +12,12 @@ shapes * SingleAddTkMassHad ../data/_root/histos4combine/v7_SingleAddTkMassHad.r
 shapes * SingleAddTkMassVis ../data/_root/histos4combine/v7_SingleAddTkMassVis.root $PROCESS $PROCESS__$SYSTEMATIC
 --------------------------------------------------------------
 bin Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin2 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin2 SingleAddTkMassHad SingleAddTkMassVis
-observation 32093 65991 56844 32093 65991 56844 18258 3362
+observation 32095 65992 56841 32095 65992 56841 18258 3362
 --------------------------------------------------------------
 bin Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis
 process tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0
 process 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
-rate 76.56 24473.31 63.78 483.40 7.85 98.41 11.24 18.86 1505.55 47208.59 628.51 1920.87 97.90 1152.32 129.76 259.63 3787.28 38130.91 390.61 1805.05 97.92 2347.70 114.72 271.83 76.56 24473.31 63.78 483.40 7.85 98.41 11.24 18.86 1505.55 47208.59 628.51 1920.87 97.90 1152.32 129.76 259.63 3787.28 38130.91 390.61 1805.05 97.92 2347.70 114.72 271.83 226.79 5170.72 191.26 6970.78 454.10 164.03 419.80 26.61 18.60 464.64 385.24 320.47 20.69 21.28 868.83 2.59
+rate 75.77 24429.37 65.87 479.35 7.91 98.38 11.50 18.97 1508.06 47258.02 629.97 1926.22 97.89 1151.41 130.33 258.74 3777.92 38083.86 391.66 1803.52 97.77 2354.80 114.12 272.19 75.77 24429.37 65.87 479.35 7.91 98.38 11.50 18.97 1508.06 47258.02 629.97 1926.22 97.89 1151.41 130.33 258.74 3777.92 38083.86 391.66 1803.52 97.77 2354.80 114.12 272.19 226.79 5170.72 191.26 6970.78 454.10 164.03 419.80 26.61 18.60 464.64 385.24 320.47 20.69 21.28 868.83 2.59
 --------------------------------------------------------------
 xsecpp2bbXlumi lnN 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9
 b2B0Had lnN 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3
@@ -37,7 +37,7 @@ B2DstCLNR0 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - -
 B2DstCLNR1 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
 B2DstCLNR2 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
 B2DstCLNRhoSq shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
-* autoMCStats 0 1 1
+* autoMCStats 100 1 1
 --------------------------------------------------------------
 B2DstFF group = B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq
 normMC group = xsecpp2bbXlumi b2B0Had b2BpHad

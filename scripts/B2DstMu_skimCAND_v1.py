@@ -210,7 +210,7 @@ def extractEventInfos(j, ev, corr=None):
     p4_B.SetPtEtaPhiM(e.B_pt, e.B_eta, e.B_phi, m_B0);
 
     e.M2_miss = (p4_B - p4_vis).M2()
-    # print 'M2_miss: {:.4f} {:.4f}'.format(ev.M2_miss_D0pismu[j], e.M2_miss)
+    e.U_miss = (p4_B - p4_vis).E() - (p4_B - p4_vis).P()
     e.q2 = (p4_B - p4_Dst).M2()
     # print 'q2: {:.4f} {:.4f}'.format(ev.q2_D0pismu[j], e.q2)
 
@@ -232,7 +232,9 @@ def extractEventInfos(j, ev, corr=None):
     e.massHad_wTk = []
     e.massMuTk = []
     e.mass2MissTk = []
+    e.UmissTk = []
     e.massVisTk12 = 0
+    e.UmissTk12 = 0
 
     p4_tk1 = None
     for jj in range(idx_st, idx_stop):
@@ -254,14 +256,18 @@ def extractEventInfos(j, ev, corr=None):
             e.massVis_wTk.insert(idx, mVis_wTk)
             e.massHad_wTk.insert(idx, (p4_Dst + p4_tk).M())
             e.massMuTk.insert(idx, (p4_mu + p4_tk).M())
-            e.mass2MissTk.insert(idx, (p4_B - p4_vis - p4_tk).M2())
+            p_miss = p4_B - p4_vis - p4_tk
+            e.mass2MissTk.insert(idx, p_miss.M2())
+            e.UmissTk.insert(idx, p_miss.E() - p_miss.P())
         if e.N_goodAddTks == 1:
             p4_tk1 = p4_tk.Clone('p4_tk1')
         elif e.N_goodAddTks == 2:
             e.massVisTk12 = (p4_vis + p4_tk1 + p4_tk).M()
+            p_miss = p4_B - p4_vis - p4_tk - p4_tk1
+            e.UmissTk12 = p_miss.E() - p_miss.P()
 
     if e.N_goodAddTks < 2:
-        for l in [e.tkCharge, e.tkPt, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk]:
+        for l in [e.tkCharge, e.tkPt, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk, e.UmissTk]:
             l += [0, 0]
 
     return e
@@ -318,7 +324,7 @@ def makeSelection(inputs):
 
             N_acc += 1
 
-            aux = (evEx.q2, evEx.Est_mu, evEx.M2_miss,
+            aux = (evEx.q2, evEx.Est_mu, evEx.M2_miss, evEx.U_miss,
                    evEx.mu_pt, evEx.mu_eta, evEx.mu_phi, ev.trgMu_sigdxy[idxTrg],
                    evEx.B_pt, evEx.B_eta, evEx.B_phi,
                    evEx.Dst_pt, evEx.Dst_eta, evEx.Dst_phi,
@@ -337,7 +343,9 @@ def makeSelection(inputs):
                    evEx.massHad_wTk[0], evEx.massHad_wTk[1],
                    evEx.massMuTk[0], evEx.massMuTk[1],
                    evEx.mass2MissTk[0], evEx.mass2MissTk[1],
+                   evEx.UmissTk[0], evEx.UmissTk[1],
                    evEx.massVisTk12,
+                   evEx.UmissTk12,
                    trigger_selection(idxTrg, ev, evEx, categories['low']),
                    trigger_selection(idxTrg, ev, evEx, categories['mid']),
                    trigger_selection(idxTrg, ev, evEx, categories['high']),
@@ -435,7 +443,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
         N_cand_in = min(maxEntries, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
 
-        leafs_names = ['q2', 'Est_mu', 'M2_miss',
+        leafs_names = ['q2', 'Est_mu', 'M2_miss', 'U_miss',
                        'mu_pt', 'mu_eta', 'mu_phi', 'mu_sigdxy',
                        'B_pt', 'B_eta', 'B_phi',
                        'Dst_pt', 'Dst_eta', 'Dst_phi',
@@ -454,7 +462,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
                        'tkMassHad_0', 'tkMassHad_1',
                        'tkMassMuTk_0', 'tkMassMuTk_1',
                        'tkMassMiss2_0', 'tkMassMiss2_1',
+                       'tkUmiss_0', 'tkUmiss_1',
                        'tkMassVis12',
+                       'tkUmiss12',
                        'cat_low', 'cat_mid', 'cat_high',
                        'muPass_Mu12_IP6', 'muPass_Mu9_IP6', 'muPass_Mu7_IP4',
                        'N_vtx'
