@@ -2,41 +2,45 @@ imax *
 jmax 7
 kmax *
 --------------------------------------------------------------
+shapes * AddTk_m_mHad ../data/_root/histos4combine/v7_AddTk_m_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_mm_mHad ../data/_root/histos4combine/v7_AddTk_mm_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_p_mHad ../data/_root/histos4combine/v7_AddTk_p_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pm_mHad ../data/_root/histos4combine/v7_AddTk_pm_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pm_mVis ../data/_root/histos4combine/v7_AddTk_pm_mVis.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pp_mHad ../data/_root/histos4combine/v7_AddTk_pp_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
 shapes * Est_mu_q2bin0 ../data/_root/histos4combine/v7_Est_mu_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
 shapes * Est_mu_q2bin1 ../data/_root/histos4combine/v7_Est_mu_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Est_mu_q2bin2 ../data/_root/histos4combine/v7_Est_mu_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
 shapes * M2_miss_q2bin0 ../data/_root/histos4combine/v7_M2_miss_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
 shapes * M2_miss_q2bin1 ../data/_root/histos4combine/v7_M2_miss_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2bin2 ../data/_root/histos4combine/v7_M2_miss_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * SingleAddTkMassHad ../data/_root/histos4combine/v7_SingleAddTkMassHad.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * SingleAddTkMassVis ../data/_root/histos4combine/v7_SingleAddTkMassVis.root $PROCESS $PROCESS__$SYSTEMATIC
 --------------------------------------------------------------
-bin Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin2 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin2 SingleAddTkMassHad SingleAddTkMassVis
-observation 32095 65992 56841 32095 65992 56841 18258 3362
+bin AddTk_m_mHad AddTk_mm_mHad AddTk_p_mHad AddTk_pm_mHad AddTk_pm_mVis AddTk_pp_mHad Est_mu_q2bin0 Est_mu_q2bin1 M2_miss_q2bin0 M2_miss_q2bin1
+observation 9742 451 20045 3357 3357 943 32093 65994 32093 65994
 --------------------------------------------------------------
-bin Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassHad SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis SingleAddTkMassVis
-process tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0
-process 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
-rate 74.67 26023.26 64.00 502.54 8.03 641.88 11.70 19.88 1586.94 50440.63 683.49 2055.93 105.51 2265.30 138.87 275.66 4085.33 41037.40 412.37 1956.18 105.04 2277.42 122.26 289.88 74.67 26023.26 64.00 502.54 8.03 641.88 11.70 19.88 1586.94 50440.63 683.49 2055.93 105.51 2265.30 138.87 275.66 4085.33 41037.40 412.37 1956.18 105.04 2277.42 122.26 289.88 226.52 5450.57 207.53 7469.60 487.64 238.11 450.55 27.04 16.76 473.60 400.92 336.83 21.71 29.86 934.21 2.81
+bin AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1
+process tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0
+process 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+rate 202.37 5009.12 144.72 224.17 11.52 229.88 349.61 26.14 4.81 165.18 4.86 8.06 0.50 7.29 12.70 0.82 290.97 6224.32 254.95 8068.72 497.00 289.31 457.64 31.49 16.41 468.12 403.36 337.09 21.72 29.05 933.65 2.93 16.41 468.12 403.36 337.09 21.72 29.05 933.65 2.93 8.67 231.24 14.87 268.96 18.41 10.80 18.18 1.27 74.44 26021.38 63.50 504.07 8.06 638.36 11.83 19.77 1591.91 50434.16 680.66 2058.08 105.04 2270.50 140.12 275.94 74.44 26021.38 63.50 504.07 8.06 638.36 11.83 19.77 1591.91 50434.16 680.66 2058.08 105.04 2270.50 140.12 275.94
 --------------------------------------------------------------
-xsecpp2bbXlumi lnN 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9
-b2B0Had lnN 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3
-b2BpHad lnN - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - -
-muBr lnN - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - -
-HcBr lnN - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - -
-DstPipBr lnN - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - -
-DstPipPi0Br lnN - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - -
-DstPi0Br lnN - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - -
-DstPipPimBr lnN - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 -
-DstPi0Pi0Br lnN - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37
+xsecpp2bbXlumi lnN 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9
+b2B0Had lnN 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3
+b2BpHad lnN - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - -
+muBr lnN - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - -
+HcBr lnN - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - -
+DstPipBr lnN - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - -
+DstPipPi0Br lnN - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - -
+DstPi0Br lnN - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - -
+DstPipPimBr lnN - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 -
+DstPi0Pi0Br lnN - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37
 --------------------------------------------------------------
-trgSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
-muonIdSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
-B0pT shape 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1.
-B2DstCLNR0 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
-B2DstCLNR1 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
-B2DstCLNR2 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
-B2DstCLNRhoSq shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
+trgSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+muonIdSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+B0pT shape 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1.
+B2DstCLNR0 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
+B2DstCLNR1 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
+B2DstCLNR2 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
+B2DstCLNRhoSq shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
+HcmixD02mu shape - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - -
+HcmixDs2mu shape - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - -
 * autoMCStats 100 1 1
 --------------------------------------------------------------
 B2DstFF group = B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq

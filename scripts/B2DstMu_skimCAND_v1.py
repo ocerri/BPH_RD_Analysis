@@ -235,6 +235,7 @@ def extractEventInfos(j, ev, corr=None):
     e.mass2MissTk = []
     e.UmissTk = []
     e.massVisTk12 = 0
+    e.massHadTk12 = 0
     e.UmissTk12 = 0
 
     p4_tk1 = None
@@ -264,6 +265,7 @@ def extractEventInfos(j, ev, corr=None):
             p4_tk1 = p4_tk.Clone('p4_tk1')
         elif e.N_goodAddTks == 2:
             e.massVisTk12 = (p4_vis + p4_tk1 + p4_tk).M()
+            e.massHadTk12 = (p4_Dst + p4_tk1 + p4_tk).M()
             p_miss = p4_B - p4_vis - p4_tk - p4_tk1
             e.UmissTk12 = p_miss.E() - p_miss.P()
 
@@ -346,6 +348,7 @@ def makeSelection(inputs):
                    evEx.mass2MissTk[0], evEx.mass2MissTk[1],
                    evEx.UmissTk[0], evEx.UmissTk[1],
                    evEx.massVisTk12,
+                   evEx.massHadTk12,
                    evEx.UmissTk12,
                    trigger_selection(idxTrg, ev, evEx, categories['low']),
                    trigger_selection(idxTrg, ev, evEx, categories['mid']),
@@ -467,6 +470,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
                        'tkMassMiss2_0', 'tkMassMiss2_1',
                        'tkUmiss_0', 'tkUmiss_1',
                        'tkMassVis12',
+                       'tkMassHad12',
                        'tkUmiss12',
                        'cat_low', 'cat_mid', 'cat_high',
                        'muPass_Mu12_IP6', 'muPass_Mu9_IP6', 'muPass_Mu7_IP4',

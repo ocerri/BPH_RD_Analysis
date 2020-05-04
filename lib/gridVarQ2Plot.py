@@ -31,6 +31,7 @@ def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name=''):
     leg.SetTextAlign(12)
     leg.SetLineWidth(0)
     leg.SetBorderSize(0)
+    leg.SetFillStyle(0)
     leg.AddEntry(h_list[0], label_dic['data'], 'lep')
     for n in ['mu', 'tau', 'Hc']:
         for h in h_list:
@@ -48,7 +49,7 @@ def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name=''):
         leg.AddEntry(h, label_dic[k], 'f')
     return leg
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True):
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True, pullsRatio=False):
     canvas = rt.TCanvas('c_out', 'c_out', 50, 50, 2*600, 400*len(binning['q2'])-1)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
@@ -183,37 +184,65 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 pad.cd()
 
                 h_dr = h_list[0].Clone('h_aux_dataratio_'+cat_name)
-                h_dr.GetYaxis().SetTitle('RD/MC')
-                h_tot = h_dic['total'].Clone('h_aux_total_'+cat_name)
+                h_dr.GetYaxis().SetTitle('Pull')
+                if pullsRatio:
+                    h_dr.GetYaxis().SetTitle('RD/MC')
+                h_tot = h_dic['total'].Clone('h_aux_total')
                 g_up = rt.TGraph()
-                g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
+                yExp = 1 if pullsRatio else 0
+                g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), yExp)
                 g_down = rt.TGraph()
-                g_down.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
+                g_down.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), yExp)
                 for i in range(1, h_dr.GetNbinsX()+1):
                     c = h_dr.GetBinContent(i)
                     e = h_dr.GetBinError(i)
                     c_MC = h_tot.GetBinContent(i)
                     e_MC = h_tot.GetBinError(i)
-                    h_dr.SetBinContent(i, c/c_MC)
-                    h_dr.SetBinError(i, e/c_MC)
+                    if pullsRatio:
+                        h_dr.SetBinContent(i, c/c_MC)
+                        h_dr.SetBinError(i, e/c_MC)
+                    else:
+                        if e > 0:
+                            h_dr.SetBinContent(i, (c-c_MC)/e)
+                        else:
+                            h_dr.SetBinContent(i, (c-c_MC)/e_MC)
+                        h_dr.SetBinError(i, 0)
+
                     x_low = h_tot.GetBinCenter(i) - 0.5*h_tot.GetBinWidth(i)
                     x_up = h_tot.GetBinCenter(i) + 0.5*h_tot.GetBinWidth(i)
-                    g_up.SetPoint(2*i-1, x_low, (c_MC+e_MC)/c_MC)
-                    g_up.SetPoint(2*i, x_up, (c_MC+e_MC)/c_MC)
-                    g_down.SetPoint(2*i-1, x_low, (c_MC-e_MC)/c_MC)
-                    g_down.SetPoint(2*i, x_up, (c_MC-e_MC)/c_MC)
-                g_up.SetPoint(2*i+1, x_up, 1)
-                g_down.SetPoint(2*i+1, x_up, 1)
+                    if pullsRatio:
+                        y_up = (c_MC+e_MC)/c_MC
+                        y_down = (c_MC-e_MC)/c_MC
+                    else:
+                        y_up = e_MC/e if e > 0 else 0
+                        y_down = -y_up
+                    g_up.SetPoint(2*i-1, x_low, y_up)
+                    g_up.SetPoint(2*i, x_up, y_up)
+                    g_down.SetPoint(2*i-1, x_low, y_down)
+                    g_down.SetPoint(2*i, x_up, y_down)
+                g_up.SetPoint(2*i+1, x_up, yExp)
+                g_down.SetPoint(2*i+1, x_up, yExp)
 
-                h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
                 h_dr.GetYaxis().SetTitleOffset(0.35)
                 h_dr.GetYaxis().SetTitleSize(0.2)
                 h_dr.GetYaxis().SetLabelSize(0.2)
-                h_dr.GetYaxis().SetNdivisions(402)
                 h_dr.GetXaxis().SetTitleOffset(0.95)
                 h_dr.GetXaxis().SetTitleSize(0.22)
                 h_dr.GetXaxis().SetLabelSize(0.22)
                 h_dr.GetXaxis().SetTickSize(0.07)
+                if pullsRatio:
+                    h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
+                    h_dr.GetYaxis().SetNdivisions(402)
+                else:
+                    h_dr.SetLineWidth(2)
+                    ax = h_dr.GetYaxis()
+                    ax.SetRangeUser(-4, 4)
+                    ax.SetNdivisions(-8)
+                    for i in range(1,10):
+                        if i == 2: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'-3#sigma')
+                        elif i == 8: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'3#sigma')
+                        elif i == 5: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'0')
+                        else: ax.ChangeLabel(i,-1,0,-1,-1,-1,'')
 
                 h_dr.Draw('E1')
 
@@ -228,9 +257,10 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 l.SetLineWidth(1)
                 l.SetLineStyle(9)
                 x_low = h_tot.GetBinCenter(1)-0.5*h.GetBinWidth(1)
-                x_high = h_tot.GetBinCenter(i)+0.5*h.GetBinWidth(i)
-                l.DrawLine(x_low, 1, x_high, 1)
+                x_high = h_tot.GetBinCenter(h_dr.GetNbinsX())+0.5*h.GetBinWidth(h_dr.GetNbinsX())
+                l.DrawLine(x_low, yExp, x_high, yExp)
                 h_dr.Draw('sameE1') #redraw it to bring it to front
+                h_dr.Draw('sameP')
 
                 canvas.dnd.append([pad, h_dr, h_tot, g_up, g_down])
 
@@ -243,6 +273,7 @@ def plot_SingleCategory(CMS_lumi,
                         min_y=1e-4,
                         draw_pulls=False,
                         pulls_ylim=[0.8, 1.2],
+                        pullsRatio=False,
                         logy=False,
                         mergeDstst=True,
                         tag='',
@@ -292,7 +323,7 @@ def plot_SingleCategory(CMS_lumi,
     procOrder = ['tau', 'Hc', 'mu']
     for iProc, procName in enumerate(procOrder):
         if not procName in h_dic.keys(): continue
-        h = h_dic[procName].Clone('h_aux'+tag+'_'+procName)
+        h = h_dic[procName].Clone('h_aux'+'_'+procName+tag)
         if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
         h.SetLineWidth(0)
         h.SetFillColor(col_dic[procName])
@@ -306,7 +337,7 @@ def plot_SingleCategory(CMS_lumi,
     for k, sampleList in sampleDstst.iteritems():
         for iproc, procName in enumerate(sampleList):
             if not procName in h_dic.keys(): continue
-            h = h_dic[procName].Clone('h_aux'+tag+'_'+procName)
+            h = h_dic[procName].Clone('h_aux'+'_'+procName+tag)
             if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
             h.SetLineWidth(0)
             h.SetFillColor(col_dic[k])
@@ -335,7 +366,7 @@ def plot_SingleCategory(CMS_lumi,
     if logy:
         pad.SetLogy()
 
-    leg = createLegend(h_list, h_dic, canvas, loc=legLoc)
+    leg = createLegend(h_list, h_dic, canvas, loc=legLoc, cat_name=tag)
     leg.Draw()
     canvas.dnd.append([pad, h_list, leg])
 
@@ -351,37 +382,64 @@ def plot_SingleCategory(CMS_lumi,
         pad.cd()
 
         h_dr = h_list[0].Clone('h_aux_dataratio'+tag)
-        h_dr.GetYaxis().SetTitle('RD/MC')
+        h_dr.GetYaxis().SetTitle('Pull')
+        if pullsRatio:
+            h_dr.GetYaxis().SetTitle('RD/MC')
         h_tot = h_dic['total'].Clone('h_aux_total'+tag)
         g_up = rt.TGraph()
-        g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
+        yExp = 1 if pullsRatio else 0
+        g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), yExp)
         g_down = rt.TGraph()
-        g_down.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
+        g_down.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), yExp)
         for i in range(1, h_dr.GetNbinsX()+1):
             c = h_dr.GetBinContent(i)
             e = h_dr.GetBinError(i)
             c_MC = h_tot.GetBinContent(i)
             e_MC = h_tot.GetBinError(i)
-            h_dr.SetBinContent(i, c/c_MC)
-            h_dr.SetBinError(i, e/c_MC)
+            if pullsRatio:
+                h_dr.SetBinContent(i, c/c_MC)
+                h_dr.SetBinError(i, e/c_MC)
+            else:
+                if e > 0: h_dr.SetBinContent(i, (c-c_MC)/e)
+                elif e_MC > 0: h_dr.SetBinContent(i, (c-c_MC)/e_MC)
+                else: h_dr.SetBinContent(i, 0)
+                h_dr.SetBinError(i, 0)
+
             x_low = h_tot.GetBinCenter(i) - 0.5*h_tot.GetBinWidth(i)
             x_up = h_tot.GetBinCenter(i) + 0.5*h_tot.GetBinWidth(i)
-            g_up.SetPoint(2*i-1, x_low, (c_MC+e_MC)/c_MC)
-            g_up.SetPoint(2*i, x_up, (c_MC+e_MC)/c_MC)
-            g_down.SetPoint(2*i-1, x_low, (c_MC-e_MC)/c_MC)
-            g_down.SetPoint(2*i, x_up, (c_MC-e_MC)/c_MC)
-        g_up.SetPoint(2*i+1, x_up, 1)
-        g_down.SetPoint(2*i+1, x_up, 1)
+            if pullsRatio:
+                y_up = (c_MC+e_MC)/c_MC
+                y_down = (c_MC-e_MC)/c_MC
+            else:
+                y_up = e_MC/e if e > 0 else 0
+                y_down = -y_up
+            g_up.SetPoint(2*i-1, x_low, y_up)
+            g_up.SetPoint(2*i, x_up, y_up)
+            g_down.SetPoint(2*i-1, x_low, y_down)
+            g_down.SetPoint(2*i, x_up, y_down)
+        g_up.SetPoint(2*i+1, x_up, yExp)
+        g_down.SetPoint(2*i+1, x_up, yExp)
 
-        h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
         h_dr.GetYaxis().SetTitleOffset(0.35)
         h_dr.GetYaxis().SetTitleSize(0.2)
         h_dr.GetYaxis().SetLabelSize(0.2)
-        h_dr.GetYaxis().SetNdivisions(402)
         h_dr.GetXaxis().SetTitleOffset(0.95)
         h_dr.GetXaxis().SetTitleSize(0.22)
         h_dr.GetXaxis().SetLabelSize(0.22)
         h_dr.GetXaxis().SetTickSize(0.07)
+        if pullsRatio:
+            h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
+            h_dr.GetYaxis().SetNdivisions(402)
+        else:
+            h_dr.SetLineWidth(2)
+            ax = h_dr.GetYaxis()
+            ax.SetRangeUser(-4, 4)
+            ax.SetNdivisions(-8)
+            for i in range(1,10):
+                if i == 2: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'-3#sigma')
+                elif i == 8: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'3#sigma')
+                elif i == 5: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'0')
+                else: ax.ChangeLabel(i,-1,0,-1,-1,-1,'')
 
         h_dr.Draw('E1')
 
@@ -396,9 +454,10 @@ def plot_SingleCategory(CMS_lumi,
         l.SetLineWidth(1)
         l.SetLineStyle(9)
         x_low = h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1)
-        x_high = h_tot.GetBinCenter(i)+0.5*h_tot.GetBinWidth(i)
-        l.DrawLine(x_low, 1, x_high, 1)
+        x_high = h_tot.GetBinCenter(h_dr.GetNbinsX())+0.5*h_tot.GetBinWidth(h_dr.GetNbinsX())
+        l.DrawLine(x_low, yExp, x_high, yExp)
         h_dr.Draw('sameE1') #redraw it to bring it to front
+        h_dr.Draw('sameP')
 
         canvas.dnd.append([pad, h_dr, h_tot, g_up, g_down])
 
