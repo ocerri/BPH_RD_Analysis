@@ -62,3 +62,23 @@ def dumpDiffNuisances(output, outdir):
             with open(outdir+'/nuisance_difference.txt', 'w') as dumpfile:
                 dumpfile.write('{}\n'.format(t))
         else: print t
+
+jubCustomizationCaltechT2 = '''
++RunAsOwner = True
+\n
++InteractiveUser = True
+\n
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/bbockelm/cms:rhel7"
+\n
++SingularityBindCVMFS = True
+\n
+run_as_owner = True
+\n
+RequestDisk = ' + args.disk)
+\n
+RequestMemory = ' + args.memory) #Static allocation
+# RequestMemory = ifthenelse(MemoryUsage =!= undefined, MAX({{MemoryUsage + 1024, {0}}}), {0})'.format(args.memory)) # Dynamic allocation
+\n
+RequestCpus = 1
+\n
+'''

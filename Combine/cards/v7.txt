@@ -32,6 +32,46 @@ DstPi0Br lnN - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 
 DstPipPimBr lnN - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 -
 DstPi0Pi0Br lnN - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37
 --------------------------------------------------------------
+pAddTk param 1.0 0.15
+pAddTk rateParam AddTk_p_mHad tau 1
+pAddTk rateParam AddTk_p_mHad mu 1
+pAddTk rateParam AddTk_p_mHad DstPi0 1
+pAddTk rateParam AddTk_p_mHad DstPi0Pi0 1
+pAddTk rateParam AddTk_m_mHad tau 1
+pAddTk rateParam AddTk_m_mHad mu 1
+pAddTk rateParam AddTk_m_mHad DstPi0 1
+pAddTk rateParam AddTk_m_mHad DstPi0Pi0 1
+pAddTk rateParam AddTk_m_mHad DstPip 1
+pAddTk rateParam AddTk_m_mHad DstPipPi0 1
+pAddTk rateParam AddTk_pp_mHad DstPip 1
+pAddTk rateParam AddTk_pp_mHad DstPipPi0 1
+pAddTk rateParam AddTk_pp_mHad DstPipPim 1
+pAddTk rateParam AddTk_pp_mHad Hc 1
+pAddTk rateParam AddTk_pm_mHad DstPip 1
+pAddTk rateParam AddTk_pm_mVis DstPip 1
+pAddTk rateParam AddTk_pm_mHad DstPipPi0 1
+pAddTk rateParam AddTk_pm_mVis DstPipPi0 1
+pAddTk rateParam AddTk_mm_mHad DstPipPim 1
+pAddTk rateParam AddTk_mm_mHad Hc 1
+pAddTk2 rateParam AddTk_pp_mHad tau @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pp_mHad mu @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pp_mHad DstPi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pp_mHad DstPi0Pi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mHad tau @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mVis tau @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mHad mu @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mVis mu @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mHad DstPi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mVis DstPi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mHad DstPi0Pi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mVis DstPi0Pi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad tau @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad mu @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad DstPi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad DstPi0Pi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad DstPip @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad DstPipPi0 @0*@0 pAddTk
+--------------------------------------------------------------
 trgSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
 muonIdSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
 B0pT shape 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1.
@@ -41,6 +81,7 @@ B2DstCLNR2 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - -
 B2DstCLNRhoSq shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
 HcmixD02mu shape - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - -
 HcmixDs2mu shape - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - -
+* autoMCStats 20 1 1
 --------------------------------------------------------------
 B2DstFF group = B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq
 normMC group = xsecpp2bbXlumi b2B0Had b2BpHad
