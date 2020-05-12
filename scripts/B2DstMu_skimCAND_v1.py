@@ -69,6 +69,10 @@ filesLocMap = {
 'Hc_PU20'        : MCloc+'BPH_Tag-B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3'+MCend,
 'Hc_PUc0'        : MCloc+'BP_Tag_B0_DmstHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
+'DstmDsp_PUc0'   : MCloc+'BP_Tag_B0_DstmDsp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstmDp_PUc0'   : MCloc+'BP_Tag_B0_DstmDp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstmD0_PUc0'   : MCloc+'BP_Tag_B0_DstmD0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+#
 'DstPip_PU20'     : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
 'DstPip_PUc0'     : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
@@ -229,6 +233,15 @@ def extractEventInfos(j, ev, corr=None):
     e.N_goodAddTks = 0
     e.tkCharge = []
     e.tkPt = []
+    e.tkEta = []
+    e.tkPhi = []
+    e.MC_tkFlag = []
+    e.MC_tkPdgId = []
+    e.MC_tk_dphi = []
+    e.MC_tk_deta = []
+    e.MC_tk_dpt = []
+    e.MC_tkMotherPdgId = []
+    e.MC_tkMotherMotherPdgId = []
     e.massVis_wTk = []
     e.massHad_wTk = []
     e.massMuTk = []
@@ -245,6 +258,12 @@ def extractEventInfos(j, ev, corr=None):
             continue
         phi = ev.tksAdd_phi[jj]
         pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 6e-3)
+        #Avoid tracks that are muons duplicates
+        dphi = phi-e.mu_phi
+        if dphi > np.pi: dphi -= 2*np.pi
+        if dphi < -np.pi: dphi += 2*np.pi
+        if np.abs(e.mu_pt - pt)/e.mu_pt < 0.03 and np.abs(eta-e.mu_eta) < 0.0005 and np.abs(dphi) < 0.0005:
+            continue
         p4_tk = rt.TLorentzVector()
         p4_tk.SetPtEtaPhiM(pt, eta, phi, m_pi)
 
@@ -254,6 +273,8 @@ def extractEventInfos(j, ev, corr=None):
         if mVis_wTk < m_B0 and ev.tksAdd_cos_PV[jj]>0.95:
             e.N_goodAddTks += 1
             idx, e.tkPt = insertOrdered(e.tkPt, pt)
+            e.tkEta.insert(idx, eta)
+            e.tkPhi.insert(idx, phi)
             e.tkCharge.insert(idx, ev.tksAdd_charge[jj])
             e.massVis_wTk.insert(idx, mVis_wTk)
             e.massHad_wTk.insert(idx, (p4_Dst + p4_tk).M())
@@ -261,6 +282,15 @@ def extractEventInfos(j, ev, corr=None):
             p_miss = p4_B - p4_vis - p4_tk
             e.mass2MissTk.insert(idx, p_miss.M2())
             e.UmissTk.insert(idx, p_miss.E() - p_miss.P())
+            if hasattr(ev, 'MC_addTkFlag'):
+                e.MC_tkFlag.insert(idx, ev.MC_addTkFlag[jj])
+                e.MC_tk_dphi.insert(idx, ev.MC_addTk_dPhi[jj])
+                e.MC_tk_deta.insert(idx, ev.MC_addTk_dEta[jj])
+                e.MC_tk_dpt.insert(idx, ev.MC_addTk_dPt[jj])
+                e.MC_tkPdgId.insert(idx, ev.MC_addTk_pdgId[jj])
+                e.MC_tkMotherPdgId.insert(idx, ev.MC_addTk_pdgIdMother[jj])
+                e.MC_tkMotherMotherPdgId.insert(idx, ev.MC_addTk_pdgIdMotherMother[jj])
+
         if e.N_goodAddTks == 1:
             p4_tk1 = p4_tk.Clone('p4_tk1')
         elif e.N_goodAddTks == 2:
@@ -270,7 +300,9 @@ def extractEventInfos(j, ev, corr=None):
             e.UmissTk12 = p_miss.E() - p_miss.P()
 
     if e.N_goodAddTks < 2:
-        for l in [e.tkCharge, e.tkPt, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk, e.UmissTk]:
+        auxList = [e.tkCharge, e.tkPt, e.tkEta, e.tkPhi, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk, e.UmissTk]
+        auxList += [e.MC_tkFlag, e.MC_tkPdgId, e.MC_tkMotherPdgId, e.MC_tkMotherMotherPdgId, e.MC_tk_dphi, e.MC_tk_deta, e.MC_tk_dpt]
+        for l in auxList:
             l += [0, 0]
 
     return e
@@ -342,6 +374,8 @@ def makeSelection(inputs):
                    evEx.N_goodAddTks,
                    evEx.tkCharge[0], evEx.tkCharge[1],
                    evEx.tkPt[0], evEx.tkPt[1],
+                   evEx.tkEta[0], evEx.tkEta[1],
+                   evEx.tkPhi[0], evEx.tkPhi[1],
                    evEx.massVis_wTk[0], evEx.massVis_wTk[1],
                    evEx.massHad_wTk[0], evEx.massHad_wTk[1],
                    evEx.massMuTk[0], evEx.massMuTk[1],
@@ -366,7 +400,14 @@ def makeSelection(inputs):
                         ev.MC_pis_pt, ev.MC_pis_eta, ev.MC_pis_phi,
                         ev.MC_idxCand == j,
                         ev.MC_muMotherPdgId, ev.MC_munuSisterPdgId,
-                        ev.MC_DstMotherPdgId, ev.MC_DstSisPdgId_heavy, ev.MC_DstSisPdgId_light
+                        ev.MC_DstMotherPdgId, ev.MC_DstSisPdgId_heavy, ev.MC_DstSisPdgId_light,
+                        evEx.MC_tkFlag[0], evEx.MC_tkFlag[1],
+                        evEx.MC_tk_dpt[0], evEx.MC_tk_dpt[1],
+                        evEx.MC_tk_deta[0], evEx.MC_tk_deta[1],
+                        evEx.MC_tk_dphi[0], evEx.MC_tk_dphi[1],
+                        evEx.MC_tkPdgId[0], evEx.MC_tkPdgId[1],
+                        evEx.MC_tkMotherPdgId[0], evEx.MC_tkMotherPdgId[1],
+                        evEx.MC_tkMotherMotherPdgId[0], evEx.MC_tkMotherMotherPdgId[1]
                        )
             if 'mu' in n or 'tau' in n:
                 aux += (ev.wh_CLNCentral,
@@ -406,6 +447,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
         catName = 'None'
     else:
         catName = cat.name
+    print '\n' + 50*'-'
     print n, catName
     if 'data' in n:
         loc = '../data/cmsRD/skimmed/'+ n.replace('data', '')
@@ -464,6 +506,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
                        'N_goodAddTks',
                        'tkCharge_0', 'tkCharge_1',
                        'tkPt_0', 'tkPt_1',
+                       'tkEta_0', 'tkEta_1',
+                       'tkPhi_0', 'tkPhi_1',
                        'tkMassVis_0', 'tkMassVis_1',
                        'tkMassHad_0', 'tkMassHad_1',
                        'tkMassMuTk_0', 'tkMassMuTk_1',
@@ -486,7 +530,14 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
                             'MC_pis_pt', 'MC_pis_eta', 'MC_pis_phi',
                             'MC_idxMatch',
                             'MC_muMotherPdgId', 'MC_munuSisterPdgId',
-                            'MC_DstMotherPdgId', 'MC_DstSisterPdgId_heavy', 'MC_DstSisterPdgId_light'
+                            'MC_DstMotherPdgId', 'MC_DstSisterPdgId_heavy', 'MC_DstSisterPdgId_light',
+                            'MC_tkFlag_0', 'MC_tkFlag_1',
+                            'MC_tk_dpt_0', 'MC_tk_dpt_1',
+                            'MC_tk_deta_0', 'MC_tk_deta_1',
+                            'MC_tk_dphi_0', 'MC_tk_dphi_1',
+                            'MC_tkPdgId_0', 'MC_tkPdgId_1',
+                            'MC_tkMotherPdgId_0', 'MC_tkMotherPdgId_1',
+                            'MC_tkMotherMotherPdgId_0', 'MC_tkMotherMotherPdgId_1'
                            ]
         if 'mu' in n or 'tau' in n:
             leafs_names += ['wh_CLNCentral',
@@ -518,7 +569,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
             print ' '
 
             start = time.time()
-            if args.parallelType == 'pool':
+            if args.parallelType == 'pool' or len(inputs) < 15:
                 p = Pool(min(20,len(inputs)))
                 outputs = p.map(makeSelection, inputs)
             elif args.parallelType == 'jobs':

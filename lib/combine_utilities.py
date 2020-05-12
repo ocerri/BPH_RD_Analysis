@@ -63,22 +63,14 @@ def dumpDiffNuisances(output, outdir):
                 dumpfile.write('{}\n'.format(t))
         else: print t
 
-jubCustomizationCaltechT2 = '''
+stringJubCustomizationCaltechT2 = '''
 +RunAsOwner = True
-\n
 +InteractiveUser = True
-\n
 +SingularityImage = "/cvmfs/singularity.opensciencegrid.org/bbockelm/cms:rhel7"
-\n
 +SingularityBindCVMFS = True
-\n
-run_as_owner = True
-\n
-RequestDisk = ' + args.disk)
-\n
-RequestMemory = ' + args.memory) #Static allocation
-# RequestMemory = ifthenelse(MemoryUsage =!= undefined, MAX({{MemoryUsage + 1024, {0}}}), {0})'.format(args.memory)) # Dynamic allocation
-\n
++MaxRuntime = 3600
+RequestDisk = 200000
+RequestMemory = 2500
 RequestCpus = 1
-\n
+x509userproxy = $ENV(X509_USER_PROXY)
 '''

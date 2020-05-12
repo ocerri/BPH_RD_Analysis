@@ -1,0 +1,25 @@
+executable = condor_combineImpacts.sh
+arguments = $(ProcId)
+output                = combineImpacts.$(ClusterId).$(ProcId).out
+error                 = combineImpacts.$(ClusterId).$(ProcId).err
+log                   = combineImpacts.$(ClusterId).log
+
+# Send the job to Held state on failure.
+on_exit_hold = (ExitBySignal == True) || (ExitCode != 0)
+
+# Periodically retry the jobs every 10 minutes, up to a maximum of 5 retries.
+periodic_release =  (NumJobStarts < 3) && ((CurrentTime - EnteredCurrentStatus) > 600)
+
+
++RunAsOwner = True
++InteractiveUser = True
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/bbockelm/cms:rhel7"
++SingularityBindCVMFS = True
++MaxRuntime = 3600
+RequestDisk = 200000
+RequestMemory = 2500
+RequestCpus = 1
+x509userproxy = $ENV(X509_USER_PROXY)
+
+queue 261
+
