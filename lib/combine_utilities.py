@@ -29,7 +29,7 @@ def getUncertaintyFromLimitTree(name, verbose=True):
     l = f_l(0.5)
     if verbose:
         print '----------------------------------'
-        print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-d, 100*(u-d)*0.5/c)
+        print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-l, 100*(u-l)*0.5/c)
         print 'Sigma = {:.3f}'.format((u-l)*0.5)
         print '----------------------------------\n'
     return c, c-l, u-c, (u-l)*0.5

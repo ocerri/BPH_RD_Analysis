@@ -119,6 +119,7 @@ def create_TH1D(x, name='h', title=None,
     if not color is None:
         h.SetLineColor(std_color_list[color])
         h.SetMarkerColor(std_color_list[color])
+        h.SetFillColor(std_color_list[color])
 
     h.SetXTitle(axis_title[0])
     h.SetYTitle(axis_title[1])

@@ -14,6 +14,7 @@ label_dic = {'data' : 'Data',
              'mu'   : 'B#rightarrow D*#mu#nu',
              'tau'  : 'B#rightarrow D*#tau#nu',
              'Hc'   : 'B#rightarrow D*H_{c}',
+             'DstD'   : 'B#rightarrow D*D(#muX)',
              'BpDstst': 'B^{+}#rightarrow D**#mu#nu',
              'B0Dstst': 'B_{0}#rightarrow D**#mu#nu'
             }
@@ -23,6 +24,8 @@ sampleDstst = {
 'BpDstst': ['DstPip', 'DstPipPi0'],
 'B0Dstst': ['DstPi0', 'DstPipPim', 'DstPi0Pi0']
 }
+
+sampleDstmHc = ['DstmD0', 'DstmDp', 'DstmDsp']
 
 
 def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name=''):
@@ -38,6 +41,14 @@ def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name=''):
             if 'h_aux_'+n+cat_name == h.GetName():
                 leg.AddEntry(h, label_dic[n], 'f')
                 break
+    present = np.sum([n in h_dic.keys() for n in sampleDstmHc])
+    if present:
+        h = rt.TH1D('hAuxLeg_DstD', 'hAuxLeg_DstD', 1, 0, 1)
+        h.SetLineWidth(0)
+        h.SetFillColor(col_dic['Hc'])
+        h.SetFillStyle(1)
+        canvas.dnd.append(h)
+        leg.AddEntry(h, label_dic['DstD'], 'f')
     for k, sampleList in sampleDstst.iteritems():
         present = np.sum([n in h_dic.keys() for n in sampleList])
         if not present: continue
@@ -49,7 +60,7 @@ def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name=''):
         leg.AddEntry(h, label_dic[k], 'f')
     return leg
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True, pullsRatio=False):
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True, mergeHc=True, pullsRatio=False):
     canvas = rt.TCanvas('c_out', 'c_out', 50, 50, 2*600, 400*len(binning['q2'])-1)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
@@ -131,6 +142,20 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                     if not hh.GetName() == 'h_aux_data_'+cat_name:
                         h.Add(hh)
                     h_list.append(h)
+
+            for iproc, procName in enumerate(sampleDstmHc):
+                if not procName in h_dic.keys(): continue
+                h = h_dic[procName].Clone('h_aux_'+procName+'_'+cat_name)
+                if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
+                h.SetLineWidth(0)
+                h.SetFillColor(col_dic['Hc'])
+                h.SetFillStyle(1)
+                if not mergeHc: h.SetFillStyle(fillStyleVar[iproc])
+                h.Sumw2(0)
+                hh = h_list[-1]
+                if not hh.GetName() == 'h_aux_data_'+cat_name:
+                    h.Add(hh)
+                h_list.append(h)
 
 
             procOrder = ['Hc', 'tau', 'mu']
@@ -276,6 +301,7 @@ def plot_SingleCategory(CMS_lumi,
                         pullsRatio=False,
                         logy=False,
                         mergeDstst=True,
+                        mergeHc=True,
                         tag='',
                         xtitle='',
                         addText='',
@@ -320,8 +346,23 @@ def plot_SingleCategory(CMS_lumi,
     h.GetYaxis().SetRangeUser(min_y, max_y)
     h_list = [h]
 
-    procOrder = ['tau', 'Hc', 'mu']
+    procOrder = ['tau', 'Hc', 'DstD', 'mu']
     for iProc, procName in enumerate(procOrder):
+        if procName == 'DstD':
+            for iproc, pName in enumerate(sampleDstmHc):
+                if not pName in h_dic.keys(): continue
+                h = h_dic[pName].Clone('h_aux_'+pName+tag)
+                if pName in scale_dic.keys(): h.Scale(scale_dic[pName])
+                h.SetLineWidth(0)
+                h.SetFillColor(col_dic['Hc'])
+                h.SetFillStyle(1)
+                if not mergeHc: h.SetFillStyle(fillStyleVar[iproc])
+                h.Sumw2(0)
+                hh = h_list[-1]
+                if not hh.GetName() == 'h_aux_data_'+tag:
+                    h.Add(hh)
+                h_list.append(h)
+            continue
         if not procName in h_dic.keys(): continue
         h = h_dic[procName].Clone('h_aux'+'_'+procName+tag)
         if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
