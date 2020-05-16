@@ -209,7 +209,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 pad.cd()
 
                 h_dr = h_list[0].Clone('h_aux_dataratio_'+cat_name)
-                h_dr.GetYaxis().SetTitle('Pull')
+                h_dr.GetYaxis().SetTitle('Pull [#sigma]')
                 if pullsRatio:
                     h_dr.GetYaxis().SetTitle('RD/MC')
                 h_tot = h_dic['total'].Clone('h_aux_total')
@@ -261,12 +261,12 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 else:
                     h_dr.SetLineWidth(2)
                     ax = h_dr.GetYaxis()
-                    ax.SetRangeUser(-4, 4)
-                    ax.SetNdivisions(-8)
-                    for i in range(1,10):
-                        if i == 2: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'-3#sigma')
-                        elif i == 8: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'3#sigma')
-                        elif i == 5: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'0')
+                    ax.SetRangeUser(-3, 3)
+                    ax.SetNdivisions(-6)
+                    for i in range(1,8):
+                        if i == 2: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'-2')
+                        elif i == 6: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'2')
+                        elif i == 4: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'0')
                         else: ax.ChangeLabel(i,-1,0,-1,-1,-1,'')
 
                 h_dr.Draw('E1')
@@ -423,7 +423,7 @@ def plot_SingleCategory(CMS_lumi,
         pad.cd()
 
         h_dr = h_list[0].Clone('h_aux_dataratio'+tag)
-        h_dr.GetYaxis().SetTitle('Pull')
+        h_dr.GetYaxis().SetTitle('Pull [#sigma]')
         if pullsRatio:
             h_dr.GetYaxis().SetTitle('RD/MC')
         h_tot = h_dic['total'].Clone('h_aux_total'+tag)
@@ -474,12 +474,12 @@ def plot_SingleCategory(CMS_lumi,
         else:
             h_dr.SetLineWidth(2)
             ax = h_dr.GetYaxis()
-            ax.SetRangeUser(-4, 4)
-            ax.SetNdivisions(-8)
-            for i in range(1,10):
-                if i == 2: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'-3#sigma')
-                elif i == 8: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'3#sigma')
-                elif i == 5: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'0')
+            ax.SetRangeUser(-3, 3)
+            ax.SetNdivisions(-6)
+            for i in range(1,8):
+                if i == 2: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'-2')
+                elif i == 6: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'2')
+                elif i == 4: ax.ChangeLabel(i,-1,-1,-1,-1,-1,'0')
                 else: ax.ChangeLabel(i,-1,0,-1,-1,-1,'')
 
         h_dr.Draw('E1')

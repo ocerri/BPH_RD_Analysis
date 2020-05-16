@@ -34,13 +34,14 @@ from B02DstMu_selection import candidate_selection, trigger_selection, candidate
 
 import argparse
 parser = argparse.ArgumentParser()
-#Example: python B2DstMu_skimCAND_v1.py -d mu_PU20 --maxEntries 80000 --applyCorr
+#Example: python B2DstMu_skimCAND_v1.py -d mu_PU20 --maxEvents 80000 --applyCorr
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
-parser.add_argument ('--maxEntries', type=int, default=1e15, help='Max number of events to be processed')
+parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
 parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
+parser.add_argument ('--trkControlRegion', default=False, action='store_true', help='Track control region selection')
 parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
 parser.add_argument ('--skipCut', type=str, default='', choices=['all', '16', '17'], help='Cut to skip')
 ######## Arguments not for user #####################
@@ -257,7 +258,9 @@ def extractEventInfos(j, ev, corr=None):
         if np.abs(eta) >= 2.4:
             continue
         phi = ev.tksAdd_phi[jj]
-        pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 6e-3)
+        pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 3e-3)
+        if pt < 0.5:
+            continue
         #Avoid tracks that are muons duplicates
         dphi = phi-e.mu_phi
         if dphi > np.pi: dphi -= 2*np.pi
@@ -308,7 +311,7 @@ def extractEventInfos(j, ev, corr=None):
     return e
 
 def makeSelection(inputs):
-    n, tag, filepath, leafs_names, cat, idxInt, corr, skipCut, serial = inputs
+    n, tag, filepath, leafs_names, cat, idxInt, corr, skipCut, trkControlRegion, serial = inputs
     N_accepted_cand = []
     N_accepted_tot = 0
 
@@ -354,7 +357,7 @@ def makeSelection(inputs):
                     continue
 
             if not skipCut == 'all':
-                if not candidate_selection(j, ev, evEx, skipCut):
+                if not candidate_selection(j, ev, evEx, skipCut, trkControlRegion):
                     continue
 
             N_acc += 1
@@ -442,7 +445,7 @@ def makeSelection(inputs):
         print tag, ': done'
     return [output, N_accepted_cand]
 
-def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries=args.maxEntries):
+def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControlRegion=False, maxEvents=args.maxEvents):
     if cat is None:
         catName = 'None'
     else:
@@ -469,6 +472,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
             fskimmed_name += '_skipall'
         else:
             fskimmed_name += '_skip'+'-'.join([str(i) for i in skipCut])
+    if trkControlRegion:
+        print 'Track control region'
+        fskimmed_name += '_trkCtrl'
     if applyCorrections:
         print 'Appling corrections'
         fskimmed_name += '_corr'
@@ -488,7 +494,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
             hAllNvtx.Add(hAux)
             fAux.Close()
         print 'Computing events from {} files'.format(tree.GetNtrees())
-        N_cand_in = min(maxEntries, tree.GetEntries())
+        N_cand_in = min(maxEvents, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
 
         leafs_names = ['q2', 'Est_mu', 'M2_miss', 'U_miss',
@@ -554,7 +560,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
 
         if N_cand_in < 1.5*N_evts_per_job:
             output, N_accepted_cand = makeSelection([n, '', filepath, leafs_names, cat,
-                                                     [0, N_cand_in-1], applyCorr, skipCut, True])
+                                                     [0, N_cand_in-1], applyCorr, skipCut, trkControlRegion, True])
         else:
             pdiv = list(np.arange(0, N_cand_in, N_evts_per_job))
             if not pdiv[-1] == N_cand_in:
@@ -565,7 +571,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEntries
                 corr = 0
                 if i == 1:
                     corr = -1
-                inputs.append([n, str(i), filepath, leafs_names, cat, [pdiv[i-1]+1+corr, pdiv[i]], applyCorr, skipCut, False])
+                inputs.append([n, str(i), filepath, leafs_names, cat, [pdiv[i-1]+1+corr, pdiv[i]], applyCorr, skipCut, trkControlRegion, False])
             print ' '
 
             start = time.time()
@@ -717,14 +723,13 @@ if __name__ == "__main__":
             if args.skipCut == 'all':
                 sc = 'all'
             for n, fp in file_loc.iteritems():
-                    create_dSet(n, fp, cat=None, skipCut=sc, applyCorrections=args.applyCorr)
-
+                    create_dSet(n, fp, cat=None, skipCut=sc, applyCorrections=args.applyCorr, trkControlRegion=args.trkControlRegion)
 
         else:
             skip = []
             if args.skipCut == 'all':
                 skip.append('all')
-            # # skip.append([6, 11, 12]) #Mass D0, D* and D*-D0 (m piK)
+            # skip.append([6, 11, 12]) #Mass D0, D* and D*-D0 (m piK)
             # skip.append([16]) #Visible mass (m D0pismu)
             # skip.append([17]) #Additional tracks
             elif args.skipCut:
@@ -735,7 +740,7 @@ if __name__ == "__main__":
             for idx in skip:
                 for cn in args.cat:
                     for n, fp in file_loc.iteritems():
-                        create_dSet(n, fp, categories[cn], skipCut=idx, applyCorrections=args.applyCorr)
+                        create_dSet(n, fp, categories[cn], skipCut=idx, applyCorrections=args.applyCorr, trkControlRegion=args.trkControlRegion)
     elif args.function == 'makeSel':
         tmpDir = args.tmpDir
         input = pickle.load( open( tmpDir+'/input_{}.p'.format(args.jN), 'rb' ) )

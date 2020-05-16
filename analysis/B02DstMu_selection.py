@@ -20,7 +20,7 @@ def trigger_selection(j, ev, evEx, cat):
         return False
     return True
 
-def candidate_selection(j, ev, e, skipCut=[]):
+def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
     if not (1 in skipCut):
         if not ev.pval_piK[j] > 0.1:
             return False
@@ -71,7 +71,10 @@ def candidate_selection(j, ev, e, skipCut=[]):
         if not e.mass_D0pismu < 7.:
             return False
     if not (17 in skipCut):
-        if not e.N_goodAddTks == 0:
+        if trkControlRegion:
+            if e.N_goodAddTks == 0 or e.N_goodAddTks > 2:
+                return False
+        elif not e.N_goodAddTks == 0:
             return False
     return True
 
