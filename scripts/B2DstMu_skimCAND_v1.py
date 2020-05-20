@@ -68,7 +68,7 @@ filesLocMap = {
 'tau_PUc0'       : MCloc+'BP_Tag_B0_TauNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 'Hc_PU20'        : MCloc+'BPH_Tag-B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3'+MCend,
-'Hc_PUc0'        : MCloc+'BP_Tag_B0_DmstHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'Hc_PUc0'        : MCloc+'BP_Tag_B0_DmstHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 'DstmDsp_PUc0'   : MCloc+'BP_Tag_B0_DstmDsp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 'DstmDp_PUc0'   : MCloc+'BP_Tag_B0_DstmDp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
@@ -78,7 +78,7 @@ filesLocMap = {
 'DstPip_PUc0'     : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 'DstPi0_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'DstPi0nR_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
+# 'DstPi0nR_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
 #
 'DstPipPi0_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstst_PipPi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
@@ -87,9 +87,8 @@ filesLocMap = {
 'DstPi0Pi0_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 #
-'dataB2DstMu' : RDloc+'*_RDntuplizer_B2DstMu_200416_CAND.root'
-# 'dataB2DstMu' : RDloc+'*_RDntuplizer_B2DstMu_200410_CAND.root'
-# 'dataB2DstMu': RDloc+'*_RDntuplizer_B2DstMu_200327_CAND.root'
+'data' : RDloc+'*_RDntuplizer_B2DstMu_200515_CAND.root'
+# 'dataB2DstMu' : RDloc+'*_RDntuplizer_B2DstMu_200416_CAND.root'
 # 'dataCombDmstMum': RDloc + 'Run2018D-05May2019promptD-v1_RDntuplizer_combDmstMum_200320_CAND.root'
 }
 
@@ -234,6 +233,7 @@ def extractEventInfos(j, ev, corr=None):
     e.N_goodAddTks = 0
     e.tkCharge = []
     e.tkPt = []
+    e.tkPtError = []
     e.tkEta = []
     e.tkPhi = []
     e.MC_tkFlag = []
@@ -276,6 +276,7 @@ def extractEventInfos(j, ev, corr=None):
         if mVis_wTk < m_B0 and ev.tksAdd_cos_PV[jj]>0.95:
             e.N_goodAddTks += 1
             idx, e.tkPt = insertOrdered(e.tkPt, pt)
+            e.tkPtError.insert(idx, ev.tksAdd_ptError[jj])
             e.tkEta.insert(idx, eta)
             e.tkPhi.insert(idx, phi)
             e.tkCharge.insert(idx, ev.tksAdd_charge[jj])
@@ -303,7 +304,7 @@ def extractEventInfos(j, ev, corr=None):
             e.UmissTk12 = p_miss.E() - p_miss.P()
 
     if e.N_goodAddTks < 2:
-        auxList = [e.tkCharge, e.tkPt, e.tkEta, e.tkPhi, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk, e.UmissTk]
+        auxList = [e.tkCharge, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk, e.UmissTk]
         auxList += [e.MC_tkFlag, e.MC_tkPdgId, e.MC_tkMotherPdgId, e.MC_tkMotherMotherPdgId, e.MC_tk_dphi, e.MC_tk_deta, e.MC_tk_dpt]
         for l in auxList:
             l += [0, 0]
@@ -377,6 +378,7 @@ def makeSelection(inputs):
                    evEx.N_goodAddTks,
                    evEx.tkCharge[0], evEx.tkCharge[1],
                    evEx.tkPt[0], evEx.tkPt[1],
+                   evEx.tkPtError[0], evEx.tkPtError[1],
                    evEx.tkEta[0], evEx.tkEta[1],
                    evEx.tkPhi[0], evEx.tkPhi[1],
                    evEx.massVis_wTk[0], evEx.massVis_wTk[1],
@@ -391,7 +393,7 @@ def makeSelection(inputs):
                    trigger_selection(idxTrg, ev, evEx, categories['mid']),
                    trigger_selection(idxTrg, ev, evEx, categories['high']),
                    ev.trgMu_HLT_Mu12_IP6[idxTrg], ev.trgMu_HLT_Mu9_IP6[idxTrg], ev.trgMu_HLT_Mu7_IP4[idxTrg],
-                   ev.N_vertexes
+                   ev.N_vertexes, ev.localVertexDensity[j]
                   )
             if not 'data' in n:
                 aux += (ev.MC_q2, ev.MC_Est_mu, ev.MC_M2_miss,
@@ -465,7 +467,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         if not os.path.isdir(d):
             os.makedirs(d)
         fskimmed_name = d + catName
-        N_evts_per_job = 30000
+        N_evts_per_job = 20000
     if not skipCut == []:
         print 'Skipping cut(s)', skipCut
         if skipCut == 'all':
@@ -487,11 +489,14 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
     else:
         tree = rt.TChain('outA/Tevts')
         hAllNvtx = rt.TH1D('hAllNvtx', 'hAllNvtx', 101, -0.5, 100.5)
+        hAllVtxZ = rt.TH1D('hAllVtxZ', 'hAllVtxZ', 100, -25, 25)
         for fn in glob(filepath):
             tree.Add(fn)
             fAux = rt.TFile.Open(fn, 'READ')
             hAux = fAux.Get('trgF/hAllNvts')
             hAllNvtx.Add(hAux)
+            hAux = fAux.Get('trgF/hAllVtxZ')
+            hAllVtxZ.Add(hAux)
             fAux.Close()
         print 'Computing events from {} files'.format(tree.GetNtrees())
         N_cand_in = min(maxEvents, tree.GetEntries())
@@ -512,6 +517,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'N_goodAddTks',
                        'tkCharge_0', 'tkCharge_1',
                        'tkPt_0', 'tkPt_1',
+                       'tkPtError_0', 'tkPtError_1',
                        'tkEta_0', 'tkEta_1',
                        'tkPhi_0', 'tkPhi_1',
                        'tkMassVis_0', 'tkMassVis_1',
@@ -524,7 +530,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'tkUmiss12',
                        'cat_low', 'cat_mid', 'cat_high',
                        'muPass_Mu12_IP6', 'muPass_Mu9_IP6', 'muPass_Mu7_IP4',
-                       'N_vtx'
+                       'N_vtx', 'localVertexDensity'
                       ]
         if not 'data' in n:
             leafs_names += ['MC_q2', 'MC_Est_mu', 'MC_M2_miss',
@@ -624,6 +630,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         rtnp.array2root(dset.to_records(), fskimmed_name, treename='Tevts', mode='RECREATE')
         fAux = rt.TFile.Open(fskimmed_name, 'UPDATE')
         hAllNvtx.Write()
+        hAllVtxZ.Write()
         fAux.Close()
 
         with open(logfile, 'w') as f:
