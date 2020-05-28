@@ -1,3 +1,5 @@
+import numpy as np
+
 def exclusiveTrigger(j, ev, trgAcc, trgNegate = []):
     if not hasattr(ev, 'trgMu_'+trgAcc):
         return False
@@ -9,36 +11,101 @@ def exclusiveTrigger(j, ev, trgAcc, trgNegate = []):
                 return False
     return True
 
-def trigger_selection(j, ev, cat):
-    aux = exclusiveTrigger(j, ev, 'HLT_' + cat.trg)
-    aux &= ev.trgMu_pt[j] > cat.min_pt
-    aux &= ev.trgMu_pt[j] < cat.max_pt
-    aux &= ev.trgMu_sigdxy[j] > cat.minIP
-    aux &= abs(ev.trgMu_eta[j]) < 1.5
-    return aux
+def trigger_selection(iMu, ev, cat, muPt, muEta):
+    if not exclusiveTrigger(iMu, ev, 'HLT_' + cat.trg):
+        return False
+    if muPt < cat.min_pt or muPt > cat.max_pt:
+        return False
+    if not ev.trgMu_sigdxy[iMu] > cat.minIP:
+        return False
+    if not abs(muEta) < 1.5:
+        return False
+    return True
 
-def candidate_selection(j, ev, skipCut=None):
-    aux = ev.mum_pt[j] > 3.5
-    aux &= abs(ev.mum_eta[j]) < 2.2
-    aux &= ev.mum_dxy[j] < 3
-    aux &= ev.mup_pt[j] > 3.5
-    aux &= abs(ev.mup_eta[j]) < 2.2
-    aux &= ev.mup_dxy[j] < 3
-    aux &= ev.pval_mumu[j] > 0.1
-    aux &= abs(ev.mass_mumu[j] - 3.0969) < 0.08
-    aux &= ev.Jpsi_pt[j] > 4.5
-    aux &= ev.cosT_Jpsi_PV[j] > 0.95
-    aux &= ev.K_pt[j] > 0.8
-    aux &= ev.K_sigdxy_PV[j] > 2
-    aux &= ev.pi_pt[j] > 0.8
-    aux &= ev.pi_sigdxy_PV[j] > 2
-    aux &= ev.pval_piK[j] > 0.1
-    aux &= abs(ev.mass_piK[j] - 0.8955) <  0.07
+def category_selection(j, ev, evEx, cat, saveTrgMu=False):
+    idxTrigger = []
+    if cat == 'probe':
+        raise
+
+    passed = [False, False]
+    if ev.mup_isTrg[j] >= 0:
+        passed[0] = trigger_selection(int(ev.mup_isTrg[j]), ev, cat, evEx.mup_pt, evEx.mup_eta)
+    if ev.mum_isTrg[j] >= 0:
+        passed[1] = trigger_selection(int(ev.mum_isTrg[j]), ev, cat, evEx.mum_pt, evEx.mum_eta)
+    if passed[0] and passed[1]: passed[np.random.randint(2)] = False
+    if saveTrgMu:
+        if passed[0]:
+            evEx.trgMu_pt = evEx.mup_pt
+            evEx.trgMu_eta = evEx.mup_eta
+            evEx.trgMu_sigdxy = ev.trgMu_sigdxy[int(ev.mup_isTrg[j])]
+        elif passed[1]:
+            evEx.trgMu_pt = evEx.mum_pt
+            evEx.trgMu_eta = evEx.mum_eta
+            evEx.trgMu_sigdxy = ev.trgMu_sigdxy[int(ev.mum_isTrg[j])]
+        else:
+            evEx.trgMu_pt = -1
+            evEx.trgMu_eta = -999999999
+            evEx.trgMu_sigdxy = -1
+
+    return np.sum(passed) > 0
+
+def candidate_selection(j, ev, evEx, skipCut=None):
+    if not abs(evEx.mup_eta) < 2.2:
+        return False
+    if not evEx.mup_pt > 3.5:
+        return False
+    if not ev.mup_dxy[j] < 3:
+        return False
+
+    if not abs(evEx.mum_eta) < 2.2:
+        return False
+    if not evEx.mum_pt > 3.5:
+        return False
+    if not ev.mum_dxy[j] < 3:
+        return False
+
+    if not ev.pval_mumu[j] > 0.1:
+        return False
+    if not abs(evEx.mass_mumu - 3.096916) < 0.08:
+        return False
+    if not evEx.Jpsi_pt > 4.5:
+        return False
+    if not ev.cosT_Jpsi_PV[j] > 0.95:
+        return False
+
+    if not evEx.K_pt > 0.8:
+        return False
+    if not abs(evEx.K_eta) < 2.4:
+        return False
+    if not ev.K_sigdxy_PV[j] > 2:
+        return False
+    if not abs(evEx.pi_eta) < 2.4:
+        return False
+    if not evEx.pi_pt > 0.8:
+        return False
+    if not ev.pi_sigdxy_PV[j] > 2:
+        return False
+
+    if not ev.pval_piK[j] > 0.1:
+        return False
+    # if not abs(evEx.mass_piK - 0.8955) <  0.07:
+    #     return False
+    # if not abs(evEx.mass_piK - 0.8955) < abs(evEx.mass_Kpi - 0.8955):
+    #     return False
+    # if not evEx.mass_KK > 1.035:
+    #     return False
+    if not ev.sigdxy_vtxKst_PV[j] > 5:
+        return False
+
+    if not ev.pval_mumupiK[j] > 0.1:
+        return False
+    if not abs(evEx.mass_mumupiK - 5.27963) < 0.275:
+        return False
+
+    aux = abs(ev.mass_piK[j] - 0.8955) <  0.07
     aux &= abs(ev.mass_piK[j] - 0.8955) < abs(ev.mass_piK_CPconj[j] - 0.8955)
     aux &= ev.mass_KK[j] > 1.035
-    aux &= ev.sigdxy_vtxKst_PV[j] > 5
-    aux &= ev.pval_mumupiK[j] > 0.1
-    aux &= abs(ev.mass_mumupiK[j] - 5.27963) < 0.275
+    # aux &= abs(ev.mass_mumupiK[j] - 5.27963) < 0.275
     return aux
 
 candidateSelection_stringList = [

@@ -30,7 +30,7 @@ from cebefo_style import Set_2D_colz_graphics
 from gridVarQ2Plot import col_dic, plot_gridVarQ2
 from progressBar import ProgressBar
 from categoriesDef import categories
-from B02DstMu_selection import candidate_selection, trigger_selection, candidateSelection_stringList, candidateSelection_nameList
+from B02DstMu_selection import candidate_selection, trigger_selection
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -73,6 +73,8 @@ filesLocMap = {
 'DstmDsp_PUc0'   : MCloc+'BP_Tag_B0_DstmDsp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 'DstmDp_PUc0'   : MCloc+'BP_Tag_B0_DstmDp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 'DstmD0_PUc0'   : MCloc+'BP_Tag_B0_DstmD0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+#
+'BpDstmHc_PUc0'   : MCloc+'BP_Tag_Bp_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 'DstPip_PU20'     : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
 'DstPip_PUc0'     : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
@@ -455,7 +457,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
     print '\n' + 50*'-'
     print n, catName
     if 'data' in n:
-        loc = '../data/cmsRD/skimmed/'+ n.replace('data', '')
+        loc = '../data/cmsRD/skimmed/B2DstMu'+ n.replace('data', '')
         out = re.search('20[01][1-9][0-3][0-9]', filepath)
         if out is None:
             print filepath
