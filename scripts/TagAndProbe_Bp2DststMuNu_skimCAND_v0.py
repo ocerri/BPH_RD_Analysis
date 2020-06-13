@@ -132,7 +132,7 @@ def makeSelection(inputs):
                    ev.mu_refitD0pipmu_pt[j], ev.mu_refitD0pipmu_eta[j], ev.mu_refitD0pipmu_phi[j],
                    ev.Dstst_expD0pip_pt[j], ev.Dstst_expD0pip_eta[j], ev.Dstst_expD0pip_phi[j],
                    ev.mass_piK[j], ev.mass_D0pip[j], ev.mass_expDstpip[j], ev.dm_expDstpip_pik[j], ev.mass_D0pipmu[j],
-                   ev.pis_expD0pipmu_pt[j], ev.pis_expD0pipmu_eta[j], ev.pis_expD0pipmu_phi[j],
+                   ev.pis_expD0pipmu_pt[j], ev.pis_expD0pipmu_eta[j], ev.pis_expD0pipmu_phi[j], 0.3*3.8/ev.pis_expD0pipmu_pt[j],
                    ev.N_vertexes
                   )
             if N_goodPi == 0:
@@ -203,7 +203,7 @@ def create_dSet(n, filepath, cat, maxEvents=args.maxEvents):
                         'mu_pt', 'mu_eta', 'mu_phi',
                         'expDstst_pt', 'expDstst_eta', 'expDstst_phi',
                         'mass_piK', 'mass_D0pip', 'mass_expDstpip', 'dm_expDstpip_pik', 'mass_D0pipmu',
-                        'expPis_pt', 'expPis_eta', 'expPis_phi',
+                        'expPis_pt', 'expPis_eta', 'expPis_phi', 'expPis_k',
                         'N_vtx',
                         'pis_pt', 'pis_eta','pis_phi', 'sigdxy_pis_PV',
                         'dm_D0pis_piK'

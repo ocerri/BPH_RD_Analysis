@@ -19,13 +19,13 @@ label_dic = {'data' : 'Data',
              'B0Dstst': 'B_{0}#rightarrow D**#mu#nu'
             }
 
-fillStyleVar = [1, 3345, 3354, 1, 1, 1, 1, 1]
+fillStyleVar = [1, 3345, 3354, 1, 1, 1, 1, 1, 1]
 sampleDstst = {
 'BpDstst': ['DstPip', 'DstPipPi0'],
 'B0Dstst': ['DstPi0', 'DstPipPim', 'DstPi0Pi0']
 }
 
-sampleDstmHc = ['DstmD0', 'DstmDp', 'DstmDsp', 'BpDstmHc']
+sampleDstmHc = ['DstmD0', 'DstmDp', 'DstmDsp', 'BpDstmHc', 'BmDstmHc', 'antiB0DstmHc']
 
 
 def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name=''):

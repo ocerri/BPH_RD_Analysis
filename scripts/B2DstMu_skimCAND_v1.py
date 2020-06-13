@@ -43,7 +43,7 @@ parser.add_argument ('--recreate', default=False, action='store_true', help='Rec
 parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
 parser.add_argument ('--trkControlRegion', default=False, action='store_true', help='Track control region selection')
 parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
-parser.add_argument ('--skipCut', type=str, default='', choices=['all', '16', '17'], help='Cut to skip')
+parser.add_argument ('--skipCut', type=str, default='', choices=['all', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
 ######## Arguments not for user #####################
 parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
 parser.add_argument ('--jN', type=int, default=None, help='Job number')
@@ -75,6 +75,8 @@ filesLocMap = {
 'DstmD0_PUc0'   : MCloc+'BP_Tag_B0_DstmD0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 'BpDstmHc_PUc0'   : MCloc+'BP_Tag_Bp_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'BmDstmHc_PUc0'   : MCloc+'BP_Tag_Bm_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'antiB0DstmHc_PUc0'   : MCloc+'BP_Tag_antiB0_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 'DstPip_PU20'     : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
 'DstPip_PUc0'     : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
@@ -89,9 +91,8 @@ filesLocMap = {
 'DstPi0Pi0_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 #
-'data' : RDloc+'*_RDntuplizer_B2DstMu_200515_CAND.root'
-# 'dataB2DstMu' : RDloc+'*_RDntuplizer_B2DstMu_200416_CAND.root'
-# 'dataCombDmstMum': RDloc + 'Run2018D-05May2019promptD-v1_RDntuplizer_combDmstMum_200320_CAND.root'
+'data' : RDloc+'*_RDntuplizer_B2DstMu_200515_CAND.root',
+'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_200611_CAND.root'
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -677,7 +678,7 @@ def createSubmissionFile(tmpDir, njobs):
     fsub.write('\n')
     fsub.write('+InteractiveUser = True')
     fsub.write('\n')
-    fsub.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/bbockelm/cms:rhel7"')
+    fsub.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7-m20200605"')
     fsub.write('\n')
     fsub.write('+SingularityBindCVMFS = True')
     fsub.write('\n')

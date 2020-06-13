@@ -68,7 +68,7 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
         if not (e.q2 > -2. and e.q2 < 12):
             return False
     if not (16 in skipCut):
-        if not e.mass_D0pismu < 7.:
+        if not e.mass_D0pismu < 5.4:
             return False
     if not (17 in skipCut):
         if trkControlRegion:
