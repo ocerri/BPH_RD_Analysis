@@ -8,7 +8,7 @@ import os
 import operator
 ops = {'>': operator.gt, '<': operator.lt, }
 
-def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600], mL=None, mR=None, mT=None, mB=None):
+def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600], mL=None, mR=None, mT=None, mB=None, iPosCMS=0):
     c = rt.TCanvas('c'+tag, 'c'+tag, 50, 50, size[0], size[1])
     c.SetTickx(0)
     c.SetTicky(0)
@@ -36,7 +36,7 @@ def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600], mL=None,
         raise
 
 
-    CMS_lumi.CMS_lumi(c, -1, 0)
+    CMS_lumi.CMS_lumi(c, -1, iPosCMS)
     c.obj = dobj
     c.Draw()
     return c

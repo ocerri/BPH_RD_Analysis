@@ -10,9 +10,9 @@ std_color_list += [1, 2, 4, 8, 6, 28, 43, 7, 25, 1]
 def SetMaxToMaxHist(hlist, f=1.1):
     m = []
     for h in hlist:
-        m.append(h.GetMaximum())
+        m.append(h.GetBinContent(h.GetMaximumBin()))
 
-    hlist[0].SetMaximum(f*max(m))
+    hlist[0].GetYaxis().SetRangeUser(hlist[0].GetYaxis().GetXmin(), f*max(m))
     return f*max(m)
 
 def quantile(a, p, weight=None, f=None):
