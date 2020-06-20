@@ -4,14 +4,15 @@ import root_numpy as rtnp
 import matplotlib.pyplot as plt
 from array import array
 
-std_color_list = [1, 2, 4, 8, 6, 28, 43, 7, 25]
+std_color_list = [rt.kAzure+1, rt.kRed-4, rt.kGreen+1, rt.kOrange-3, rt.kViolet-7]
+std_color_list += [1, 2, 4, 8, 6, 28, 43, 7, 25, 1]
 
 def SetMaxToMaxHist(hlist, f=1.1):
     m = []
     for h in hlist:
-        m.append(h.GetMaximum())
+        m.append(h.GetBinContent(h.GetMaximumBin()))
 
-    hlist[0].SetMaximum(f*max(m))
+    hlist[0].GetYaxis().SetRangeUser(hlist[0].GetYaxis().GetXmin(), f*max(m))
     return f*max(m)
 
 def quantile(a, p, weight=None, f=None):
@@ -52,18 +53,19 @@ def EstimateDispersion(aux, w=None):
     disp_unc = 0.5*np.hypot(e_up, e_dwn)
     return disp_est, disp_unc
 
-def create_TH1D(x, name='h', title=None, 
-                binning=[None, None, None], 
-                weights=None, 
-                h2clone=None, 
-                axis_title = ['',''], 
+def create_TH1D(x, name='h', title=None,
+                binning=[None, None, None],
+                weights=None,
+                h2clone=None,
+                axis_title = ['',''],
                 opt='',
                 scale_histo=None,
-                minEmptyBins=None
+                minEmptyBins=None,
+                color=None
                ):
     if title is None:
         title = name
-    
+
     if (x.shape[0] == 0 and np.sum([b is None for b in binning])):
         print 'Empty sample'
         h = rt.TH1D(name, title, 1, 0, 1)
@@ -105,13 +107,21 @@ def create_TH1D(x, name='h', title=None,
 
     rtnp.fill_hist(h, x, weights=weights)
     if not scale_histo is None:
-        h.Scale(scale_histo)
-        
+        if scale_histo == 'norm':
+            h.Scale(1./h.Integral())
+        else:
+            h.Scale(scale_histo)
+
     if not minEmptyBins is None:
         for i in range(1, h.GetNbinsX()+1):
             if h.GetBinContent(i) == 0:
                 h.SetBinContent(i, minEmptyBins)
-    
+    if not color is None:
+        h.SetLineColor(std_color_list[color])
+        h.SetMarkerColor(std_color_list[color])
+        h.SetFillColor(std_color_list[color])
+        h.SetFillStyle(0)
+
     h.SetXTitle(axis_title[0])
     h.SetYTitle(axis_title[1])
     h.binning = binning
@@ -267,7 +277,10 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
     pad1.Draw()
     pad1.cd()
 
-    leg = rt.TLegend(leg_pos[0], leg_pos[1], leg_pos[2], leg_pos[3])
+    if not leg_pos is None:
+        leg = rt.TLegend(leg_pos[0], leg_pos[1], leg_pos[2], leg_pos[3])
+    else:
+        leg = rt.TLegend(0, 0, 1, 1)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
     c_out.cd(1)
@@ -285,26 +298,26 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
         else:
             h.DrawCopy(draw_opt+"same")
 
-        leg.AddEntry(h, tag[i], "lep")
 
-    leg.Draw("same")
+        leg.AddEntry(h, tag[i], "lep")
+    if not leg_pos is None:
+        leg.Draw("same")
 
     c_out.cd()
     pad2 = rt.TPad("pad2", "pad2", 0, 0, 1, 0.3)
     pad2.SetTopMargin(0.03)
     pad2.SetBottomMargin(0.25)
     pad2.SetLeftMargin(0.15)
-    # pad2.SetGrid()
     pad2.Draw()
     pad2.cd()
-    
+
     h = h_list[0]
     ln = rt.TLine(h.GetXaxis().GetXmin(), 1, h.GetXaxis().GetXmax(), 1)
-    ln.SetLineWidth(3)
-    ln.SetLineColor(h_list_in[0].GetLineColor())
+    ln.SetLineWidth(2)
+    ln.SetLineColor(rt.kGray)
     ln.SetLineStyle(7)
     ln.DrawLine(h.GetXaxis().GetXmin(), 1, h.GetXaxis().GetXmax(), 1)
-    
+
     hratio_list = [None]
 
     for i, h in enumerate(h_list):
@@ -331,7 +344,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
             h.DrawCopy("same"+draw_opt)
             hratio_list.append(h)
 
-
+    ln.DrawLine(h.GetXaxis().GetXmin(), 1, h.GetXaxis().GetXmax(), 1)
     pad2.Update()
 
     c_out.pad1 = pad1

@@ -2,14 +2,20 @@ import numpy as np
 import uproot as ur
 import ROOT as rt
 from glob import glob
+import yaml
+import os
 
 import operator
 ops = {'>': operator.gt, '<': operator.lt, }
 
-def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600]):
+def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600], mL=None, mR=None, mT=None, mB=None, iPosCMS=0):
     c = rt.TCanvas('c'+tag, 'c'+tag, 50, 50, size[0], size[1])
     c.SetTickx(0)
     c.SetTicky(0)
+    if not mL is None: c.SetLeftMargin(mL)
+    if not mR is None: c.SetRightMargin(mR)
+    if not mT is None: c.SetTopMargin(mT)
+    if not mB is None: c.SetBottomMargin(mB)
 
     if dobj.__class__ == rt.RooPlot:
         dobj.Draw()
@@ -30,7 +36,7 @@ def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600]):
         raise
 
 
-    CMS_lumi.CMS_lumi(c, -1, 0)
+    CMS_lumi.CMS_lumi(c, -1, iPosCMS)
     c.obj = dobj
     c.Draw()
     return c
@@ -57,7 +63,7 @@ def extarct_multiple(fname, branches = [], flag=''):
     l = {}
     for b in branches:
         l[b] = []
-    
+
     if not isinstance(fname, list):
         flist = glob(fname)
     else:
@@ -90,3 +96,61 @@ def createSel(d, cut):
     for k, v in cut.iteritems():
         sel = np.logical_and(sel, ops[v[0]](d[k], v[1]) )
     return sel
+
+def getEff(k,N):
+    e = k/float(N)
+    de = np.sqrt(e*(1-e)/N)
+    return [e, de]
+
+class DSetLoader(object):
+    def __init__(self, in_sample,
+                 candLoc='/storage/user/ocerri/BPhysics/data/cmsMC_private/',
+                 candDir='ntuples_B2DstMu',
+                 site_loc_conf = '/mnt/hadoop/store/user/ocerri',
+                 sampleFile = '/storage/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml'
+                 ):
+        samples = yaml.load(open(sampleFile))['samples']
+        if not in_sample in samples.keys():
+            raise
+        self.sample = in_sample
+        self.candLoc = candLoc
+        self.candDir = candDir
+
+        self.MINIAOD_dirs = []
+        for part in samples[self.sample]['parts']:
+            aux = glob(part)
+            if len(aux) > 0:
+                aux = [os.path.dirname(part)]
+            else:
+                aux = glob(site_loc_conf + part[:-38].replace('ocerri-','') + '/*/*')
+            self.MINIAOD_dirs += aux
+
+        self.full_name = samples[self.sample]['dataset']
+
+        res = glob(os.path.join(self.candLoc, self.full_name, self.candDir))
+        if res:
+            self.ntuples_dir = res[0]
+            self.skimmed_dir = os.path.join(self.ntuples_dir, 'skimmed')
+        else:
+            self.ntuples_dir = ''
+            self.skimmed_dir = ''
+
+        effMCgenFile = os.path.join(self.candLoc, self.full_name, 'effMCgenerator.yaml')
+        if os.path.isfile(effMCgenFile):
+            self.effMCgen = yaml.load(open(effMCgenFile, 'r'))
+
+        effCandFile = os.path.join(self.ntuples_dir, 'effCAND.yaml')
+        if os.path.isfile(effCandFile):
+            self.effCand = yaml.load(open(effCandFile, 'r'))
+        else:
+            print 'CAND efficiency file missing.'
+
+    def getSkimEff(self, catName='probe'):
+        if catName is 'probe':
+            with open(self.skimmed_dir + '/selTree.log', 'r') as f:
+                aux = f.readlines()[-1][:-1].split(' ')
+                return [float(aux[1])*1e-2, float(aux[3])*1e-2]
+        else:
+            with open(self.skimmed_dir + '/{}.log'.format(catName), 'r') as f:
+                aux = f.readlines()[-1][:-1].split(' ')
+                return [float(aux[1])*1e-2, float(aux[3])*1e-2]

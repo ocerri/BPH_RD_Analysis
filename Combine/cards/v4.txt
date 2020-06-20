@@ -12,17 +12,17 @@ shapes * M2_miss_q2bin2 ../data/_root/histos4combine/v4_M2_miss_q2bin2.root $PRO
 shapes * M2_miss_q2bin3 ../data/_root/histos4combine/v4_M2_miss_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
 --------------------------------------------------------------
 bin Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin3 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin3
-observation 37999 90389 86309 143675 37999 90387 86309 143676
+observation 5261 12660 12484 19755 5261 12660 12484 19755
 --------------------------------------------------------------
 bin Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin2 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 Est_mu_q2bin3 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin2 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3 M2_miss_q2bin3
 process tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst tau mu Hc Dstst
 process 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3 0 1 2 3
-rate 0.0073 0.1136 0.0197 0.0474 0.0431 0.2607 0.1802 0.2487 0.1975 0.2415 0.3950 0.2929 0.7522 0.3842 0.4051 0.4110 0.0073 0.1136 0.0197 0.0474 0.0431 0.2607 0.1802 0.2487 0.1975 0.2415 0.3950 0.2929 0.7522 0.3842 0.4051 0.4110
+rate 0.0073 0.1138 0.0201 0.0474 0.0433 0.2621 0.1805 0.2487 0.1955 0.2427 0.3898 0.2929 0.7538 0.3814 0.4096 0.4110 0.0073 0.1138 0.0201 0.0474 0.0433 0.2621 0.1805 0.2487 0.1955 0.2427 0.3898 0.2929 0.7538 0.3814 0.4096 0.4110
 --------------------------------------------------------------
-N_B2mu rateParam * tau 332996.3 [0,430046]
-N_B2mu rateParam * mu 332996.3 [0,430046]
-N_B2DstHc rateParam * Hc 2807.4 [0,430046]
-N_B2Dstst rateParam * Dstst 7845.3 [0,430046]
+N_B2mu rateParam * tau 48115.9 [0,60192]
+N_B2mu rateParam * mu 48115.9 [0,60192]
+N_B2DstHc rateParam * Hc 392.9 [0,60192]
+N_B2Dstst rateParam * Dstst 1098.1 [0,60192]
 --------------------------------------------------------------
 B0pT shape 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. - 1. 1. 1. -
 B2DstCLNR0 shape 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - - 1. 1. - -

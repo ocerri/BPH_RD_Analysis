@@ -1,0 +1,89 @@
+imax *
+jmax 7
+kmax *
+--------------------------------------------------------------
+shapes * AddTk_m_mHad ../data/_root/histos4combine/v7_AddTk_m_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_mm_mHad ../data/_root/histos4combine/v7_AddTk_mm_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_p_mHad ../data/_root/histos4combine/v7_AddTk_p_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pm_mHad ../data/_root/histos4combine/v7_AddTk_pm_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pm_mVis ../data/_root/histos4combine/v7_AddTk_pm_mVis.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pp_mHad ../data/_root/histos4combine/v7_AddTk_pp_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin0 ../data/_root/histos4combine/v7_Est_mu_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin1 ../data/_root/histos4combine/v7_Est_mu_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin0 ../data/_root/histos4combine/v7_M2_miss_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin1 ../data/_root/histos4combine/v7_M2_miss_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+--------------------------------------------------------------
+bin AddTk_m_mHad AddTk_mm_mHad AddTk_p_mHad AddTk_pm_mHad AddTk_pm_mVis AddTk_pp_mHad Est_mu_q2bin0 Est_mu_q2bin1 M2_miss_q2bin0 M2_miss_q2bin1
+observation 9806 452 19361 3340 3340 873 32093 65994 32093 65994
+--------------------------------------------------------------
+bin AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_mm_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_p_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mHad AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pm_mVis AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad AddTk_pp_mHad Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 Est_mu_q2bin1 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1 M2_miss_q2bin1
+process tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0 tau mu Hc DstPip DstPipPi0 DstPi0 DstPipPim DstPi0Pi0
+process 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7 0 1 2 3 4 5 6 7
+rate 202.40 5032.44 148.32 224.83 11.47 229.36 352.62 26.12 5.49 163.22 5.12 8.19 0.52 7.25 12.57 0.82 231.48 5775.41 242.83 8091.34 498.43 254.11 458.11 28.50 15.70 468.23 408.54 338.64 21.91 29.63 940.01 2.74 15.70 468.23 408.54 338.64 21.91 29.63 940.01 2.74 8.16 211.07 12.19 245.04 16.48 9.89 16.84 1.29 73.25 26061.79 65.15 506.53 8.16 639.76 11.44 19.76 1595.72 50371.77 681.81 2051.21 105.05 2267.99 139.93 275.39 73.25 26061.79 65.15 506.53 8.16 639.76 11.44 19.76 1595.72 50371.77 681.81 2051.21 105.05 2267.99 139.93 275.39
+--------------------------------------------------------------
+xsecpp2bbXlumi lnN 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9 1.9
+b2B0Had lnN 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3 3 3 3 - - 3 3 3
+b2BpHad lnN - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - - - - - 3 3 - - -
+muBr lnN - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - - - 1.03 - - - - - -
+HcBr lnN - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - - - - 1.25 - - - - -
+DstPipBr lnN - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - - - - - 1.10 - - - -
+DstPipPi0Br lnN - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - - - - - - 1.63 - - -
+DstPi0Br lnN - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - - - - - - - 1.33 - -
+DstPipPimBr lnN - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 - - - - - - - 1.36 -
+DstPi0Pi0Br lnN - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37 - - - - - - - 1.37
+--------------------------------------------------------------
+pAddTk param 1.0 0.15
+pAddTk rateParam AddTk_p_mHad tau 1
+pAddTk rateParam AddTk_p_mHad mu 1
+pAddTk rateParam AddTk_p_mHad DstPi0 1
+pAddTk rateParam AddTk_p_mHad DstPi0Pi0 1
+pAddTk rateParam AddTk_m_mHad tau 1
+pAddTk rateParam AddTk_m_mHad mu 1
+pAddTk rateParam AddTk_m_mHad DstPi0 1
+pAddTk rateParam AddTk_m_mHad DstPi0Pi0 1
+pAddTk rateParam AddTk_m_mHad DstPip 1
+pAddTk rateParam AddTk_m_mHad DstPipPi0 1
+pAddTk rateParam AddTk_pp_mHad DstPip 1
+pAddTk rateParam AddTk_pp_mHad DstPipPi0 1
+pAddTk rateParam AddTk_pp_mHad DstPipPim 1
+pAddTk rateParam AddTk_pp_mHad Hc 1
+pAddTk rateParam AddTk_pm_mHad DstPip 1
+pAddTk rateParam AddTk_pm_mVis DstPip 1
+pAddTk rateParam AddTk_pm_mHad DstPipPi0 1
+pAddTk rateParam AddTk_pm_mVis DstPipPi0 1
+pAddTk rateParam AddTk_mm_mHad DstPipPim 1
+pAddTk rateParam AddTk_mm_mHad Hc 1
+pAddTk2 rateParam AddTk_pp_mHad tau @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pp_mHad mu @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pp_mHad DstPi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pp_mHad DstPi0Pi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mHad tau @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mVis tau @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mHad mu @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mVis mu @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mHad DstPi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mVis DstPi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mHad DstPi0Pi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_pm_mVis DstPi0Pi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad tau @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad mu @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad DstPi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad DstPi0Pi0 @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad DstPip @0*@0 pAddTk
+pAddTk2 rateParam AddTk_mm_mHad DstPipPi0 @0*@0 pAddTk
+--------------------------------------------------------------
+trgSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+muonIdSF shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1.
+B0pT shape 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1. 1. 1. 1. - - 1. 1. 1.
+B2DstCLNR0 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
+B2DstCLNR1 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
+B2DstCLNR2 shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
+B2DstCLNRhoSq shape 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - - 1. 1. - - - - - -
+HcmixD02mu shape - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - -
+HcmixDs2mu shape - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - - - - 1. - - - - -
+* autoMCStats 20 1 1
+--------------------------------------------------------------
+B2DstFF group = B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq
+normMC group = xsecpp2bbXlumi b2B0Had b2BpHad
+knownBr group = muBr HcBr DstPipBr DstPipPi0Br DstPi0Br DstPipPimBr DstPi0Pi0Br
+allShape group = trgSF muonIdSF B0pT B2DstCLNR0 B2DstCLNR1 B2DstCLNR2 B2DstCLNRhoSq
