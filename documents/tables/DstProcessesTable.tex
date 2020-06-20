@@ -1,0 +1,45 @@
+\documentclass[a4paper,12pt,twoside]{book}
+
+\usepackage{setspace}
+\usepackage{balance}
+\usepackage[font={small,it}]{caption}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{listings}
+\usepackage{slashed}
+\usepackage{hyperref}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+\usepackage{floatflt}
+\usepackage{float}
+
+\usepackage[a4paper,top=3.5cm,bottom=3.5cm,left=3cm,right=2.5cm]{geometry}
+
+\let\mtcleardoublepage\cleardoublepage
+\renewcommand{\cleardoublepage}{\clearpage{\pagestyle{plain}\mtcleardoublepage}}
+
+
+%opening
+\title{Hadronic recoil in the W boson production at LHC for a W mass measurement with the CMS experiment}
+\author{Olmo Cerri}
+\affil{\href{https://www.df.unipi.it/}{Dipartimento di Fisica "E. Fermi" - Universit\`a di Pisa}}
+\date{\today}
+
+
+\begin{document}
+
+\begin{center}
+  \begin{tabular}{ c | c | c }
+  0 tracks & 1 track & 2 tracks \\
+\hline
+\hline
+$B_{0} \to D^{*-}\mu^+$ & $B^{+} \to D^{*-}\mu^+\pi^+$ & $B_{0} \to D^{*-}\mu^+\pi^+\pi^-$ \\
+$B_{0} \to D^{*-}\mu^+\pi^0$ & $B^{+} \to D^{*-}\mu^+\pi^+\pi^0$ & \\
+$B_{0} \to D^{*-}\mu^+\pi^0\pi^0$ &  & \\
+\hline
+  \end{tabular}
+\end{center}
+
+\end{document}
