@@ -38,7 +38,6 @@ outname_root = pwd + '/' + fname.replace('_{}.root'.format(n), '_merged_{}-{}.ro
 print outname_root
 
 cmd = 'cd {}/src; eval `scramv1 runtime -sh`;'.format(args.CMSSW_path)
-run_cmd = 'cmsRun /afs/cern.ch/user/o/ocerri/cernbox/BPhysics/scripts/copyPickMerge_cfg.py'
-cmd += ' {} inputFiles_load={} outputFile={}'.format(run_cmd, merge_list_path, outname_root)
+cmd += ' edmCopyPickMerge inputFiles_load={} outputFile={}'.format(merge_list_path, outname_root)
 print cmd
 os.system(cmd)

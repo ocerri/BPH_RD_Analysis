@@ -28,9 +28,14 @@ def category_selection(j, ev, evEx, cat, saveTrgMu=False):
         raise
 
     passed = [False, False]
+    # print '-'*30
     if ev.mup_isTrg[j] >= 0:
+        # print 'mup'
+        # print ev.mup_isTrg[j]
         passed[0] = trigger_selection(int(ev.mup_isTrg[j]), ev, cat, evEx.mup_pt, evEx.mup_eta)
     if ev.mum_isTrg[j] >= 0:
+        # print 'mum'
+        # print ev.mum_isTrg[j]
         passed[1] = trigger_selection(int(ev.mum_isTrg[j]), ev, cat, evEx.mum_pt, evEx.mum_eta)
     if passed[0] and passed[1]: passed[np.random.randint(2)] = False
     if saveTrgMu:
@@ -88,12 +93,12 @@ def candidate_selection(j, ev, evEx, skipCut=None):
 
     if not ev.pval_piK[j] > 0.1:
         return False
-    # if not abs(evEx.mass_piK - 0.8955) <  0.07:
-    #     return False
-    # if not abs(evEx.mass_piK - 0.8955) < abs(evEx.mass_Kpi - 0.8955):
-    #     return False
-    # if not evEx.mass_KK > 1.035:
-    #     return False
+    if not abs(evEx.mass_piK - 0.8955) <  0.07:
+        return False
+    if not abs(evEx.mass_piK - 0.8955) < abs(evEx.mass_Kpi - 0.8955):
+        return False
+    if not evEx.mass_KK > 1.035:
+        return False
     if not ev.sigdxy_vtxKst_PV[j] > 5:
         return False
 
@@ -102,11 +107,13 @@ def candidate_selection(j, ev, evEx, skipCut=None):
     if not abs(evEx.mass_mumupiK - 5.27963) < 0.275:
         return False
 
-    aux = abs(ev.mass_piK[j] - 0.8955) <  0.07
-    aux &= abs(ev.mass_piK[j] - 0.8955) < abs(ev.mass_piK_CPconj[j] - 0.8955)
-    aux &= ev.mass_KK[j] > 1.035
+    return True
+
+    # aux = abs(ev.mass_piK[j] - 0.8955) <  0.07
+    # aux &= abs(ev.mass_piK[j] - 0.8955) < abs(ev.mass_piK_CPconj[j] - 0.8955)
+    # aux &= ev.mass_KK[j] > 1.035
     # aux &= abs(ev.mass_mumupiK[j] - 5.27963) < 0.275
-    return aux
+    # return aux
 
 candidateSelection_stringList = [
     'abs(mass_mumu - 3.0969) < 0.08',

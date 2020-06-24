@@ -193,7 +193,7 @@ def create_prof1D(x, y, name='h', title=None, binning=[None, None, None], h2clon
     h.binning = binning
     return h
 
-def create_TH2D(sample, name='h', title=None, binning=[None, None, None, None, None, None], weights=None, axis_title = ['','', '']):
+def create_TH2D(sample, name='h', title=None, binning=[None, None, None, None, None, None], weights=None, scale_histo=None, axis_title = ['','', '']):
     if title is None:
         title = name
     if (sample.shape[0] == 0 and np.sum([b is None for b in binning])):
@@ -232,6 +232,11 @@ def create_TH2D(sample, name='h', title=None, binning=[None, None, None, None, N
         print 'Binning not recognized'
         raise
     rtnp.fill_hist(h, sample, weights=weights)
+    if not scale_histo is None:
+        if scale_histo == 'norm':
+            h.Scale(1./h.Integral())
+        else:
+            h.Scale(scale_histo)
     h.SetXTitle(axis_title[0])
     h.SetYTitle(axis_title[1])
     h.SetZTitle(axis_title[2])

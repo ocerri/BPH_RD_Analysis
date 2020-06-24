@@ -58,7 +58,7 @@ RDloc = '../data/cmsRD/ParkingBPH*/'
 filesLocMap = {
 'n_PU0'         : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU0_10-2-3'+MCend,
 'n_PU20'        : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU20_10-2-3'+MCend,
-'n_PUc1'        : MCloc+'BP_Tag-Probe_B0_JpsiKst_Hardbbbar_evtgen_HELAMP_PUc1_10-2-3'+MCend,
+'n_PUc0'        : MCloc+'BP_Tag-Probe_B0_JpsiKst_Hardbbbar_evtgen_HELAMP_PUc0_10-2-3'+MCend,
 'n_PU35'        : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU35_10-2-3'+MCend,
 #
 'fsr_PU20'      : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgenFSR_SVV_PU20_10-2-3'+MCend,
@@ -66,7 +66,8 @@ filesLocMap = {
 's_PU0'         : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_SoftQCD_PTFilter5_0p0-evtgen_SVV_PU0_10-2-3'+MCend,
 #
 #
-'data' : RDloc+'*2018*B2JpsiKst_200124_CAND.root'
+# 'data' : RDloc+'*2018*B2JpsiKst_200124_CAND.root'
+'data' : RDloc+'*2018*B2JpsiKst_200521_CAND.root'
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -240,6 +241,7 @@ def makeSelection(inputs):
                    ev.sigdxy_vtxKst_PV[j],
                    ev.pval_mumupiK[j], evEx.mass_mumupiK,
                    evEx.B_pt, evEx.B_eta,
+                   ev.sigd_vtxB_PV_mumupiK[j], ev.cos_B_PV_mumupiK[j],
                    category_selection(j, ev, evEx, categories['low']),
                    category_selection(j, ev, evEx, categories['mid']),
                    category_selection(j, ev, evEx, categories['high']),
@@ -291,7 +293,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
             print filepath
             raise
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
-        N_evts_per_job = 100000
+        N_evts_per_job = 150000
     else:
         d = os.path.dirname(filepath) + '/skimmed/'
         if not os.path.isdir(d):
@@ -340,6 +342,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                         'sigdxy_vtxKst_PV',
                         'pval_mumupiK', 'mass_mumupiK',
                         'B_pt', 'B_eta',
+                        'sigd_vtxB_PV', 'cos_B_PV',
                         'cat_low', 'cat_mid', 'cat_high',
                         'N_vtx'
                       ]

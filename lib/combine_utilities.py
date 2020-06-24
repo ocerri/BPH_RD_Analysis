@@ -66,7 +66,7 @@ def dumpDiffNuisances(output, outdir):
 stringJubCustomizationCaltechT2 = '''
 +RunAsOwner = True
 +InteractiveUser = True
-+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/bbockelm/cms:rhel7"
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7-m20200605"
 +SingularityBindCVMFS = True
 +MaxRuntime = 3600
 RequestDisk = 200000
