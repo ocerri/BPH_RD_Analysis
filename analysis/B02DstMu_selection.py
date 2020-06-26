@@ -1,3 +1,5 @@
+import numpy as np
+
 def exclusiveTrigger(j, ev, trgAcc, trgNegate = []):
     if not hasattr(ev, 'trgMu_'+trgAcc):
         return False
@@ -30,6 +32,15 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
     if not (3 in skipCut):
         if not abs(e.K_eta) < 2.4:
             return False
+
+    #Remove splitted tracks
+    dPhi = e.K_phi - e.mu_phi
+    if np.abs(dPhi) > np.pi:
+        dPhi = dPhi - np.sign(dPhi)*2*np.pi
+    dR = np.hypot(dPhi, e.K_eta - e.mu_eta)
+    if dR < 1e-3:
+        return False
+
     if not (4 in skipCut):
         if not e.pi_pt > 0.8:
             return False
