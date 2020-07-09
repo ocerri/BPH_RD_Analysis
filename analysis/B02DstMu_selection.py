@@ -41,6 +41,13 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
     if dR < 1e-3:
         return False
 
+    dPhi = e.pi_phi - e.mu_phi
+    if np.abs(dPhi) > np.pi:
+        dPhi = dPhi - np.sign(dPhi)*2*np.pi
+    dR = np.hypot(dPhi, e.pi_eta - e.mu_eta)
+    if dR < 1e-3:
+        return False
+
     if not (4 in skipCut):
         if not e.pi_pt > 0.8:
             return False

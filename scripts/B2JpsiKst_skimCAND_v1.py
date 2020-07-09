@@ -66,8 +66,9 @@ filesLocMap = {
 's_PU0'         : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_SoftQCD_PTFilter5_0p0-evtgen_SVV_PU0_10-2-3'+MCend,
 #
 #
-# 'data' : RDloc+'*2018*B2JpsiKst_200124_CAND.root'
-'data' : RDloc+'*2018*B2JpsiKst_200521_CAND.root'
+
+# 'data' : RDloc+'*2018*B2JpsiKst_200521_CAND.root'
+'data' : RDloc+'*2018*B2JpsiKst_200622_CAND.root'
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -241,7 +242,8 @@ def makeSelection(inputs):
                    ev.sigdxy_vtxKst_PV[j],
                    ev.pval_mumupiK[j], evEx.mass_mumupiK,
                    evEx.B_pt, evEx.B_eta,
-                   ev.sigd_vtxB_PV_mumupiK[j], ev.cos_B_PV_mumupiK[j],
+                   ev.cos_B_PV_mumupiK[j], ev.sigd_vtxB_PV_mumupiK[j],
+                   # ev.cosT_B_PV_mumupiK[j], ev.sigdxy_vtxB_PV[j],
                    category_selection(j, ev, evEx, categories['low']),
                    category_selection(j, ev, evEx, categories['mid']),
                    category_selection(j, ev, evEx, categories['high']),
@@ -342,7 +344,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                         'sigdxy_vtxKst_PV',
                         'pval_mumupiK', 'mass_mumupiK',
                         'B_pt', 'B_eta',
-                        'sigd_vtxB_PV', 'cos_B_PV',
+                        'cos_B_PV', 'sigd_vtxB_PV',
+                        # 'cosT_B_PV', 'sigdxy_vtxB_PV',
                         'cat_low', 'cat_mid', 'cat_high',
                         'N_vtx'
                       ]

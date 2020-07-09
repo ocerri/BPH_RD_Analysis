@@ -1,6 +1,8 @@
 import numpy as np
 import uproot as ur
 import ROOT as rt
+import root_numpy as rtnp
+import pandas as pd
 from glob import glob
 import yaml
 import os
@@ -107,7 +109,8 @@ class DSetLoader(object):
                  candLoc='/storage/user/ocerri/BPhysics/data/cmsMC_private/',
                  candDir='ntuples_B2DstMu',
                  site_loc_conf = '/mnt/hadoop/store/user/ocerri',
-                 sampleFile = '/storage/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml'
+                 sampleFile = '/storage/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml',
+                 loadSkim=None
                  ):
         samples = yaml.load(open(sampleFile))['samples']
         if not in_sample in samples.keys():
@@ -144,6 +147,19 @@ class DSetLoader(object):
             self.effCand = yaml.load(open(effCandFile, 'r'))
         else:
             print 'CAND efficiency file missing.'
+
+        if not loadSkim is None:
+            if loadSkim == 'all':
+                for cat in ['Low', 'Mid', 'High']: self.getSkimmedData(cat)
+            else: self.getSkimmedData(loadSkim)
+
+
+    def getSkimmedData(self, catName , tag='corr'):
+        loc = self.skimmed_dir + '/{}_{}.root'.format(catName, tag)
+        if not hasattr(self, 'data'):
+            self.data = {}
+        self.data['{}_{}'.format(catName, tag)] = pd.DataFrame(rtnp.root2array(loc))
+        return
 
     def getSkimEff(self, catName='probe'):
         if catName is 'probe':

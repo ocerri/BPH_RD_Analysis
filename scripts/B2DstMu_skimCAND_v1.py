@@ -91,8 +91,9 @@ filesLocMap = {
 'DstPi0Pi0_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 #
-'data' : RDloc+'*_RDntuplizer_B2DstMu_200515_CAND.root',
-'combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_200611_CAND.root'
+'data_B0' : RDloc+'*_RDntuplizer_B2DstMu_200515_CAND.root',
+'data_antiB0' : RDloc+'*_RDntuplizer_antiB2DstMu_200624_CAND.root',
+'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_200611_CAND.root'
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -264,12 +265,20 @@ def extractEventInfos(j, ev, corr=None):
         pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 3e-3)
         if pt < 0.5:
             continue
-        #Avoid tracks that are muons duplicates
-        dphi = phi-e.mu_phi
-        if dphi > np.pi: dphi -= 2*np.pi
-        if dphi < -np.pi: dphi += 2*np.pi
-        if np.abs(e.mu_pt - pt)/e.mu_pt < 0.03 and np.abs(eta-e.mu_eta) < 0.0005 and np.abs(dphi) < 0.0005:
+        #Avoid tracks duplicates
+        duplicate = False
+        for n in ['mu', 'pi', 'K', 'pis']:
+            dphi = phi - getattr(e, n+'_phi')
+            if dphi > np.pi: dphi -= 2*np.pi
+            if dphi < -np.pi: dphi += 2*np.pi
+            dR = np.hypot(dphi, eta - getattr(e, n+'_eta'))
+            dPt = np.abs(getattr(e, n+'_pt') - pt)/getattr(e, n+'_pt')
+            if dPt < 0.03 and dR < 0.001:
+                duplicate=True
+                break
+        if duplicate:
             continue
+        #
         p4_tk = rt.TLorentzVector()
         p4_tk.SetPtEtaPhiM(pt, eta, phi, m_pi)
 

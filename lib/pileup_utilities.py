@@ -34,7 +34,7 @@ class pileupReweighter(object):
         for f in fAuxPileupRD + [fAuxPileupMC]:
             f.Close()
 
-    def getPileupWeights(arrNvtx, selection=None):
+    def getPileupWeights(self, arrNvtx, selection=None):
         x = arrNvtx
         if not selection is None:
             x = x[selection]

@@ -82,13 +82,9 @@ def candidate_selection(j, ev, evEx, skipCut=None):
         return False
     if not abs(evEx.K_eta) < 2.4:
         return False
-    if not ev.K_sigdxy_PV[j] > 2:
-        return False
     if not abs(evEx.pi_eta) < 2.4:
         return False
     if not evEx.pi_pt > 0.8:
-        return False
-    if not ev.pi_sigdxy_PV[j] > 2:
         return False
 
     if not ev.pval_piK[j] > 0.1:
