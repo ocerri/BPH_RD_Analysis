@@ -16,7 +16,7 @@ label_dic = {'data' : 'Data',
              'Hc'   : 'B#rightarrow D*H_{c}',
              'DstD'   : 'B#rightarrow D*D(#muX)',
              'BpDstst': 'B^{+}#rightarrow D**#mu#nu',
-             'B0Dstst': 'B_{0}#rightarrow D**#mu#nu'
+             'B0Dstst': 'B^{0}#rightarrow D**#mu#nu'
             }
 
 fillStyleVar = [1, 3345, 3354, 1, 1, 1, 1, 1, 1]
@@ -60,8 +60,10 @@ def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name=''):
         leg.AddEntry(h, label_dic[k], 'f')
     return leg
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True, mergeHc=True, pullsRatio=False):
-    canvas = rt.TCanvas('c_out', 'c_out', 50, 50, 2*600, 400*len(binning['q2'])-1)
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True, mergeHc=True, pullsRatio=False, categoryText=None, cNameTag=''):
+    if not categoryText is None:
+        cNameTag += categoryText
+    canvas = rt.TCanvas('c_out'+cNameTag, 'c_out'+cNameTag, 50, 50, 2*600, 400*len(binning['q2'])-1)
     canvas.SetTickx(0)
     canvas.SetTicky(0)
     canvas.Divide(2, len(binning['q2'])-1, 0.001, 0.001)
@@ -179,16 +181,18 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
 
             l = rt.TLatex()
             l.SetTextAlign(11)
-            l.SetTextSize(0.06)
+            l.SetTextSize(0.05)
             l.SetTextFont(42)
-            l.DrawLatexNDC(0.18, 0.85, q2_txt)
+            l.DrawLatexNDC(0.17, 0.86, q2_txt)
+            if not categoryText is None:
+                l.DrawLatexNDC(0.17, 0.8, 'Cat. '+categoryText)
 
             CMS_lumi.CMS_lumi(pad, -1, 33, cmsTextSize=0.75*1.2, lumiTextSize=0.6*1.2)
             if logy:
                 pad.SetLogy()
 
             if i_pad == iPad_legend:
-                loc=[0.6, 0.35, 0.92, 0.7]
+                loc=[0.6, 0.38, 0.92, 0.7]
                 if draw_pulls:
                     loc=[0.6, 0.25, 0.92, 0.7]
                 leg = createLegend(h_list, h_dic, canvas, loc=loc, cat_name='_'+cat_name)
@@ -305,8 +309,8 @@ def plot_SingleCategory(CMS_lumi,
                         tag='',
                         xtitle='',
                         addText='',
-                        addTextPos=[0.18, 0.83],
-                        legLoc=[0.65, 0.4, 0.9, 0.7]
+                        addTextPos=[0.17, 0.85],
+                        legLoc=[0.65, 0.4, 0.9, 0.7],
                         ):
     if len(tag) > 0 and not tag[0] == '_':
         tag = '_' + tag
@@ -396,11 +400,11 @@ def plot_SingleCategory(CMS_lumi,
         h.Draw('SAME')
     h_list[0].Draw('SAMEE1') #Draw it a second time to bring it in foreground
 
+    l = rt.TLatex()
+    l.SetTextAlign(11)
+    l.SetTextSize(0.05)
+    l.SetTextFont(42)
     if addText:
-        l = rt.TLatex()
-        l.SetTextAlign(11)
-        l.SetTextSize(0.05)
-        l.SetTextFont(42)
         l.DrawLatexNDC(addTextPos[0], addTextPos[1], addText)
 
     CMS_lumi.CMS_lumi(pad, -1, 33, cmsTextSize=0.75*1.2, lumiTextSize=0.6*1.2)

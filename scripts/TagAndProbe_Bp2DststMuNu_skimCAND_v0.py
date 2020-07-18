@@ -33,7 +33,7 @@ from categoriesDef import categories
 
 import argparse
 parser = argparse.ArgumentParser()
-#Example: python B2JpsiKst_skimCAND_v1.py -d n_PU20 --maxEvents 80000
+#Example: python TagAndProbe_Bp2DststMuNu_skimCAND_v0.py -d data --maxEvents 80000
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
@@ -56,8 +56,18 @@ filesLocMap = {
 'n_PUc0'        : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 #
-'data' : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbe_Bp2MuNuDstst_Pip_200522_CAND.root'
+'data_pip' : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbe_Bp2MuNuDstst_Pip_200708_CAND.root',
+'data_pim' : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbe_Bp2MuNuDstst_Pim_200708_CAND.root'
 }
+
+def compMass3(pt1, pt2, pt3, eta1, eta2, eta3, phi1, phi2, phi3, m1, m2, m3):
+    E1 = np.hypot(m1, pt1*np.cosh(eta1))
+    E2 = np.hypot(m2, pt2*np.cosh(eta2))
+    E3 = np.hypot(m3, pt3*np.cosh(eta3))
+    p1p2 = pt1 * pt2 * (np.cos(phi1 - phi2) + np.sinh(eta1) * np.sinh(eta2))
+    p1p3 = pt1 * pt3 * (np.cos(phi1 - phi3) + np.sinh(eta1) * np.sinh(eta3))
+    p2p3 = pt2 * pt3 * (np.cos(phi2 - phi3) + np.sinh(eta2) * np.sinh(eta3))
+    return np.sqrt(m1**2 + m2**2 + m3**2 + 2*(E1*E2 - p1p2) + 2*(E1*E3 - p1p3) + 2*(E2*E3 - p2p3))
 
 def makeSelection(inputs):
     n, tag, filepath, leafs_names, cat, idxInt, serial = inputs
@@ -106,6 +116,7 @@ def makeSelection(inputs):
             if not np.abs(ev.mass_piK[j] - 1.86483) < 0.035: continue
             if not ev.sigdxy_vtxD0_PV[j] > 7: continue
             if not ev.cosT_D0_PV[j] > 0.9: continue
+            if not 1e3*np.abs(ev.mass_D0pip[j] - ev.mass_piK[j] - 0.14543) > 20: continue
             if not ev.pip_pt[j] > 0.5: continue
             if not np.abs(ev.pip_eta[j]) < 2.4: continue
             if not ev.mass_D0pipmu[j] < 5.27963: continue
@@ -127,8 +138,11 @@ def makeSelection(inputs):
             N_acc += 1
 
             aux = (
+                   ev.pi_refitpiK_pt[j], ev.pi_refitpiK_eta[j], ev.pi_refitpiK_phi[j],
+                   ev.K_refitpiK_pt[j], ev.K_refitpiK_eta[j], ev.K_refitpiK_phi[j],
                    ev.D0_refitD0pipmu_pt[j], ev.D0_refitD0pipmu_eta[j], ev.D0_refitD0pipmu_phi[j],
                    ev.pip_refitD0pipmu_pt[j], ev.pip_refitD0pipmu_eta[j], ev.pip_refitD0pipmu_phi[j],
+                   ev.Est_pip[j], ev.CosThetaSt_pip[j],
                    ev.mu_refitD0pipmu_pt[j], ev.mu_refitD0pipmu_eta[j], ev.mu_refitD0pipmu_phi[j],
                    ev.Dstst_expD0pip_pt[j], ev.Dstst_expD0pip_eta[j], ev.Dstst_expD0pip_phi[j],
                    ev.mass_piK[j], ev.mass_D0pip[j], ev.mass_expDstpip[j], ev.dm_expDstpip_pik[j], ev.mass_D0pipmu[j],
@@ -136,10 +150,15 @@ def makeSelection(inputs):
                    ev.N_vertexes
                   )
             if N_goodPi == 0:
-                aux += (-1, -999, -999, -1, -999)
+                aux += (-1, -999, -999, -1, -999, -1)
             else:
-                aux += (ev.pis_pt[jPis_good], ev.pis_eta[jPis_good],ev.pis_phi[jPis_good], ev.sigdxy_pis_PV[jPis_good],
-                        ev.dm_D0pis_piK[jPis_good]
+                aux += (ev.pis_refitD0pismu_pt[jPis_good], ev.pis_refitD0pismu_eta[jPis_good], ev.pis_refitD0pismu_phi[jPis_good], ev.sigdxy_pis_PV[jPis_good],
+                        ev.dm_D0pis_piK[jPis_good],
+                        # ev.mass_D0pispip[jPis_good],
+                        compMass3(ev.D0_refitD0pipmu_pt[j], ev.pip_refitD0pipmu_pt[j], ev.pis_refitD0pismu_pt[jPis_good],
+                                  ev.D0_refitD0pipmu_eta[j], ev.pip_refitD0pipmu_eta[j], ev.pis_refitD0pismu_eta[jPis_good],
+                                  ev.D0_refitD0pipmu_phi[j], ev.pip_refitD0pipmu_phi[j], ev.pis_refitD0pismu_phi[jPis_good],
+                                  ev.mass_piK[j], 0.139570, 0.139570)
                 )
             ev_output.append(aux)
 
@@ -198,15 +217,19 @@ def create_dSet(n, filepath, cat, maxEvents=args.maxEvents):
         N_cand_in = min(maxEvents, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
 
-        leafs_names = [ 'D0_pt', 'D0_eta', 'D0_phi',
+        leafs_names = [
+                        'pi_pt', 'pi_eta', 'pi_phi',
+                        'K_pt', 'K_eta', 'K_phi',
+                        'D0_pt', 'D0_eta', 'D0_phi',
                         'pip_pt', 'pip_eta', 'pip_phi',
+                        'pip_Est', 'pip_CosThetaSt',
                         'mu_pt', 'mu_eta', 'mu_phi',
                         'expDstst_pt', 'expDstst_eta', 'expDstst_phi',
                         'mass_piK', 'mass_D0pip', 'mass_expDstpip', 'dm_expDstpip_pik', 'mass_D0pipmu',
                         'expPis_pt', 'expPis_eta', 'expPis_phi', 'expPis_k',
                         'N_vtx',
                         'pis_pt', 'pis_eta','pis_phi', 'sigdxy_pis_PV',
-                        'dm_D0pis_piK'
+                        'dm_D0pis_piK', 'mass_D0pispip'
                       ]
 
         if N_cand_in < 1.5*N_evts_per_job:
