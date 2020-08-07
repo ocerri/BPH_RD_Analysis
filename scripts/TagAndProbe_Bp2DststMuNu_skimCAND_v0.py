@@ -57,7 +57,7 @@ filesLocMap = {
 #
 #
 'data_pip' : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbe_Bp2MuNuDstst_Pip_200708_CAND.root',
-'data_pim' : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbe_Bp2MuNuDstst_Pim_200708_CAND.root'
+'data_pim' : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbe_Bp2MuNuDstst_Pim_200718_CAND.root'
 }
 
 def compMass3(pt1, pt2, pt3, eta1, eta2, eta3, phi1, phi2, phi3, m1, m2, m3):
