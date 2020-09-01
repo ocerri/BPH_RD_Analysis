@@ -28,13 +28,14 @@ sampleDstst = {
 sampleDstmHc = ['DstmD0', 'DstmDp', 'DstmDsp', 'BpDstmHc', 'BmDstmHc', 'antiB0DstmHc']
 
 
-def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name=''):
+def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name='', background=False):
     leg = rt.TLegend(loc[0], loc[1], loc[2], loc[3])
     leg.SetTextFont(42)
     leg.SetTextAlign(12)
     leg.SetLineWidth(0)
     leg.SetBorderSize(0)
-    leg.SetFillStyle(0)
+    if not background:
+        leg.SetFillStyle(0)
     leg.AddEntry(h_list[0], label_dic['data'], 'lep')
     for n in ['mu', 'tau', 'Hc']:
         for h in h_list:
@@ -300,6 +301,7 @@ def plot_SingleCategory(CMS_lumi,
                         h_dic,
                         scale_dic={},
                         min_y=1e-4,
+                        max_y=None,
                         draw_pulls=False,
                         pulls_ylim=[0.8, 1.2],
                         pullsRatio=False,
@@ -311,6 +313,8 @@ def plot_SingleCategory(CMS_lumi,
                         addText='',
                         addTextPos=[0.17, 0.85],
                         legLoc=[0.65, 0.4, 0.9, 0.7],
+                        legBkg=False,
+                        procOrder = ['tau', 'Hc', 'DstD', 'mu', 'Dstst']
                         ):
     if len(tag) > 0 and not tag[0] == '_':
         tag = '_' + tag
@@ -338,7 +342,8 @@ def plot_SingleCategory(CMS_lumi,
     h.SetLineWidth(1)
     h.SetMarkerColor(1)
     h.SetMarkerStyle(20)
-    h.GetXaxis().SetTitle(xtitle+' [GeV]')
+    if xtitle:
+        h.GetXaxis().SetTitle(xtitle+' [GeV]')
     h.GetXaxis().SetTitleSize(0.07)
     h.GetXaxis().SetLabelSize(0.07)
     h.GetYaxis().SetTitleOffset(1.16)
@@ -346,11 +351,11 @@ def plot_SingleCategory(CMS_lumi,
     h.GetYaxis().SetTitleSize(0.06)
     h.GetYaxis().SetLabelSize(0.07)
     h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + 'GeV')
-    max_y = np.max([hhh.GetMaximum() for hhh in h_dic.values()])*1.3
+    if max_y is None:
+        max_y = np.max([hhh.GetMaximum() for hhh in h_dic.values()])*1.3
     h.GetYaxis().SetRangeUser(min_y, max_y)
     h_list = [h]
 
-    procOrder = ['tau', 'Hc', 'DstD', 'mu']
     for iProc, procName in enumerate(procOrder):
         if procName == 'DstD':
             for iproc, pName in enumerate(sampleDstmHc):
@@ -367,27 +372,29 @@ def plot_SingleCategory(CMS_lumi,
                     h.Add(hh)
                 h_list.append(h)
             continue
-        if not procName in h_dic.keys(): continue
-        h = h_dic[procName].Clone('h_aux'+'_'+procName+tag)
-        if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
-        h.SetLineWidth(0)
-        h.SetFillColor(col_dic[procName])
-        h.SetFillStyle(1)
-        h.Sumw2(0)
-        hh = h_list[-1]
-        if not hh.GetName() == 'h_aux_data'+tag:
-            h.Add(hh)
-        h_list.append(h)
 
-    for k, sampleList in sampleDstst.iteritems():
-        for iproc, procName in enumerate(sampleList):
-            if not procName in h_dic.keys(): continue
+        elif procName == 'Dstst':
+            for k, sampleList in sampleDstst.iteritems():
+                for iproc, procName in enumerate(sampleList):
+                    if not procName in h_dic.keys(): continue
+                    h = h_dic[procName].Clone('h_aux'+'_'+procName+tag)
+                    if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
+                    h.SetLineWidth(0)
+                    h.SetFillColor(col_dic[k])
+                    h.SetFillStyle(1)
+                    if not mergeDstst: h.SetFillStyle(fillStyleVar[iproc])
+                    h.Sumw2(0)
+                    hh = h_list[-1]
+                    if not hh.GetName() == 'h_aux_data'+tag:
+                        h.Add(hh)
+                    h_list.append(h)
+        elif not procName in h_dic.keys(): continue
+        else:
             h = h_dic[procName].Clone('h_aux'+'_'+procName+tag)
             if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
             h.SetLineWidth(0)
-            h.SetFillColor(col_dic[k])
+            h.SetFillColor(col_dic[procName])
             h.SetFillStyle(1)
-            if not mergeDstst: h.SetFillStyle(fillStyleVar[iproc])
             h.Sumw2(0)
             hh = h_list[-1]
             if not hh.GetName() == 'h_aux_data'+tag:
@@ -411,7 +418,7 @@ def plot_SingleCategory(CMS_lumi,
     if logy:
         pad.SetLogy()
 
-    leg = createLegend(h_list, h_dic, canvas, loc=legLoc, cat_name=tag)
+    leg = createLegend(h_list, h_dic, canvas, loc=legLoc, cat_name=tag, background=legBkg)
     leg.Draw()
     canvas.dnd.append([pad, h_list, leg])
 

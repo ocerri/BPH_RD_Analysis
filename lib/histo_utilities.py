@@ -241,6 +241,8 @@ def create_TH2D(sample, name='h', title=None, binning=[None, None, None, None, N
     h.SetYTitle(axis_title[1])
     h.SetZTitle(axis_title[2])
     h.binning = binning
+    h.axis_title = axis_title
+    
     return h
 
 def rootTH2_to_np(h, cut = None, Norm = False):

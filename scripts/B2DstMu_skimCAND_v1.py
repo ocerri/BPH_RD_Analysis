@@ -429,9 +429,9 @@ def makeSelection(inputs):
             if 'mu' in n or 'tau' in n:
                 aux += (ev.wh_CLNCentral,
                         ev.wh_CLNR0Down, ev.wh_CLNR0Up,
-                        ev.wh_CLNR1Down, ev.wh_CLNR1Up,
-                        ev.wh_CLNR2Down, ev.wh_CLNR2Up,
-                        ev.wh_CLNRhoSqDown, ev.wh_CLNRhoSqUp,
+                        ev.wh_CLNeig1Down, ev.wh_CLNeig1Up,
+                        ev.wh_CLNeig2Down, ev.wh_CLNeig2Up,
+                        ev.wh_CLNeig3Down, ev.wh_CLNeig3Up,
                        )
             ev_output.append(aux)
 
@@ -566,9 +566,13 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         if 'mu' in n or 'tau' in n:
             leafs_names += ['wh_CLNCentral',
                             'wh_CLNR0Down', 'wh_CLNR0Up',
-                            'wh_CLNR1Down', 'wh_CLNR1Up',
-                            'wh_CLNR2Down', 'wh_CLNR2Up',
-                            'wh_CLNRhoSqDown', 'wh_CLNRhoSqUp']
+                            'wh_CLNeig1Down', 'wh_CLNeig1Up',
+                            'wh_CLNeig2Down', 'wh_CLNeig2Up',
+                            'wh_CLNeig3Down', 'wh_CLNeig3Up'
+                            # 'wh_CLNR1Down', 'wh_CLNR1Up',
+                            # 'wh_CLNR2Down', 'wh_CLNR2Up',
+                            # 'wh_CLNRhoSqDown', 'wh_CLNRhoSqUp'
+                            ]
 
         applyCorr = None
         if applyCorrections:
