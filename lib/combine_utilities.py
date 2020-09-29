@@ -7,6 +7,7 @@ import json, yaml
 import numpy as np
 from scipy.interpolate import interp1d
 from array import array
+import matplotlib.pyplot as plt
 
 import uproot as ur
 import ROOT as rt
@@ -14,25 +15,61 @@ rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
 
-def getUncertaintyFromLimitTree(name, verbose=True):
+def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
     f = ur.open(name)
-    r_arr = f['limit']['r'].array()
-    nll_arr = f['limit']['deltaNLL'].array()
-    c = r_arr[0]
-    r_u = r_arr[r_arr>r_arr[0]]
-    nll_u = nll_arr[r_arr>r_arr[0]]
-    f_u = interp1d(nll_u, r_u, 'quadratic')
-    u = f_u(0.5)
-    r_l = r_arr[r_arr<r_arr[0]]
-    nll_l = nll_arr[r_arr<r_arr[0]]
-    f_l = interp1d(nll_l, r_l, 'quadratic')
-    l = f_l(0.5)
+    iToy_arr = f['limit']['iToy'].array()
+    r_arr_raw = f['limit']['r'].array()
+    nll_arr_raw = f['limit']['deltaNLL'].array()
+    res = []
+    for iToy in np.unique(iToy_arr):
+        sel = iToy_arr == iToy
+        r_arr = r_arr_raw[sel]
+        nll_arr = nll_arr_raw[sel]
+        c = r_arr[0]
+
+        r_u = r_arr[r_arr>c]
+        nll_u = nll_arr[r_arr>c]
+
+        r_l = r_arr[r_arr<c]
+        nll_l = nll_arr[r_arr<c]
+
+        if drawPlot:
+            color = ['b', 'g', 'r', 'c', 'm', 'y', 'k'][iToy]
+            plt.plot(2*nll_u, r_u, '.--', color=color)
+            plt.plot(2*nll_l, r_l, '.--', color=color)
+            plt.plot(nll_arr[0], c, 'o', color='gray')
+            plt.xlim(-0.1, 4.5)
+            plt.ylim(r_l[np.argmax(nll_l < 4)], r_u[np.argmax(nll_u > 4)])
+            plt.xlabel('$-2\Delta\log(L)$')
+            plt.ylabel('POI')
+            plt.grid()
+        if np.all(nll_l[:-1] >= nll_l[1:]) and np.all(nll_u[:-1] <= nll_u[1:]):
+            f_l = interp1d(nll_l, r_l, 'quadratic')
+            l = f_l(0.5)
+            l2 = f_l(2)
+            f_u = interp1d(nll_u, r_u, 'quadratic')
+            u = f_u(0.5)
+            u2 = f_u(2.0)
+        else:
+            if not np.all(nll_l[:-1] >= nll_l[1:]):
+                print 'Low error'
+                print nll_l
+            if not np.all(nll_u[:-1] <= nll_u[1:]):
+                print 'High error'
+                print nll_u
+            print 'ERROR: X array not sorted'
+            u, l = 0, 0
+            u2, l2 = 0, 0
+        if verbose:
+            print '----------------------------------'
+            if iToy:
+                print 'Toy', iToy
+            print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-l, 100*(u-l)*0.5/c)
+            print 'Sigma = {:.3f}'.format((u-l)*0.5)
+        res.append([c, c-l, u-c, (u-l)*0.5, l2, l, u, u2])
     if verbose:
-        print '----------------------------------'
-        print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-l, 100*(u-l)*0.5/c)
-        print 'Sigma = {:.3f}'.format((u-l)*0.5)
         print '----------------------------------\n'
-    return c, c-l, u-c, (u-l)*0.5
+    return np.array(res) if len(res) > 1 else res[0]
 
 def dumpDiffNuisances(output, outdir):
     name = []

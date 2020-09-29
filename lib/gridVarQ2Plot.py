@@ -61,7 +61,7 @@ def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name='', 
         leg.AddEntry(h, label_dic[k], 'f')
     return leg
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True, mergeHc=True, pullsRatio=False, categoryText=None, cNameTag=''):
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True, mergeHc=True, pullsRatio=False, categoryText=None, cNameTag='', iq2_maskData=[]):
     if not categoryText is None:
         cNameTag += categoryText
     canvas = rt.TCanvas('c_out'+cNameTag, 'c_out'+cNameTag, 50, 50, 2*600, 400*len(binning['q2'])-1)
@@ -96,7 +96,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
             i_pad = i_q2*2 + i_v + 1
             pad_master = canvas.cd(i_pad)
 
-            if not draw_pulls:
+            if not draw_pulls or i_q2 in iq2_maskData:
                 pad = rt.TPad('pmain_'+cat_name, 'pmain_'+cat_name, 0, 0, 1, 1)
                 pad.SetBottomMargin(0.2)
             else:
@@ -128,6 +128,10 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 max_y = max_entries[vark]*1.3
                 if 'data' in scale_dic.keys():
                     max_y *= scale_dic['data']
+            if i_q2 in iq2_maskData:
+                h.Scale(0)
+                h.Sumw2(0)
+                # h.Clear()
             h.GetYaxis().SetRangeUser(min_y, max_y)
             h_list = [h]
 
@@ -178,7 +182,8 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
             h_list[0].Draw('E1')
             for h in reversed(h_list[1:]):
                 h.Draw('SAME')
-            h_list[0].Draw('SAMEE1') #Draw it a second time to bring it in foreground
+            if not i_q2 in iq2_maskData:
+                h_list[0].Draw('SAMEE1') #Draw it a second time to bring it in foreground
 
             l = rt.TLatex()
             l.SetTextAlign(11)
@@ -202,7 +207,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
 
             canvas.dnd.append([pad, h_list])
 
-            if draw_pulls:
+            if draw_pulls and not i_q2 in iq2_maskData:
                 pad_master.cd()
 
                 pad = rt.TPad('ppull_'+cat_name, 'ppull_'+cat_name, 0, 0, 1, 0.25)
@@ -314,17 +319,19 @@ def plot_SingleCategory(CMS_lumi,
                         addTextPos=[0.17, 0.85],
                         legLoc=[0.65, 0.4, 0.9, 0.7],
                         legBkg=False,
-                        procOrder = ['tau', 'Hc', 'DstD', 'mu', 'Dstst']
+                        procOrder = ['tau', 'Hc', 'DstD', 'mu', 'Dstst'],
+                        maskData=False,
+                        figsize = [600, 450]
                         ):
     if len(tag) > 0 and not tag[0] == '_':
         tag = '_' + tag
-    canvas = rt.TCanvas('c_'+tag, 'c_'+tag, 50, 50, 600, 450)
+    canvas = rt.TCanvas('c_'+tag, 'c_'+tag, 50, 50, figsize[0], figsize[1])
     canvas.SetTickx(0)
     canvas.SetTicky(0)
     canvas.dnd = []
     pad_master = canvas.cd()
 
-    if not draw_pulls:
+    if not draw_pulls or maskData:
         pad = rt.TPad('pmain'+tag, 'pmain'+tag, 0, 0, 1, 1)
         pad.SetBottomMargin(0.2)
     else:
@@ -350,9 +357,12 @@ def plot_SingleCategory(CMS_lumi,
     h.GetXaxis().SetTitleOffset(1.1)
     h.GetYaxis().SetTitleSize(0.06)
     h.GetYaxis().SetLabelSize(0.07)
-    h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + 'GeV')
+    h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + 'GeV' if xtitle else '')
     if max_y is None:
         max_y = np.max([hhh.GetMaximum() for hhh in h_dic.values()])*1.3
+    if maskData:
+        h.Scale(0)
+        h.Sumw2(0)
     h.GetYaxis().SetRangeUser(min_y, max_y)
     h_list = [h]
 
@@ -422,7 +432,7 @@ def plot_SingleCategory(CMS_lumi,
     leg.Draw()
     canvas.dnd.append([pad, h_list, leg])
 
-    if draw_pulls:
+    if draw_pulls and not maskData:
         pad_master.cd()
 
         pad = rt.TPad('ppull'+tag, 'ppull'+tag, 0, 0, 1, 0.25)
