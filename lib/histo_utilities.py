@@ -242,7 +242,7 @@ def create_TH2D(sample, name='h', title=None, binning=[None, None, None, None, N
     h.SetZTitle(axis_title[2])
     h.binning = binning
     h.axis_title = axis_title
-    
+
     return h
 
 def rootTH2_to_np(h, cut = None, Norm = False):
@@ -265,7 +265,7 @@ def rootTH2_to_np(h, cut = None, Norm = False):
             pos[iy, ix] = [x,y]
     return arr, pos
 
-def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bounds = [0.1, 4], draw_opt = 'E1', leg_pos=[0.7,0.8,0.9,0.95]):
+def make_ratio_plot(h_list_in, in_pad = None, title = "", label = "", in_tags = None, ratio_bounds = [0.1, 4], draw_opt = 'E1', leg_pos=[0.7,0.8,0.9,0.95], marginRight=0.04, marginTop=0.05):
     h_list = []
     if in_tags == None:
         tag = []
@@ -276,10 +276,17 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
         if in_tags == None:
             tag.append(h.GetTitle())
 
-    c_out = rt.TCanvas("c_out_ratio"+label, "c_out_ratio"+label, 600, 800)
+    if in_pad == None:
+        c_out = rt.TCanvas("c_out_ratio"+label, "c_out_ratio"+label, 600, 800)
+    else:
+        c_out = in_pad
+        c_out.cd()
+
     pad1 = rt.TPad("pad1", "pad1", 0, 0.3, 1, 1.0)
     pad1.SetBottomMargin(0.03)
     pad1.SetLeftMargin(0.15)
+    pad1.SetRightMargin(marginRight)
+    pad1.SetTopMargin(marginTop)
     # pad1.SetGridx()
     pad1.Draw()
     pad1.cd()
@@ -315,6 +322,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
     pad2.SetTopMargin(0.03)
     pad2.SetBottomMargin(0.25)
     pad2.SetLeftMargin(0.15)
+    pad2.SetRightMargin(marginRight)
     pad2.Draw()
     pad2.cd()
 
@@ -325,7 +333,7 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
     ln.SetLineStyle(7)
     ln.DrawLine(h.GetXaxis().GetXmin(), 1, h.GetXaxis().GetXmax(), 1)
 
-    hratio_list = [None]
+    hratio_list = []
 
     for i, h in enumerate(h_list):
         if i == 0:
@@ -333,7 +341,6 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
         elif i == 1:
             h.Divide(h_list[0])
             h.GetYaxis().SetTitleOffset(0.6)
-            h.GetYaxis().SetRangeUser(ratio_bounds[0], ratio_bounds[1])
             h.GetYaxis().SetTitleSize(0.12)
             h.GetYaxis().SetLabelSize(0.12)
             h.GetYaxis().SetNdivisions(506)
@@ -344,12 +351,27 @@ def make_ratio_plot(h_list_in, title = "", label = "", in_tags = None, ratio_bou
             h.SetYTitle('Ratio w/ {}'.format(tag[0]))
             h.SetXTitle(h_list_in[0].GetXaxis().GetTitle())
             h.SetTitle("")
-            h.DrawCopy(draw_opt)
-
+            h.Draw(draw_opt)
+            ymin = h.GetMinimum()
+            ymax = h.GetMaximum()
+            hratio_list.append(h)
         else:
             h.Divide(h_list[0])
-            h.DrawCopy("same"+draw_opt)
+            h.Draw("same"+draw_opt)
+            ymin = min(ymin, h.GetMinimum())
+            ymax = max(ymax, h.GetMaximum())
             hratio_list.append(h)
+
+    yAxis = hratio_list[0].GetYaxis()
+    if ratio_bounds == 'auto':
+        d = np.max(np.abs([ymin-1, ymax-1]))
+        if d < 0.5:
+            yAxis.SetRangeUser(1 - 1.2*d , 1 + 1.2*d)
+        else:
+            d = 0.1 * (ymax - ymin)
+            yAxis.SetRangeUser(ymin - d , ymax + d)
+    else:
+        yAxis.SetRangeUser(ratio_bounds[0], ratio_bounds[1])
 
     ln.DrawLine(h.GetXaxis().GetXmin(), 1, h.GetXaxis().GetXmax(), 1)
     pad2.Update()

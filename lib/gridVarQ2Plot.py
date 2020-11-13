@@ -8,7 +8,7 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import tdrstyle
 tdrstyle.setTDRStyle()
 
-col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'BpDstst': rt.kOrange-3, 'B0Dstst': rt.kViolet-7}
+col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'BpDstst': rt.kOrange-3, 'B0Dstst': rt.kViolet-7, 'TauDstst':rt.kMagenta-9, 'PiPiPi':rt.kYellow-7}
 
 label_dic = {'data' : 'Data',
              'mu'   : 'B#rightarrow D*#mu#nu',
@@ -16,13 +16,15 @@ label_dic = {'data' : 'Data',
              'Hc'   : 'B#rightarrow D*H_{c}',
              'DstD'   : 'B#rightarrow D*D(#muX)',
              'BpDstst': 'B^{+}#rightarrow D**#mu#nu',
-             'B0Dstst': 'B^{0}#rightarrow D**#mu#nu'
+             'B0Dstst': 'B^{0}#rightarrow D**#mu#nu',
+             'TauDstst': 'B#rightarrow D**#tau#nu',
             }
 
 fillStyleVar = [1, 3345, 3354, 1, 1, 1, 1, 1, 1]
 sampleDstst = {
 'BpDstst': ['DstPip', 'DstPipPi0'],
-'B0Dstst': ['DstPi0', 'DstPipPim', 'DstPi0Pi0']
+'B0Dstst': ['DstPi0', 'DstPipPim', 'DstPi0Pi0'],
+'TauDstst': ['TauDstPi0', 'TauDstPip'],
 }
 
 sampleDstmHc = ['DstmD0', 'DstmDp', 'DstmDsp', 'BpDstmHc', 'BmDstmHc', 'antiB0DstmHc']
@@ -60,6 +62,24 @@ def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name='', 
         canvas.dnd.append(h)
         leg.AddEntry(h, label_dic[k], 'f')
     return leg
+
+def getControlXtitle(k):
+    if 'mVis' in k:
+        return 'Total visible mass'
+    if 'mHad' in k:
+        return 'Total hadrons mass'
+    else:
+        raise
+
+def getControlSideText(k):
+    aux = k.split('_')[1]
+    t = 'N = '+str(len(aux))+' & Q = '
+    Q = 0
+    for q in aux:
+        if q == 'm': Q -= 1
+        elif q == 'p': Q += 1
+        else: raise
+    return t + str(Q)
 
 def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True, mergeHc=True, pullsRatio=False, categoryText=None, cNameTag='', iq2_maskData=[]):
     if not categoryText is None:
@@ -237,11 +257,13 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                         h_dr.SetBinContent(i, c/c_MC)
                         h_dr.SetBinError(i, e/c_MC)
                     else:
-                        if e > 0:
-                            h_dr.SetBinContent(i, (c-c_MC)/e)
+                        e_tot = np.hypot(e, e_MC)
+                        if e_tot > 0:
+                            h_dr.SetBinContent(i, (c-c_MC)/e_tot)
+                            h_dr.SetBinError(i, e/e_tot)
                         else:
-                            h_dr.SetBinContent(i, (c-c_MC)/e_MC)
-                        h_dr.SetBinError(i, 0)
+                            h_dr.SetBinContent(i, 0)
+                            h_dr.SetBinError(i, 0)
 
                     x_low = h_tot.GetBinCenter(i) - 0.5*h_tot.GetBinWidth(i)
                     x_up = h_tot.GetBinCenter(i) + 0.5*h_tot.GetBinWidth(i)
@@ -249,7 +271,8 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                         y_up = (c_MC+e_MC)/c_MC
                         y_down = (c_MC-e_MC)/c_MC
                     else:
-                        y_up = e_MC/e if e > 0 else 0
+                        e_tot = np.hypot(e, e_MC)
+                        y_up = e_MC/e_tot if e_tot > 0 else 0
                         y_down = -y_up
                     g_up.SetPoint(2*i-1, x_low, y_up)
                     g_up.SetPoint(2*i, x_up, y_up)
@@ -462,10 +485,13 @@ def plot_SingleCategory(CMS_lumi,
                 h_dr.SetBinContent(i, c/c_MC)
                 h_dr.SetBinError(i, e/c_MC)
             else:
-                if e > 0: h_dr.SetBinContent(i, (c-c_MC)/e)
-                elif e_MC > 0: h_dr.SetBinContent(i, (c-c_MC)/e_MC)
-                else: h_dr.SetBinContent(i, 0)
-                h_dr.SetBinError(i, 0)
+                e_tot = np.hypot(e, e_MC)
+                if e_tot > 0:
+                    h_dr.SetBinContent(i, (c-c_MC)/e_tot)
+                    h_dr.SetBinError(i, e/e_tot)
+                else:
+                    h_dr.SetBinContent(i, 0)
+                    h_dr.SetBinError(i, 0)
 
             x_low = h_tot.GetBinCenter(i) - 0.5*h_tot.GetBinWidth(i)
             x_up = h_tot.GetBinCenter(i) + 0.5*h_tot.GetBinWidth(i)
@@ -473,7 +499,8 @@ def plot_SingleCategory(CMS_lumi,
                 y_up = (c_MC+e_MC)/c_MC
                 y_down = (c_MC-e_MC)/c_MC
             else:
-                y_up = e_MC/e if e > 0 else 0
+                e_tot = np.hypot(e, e_MC)
+                y_up = e_MC/e_tot if e_tot > 0 else 0
                 y_down = -y_up
             g_up.SetPoint(2*i-1, x_low, y_up)
             g_up.SetPoint(2*i, x_up, y_up)

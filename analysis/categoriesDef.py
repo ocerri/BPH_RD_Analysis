@@ -25,9 +25,9 @@ cat['low'].minIP = 4
 
 cat['single'] = Bauble()
 cat['single'].name = 'Single'
-cat['single'].min_pt = 7
-cat['single'].max_pt = 1e4
-cat['single'].trg = 'Mu7_IP4'
-cat['single'].minIP = 4
+cat['single'].min_pt = 9
+cat['single'].max_pt = 1e6
+cat['single'].trg = 'Mu9_IP6'
+cat['single'].minIP = 6
 
 categories = cat

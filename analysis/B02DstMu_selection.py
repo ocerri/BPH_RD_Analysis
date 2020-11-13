@@ -71,8 +71,9 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
         if not ev.pval_D0pis[j] > 0.1:
             return False
     if not (11 in skipCut):
-        if not abs(e.mass_D0pis - 2.01026) < 0.03:
-            return False
+        pass # Cut removed
+        # if not abs(e.mass_D0pis - 2.01026) < 0.03:
+        #     return False
     if not (12 in skipCut):
         if not 1e3*abs(e.mass_D0pis - e.mass_piK - 0.14543) < 2.:
             return False
@@ -90,7 +91,7 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
             return False
     if not (17 in skipCut):
         if trkControlRegion:
-            if e.N_goodAddTks == 0 or e.N_goodAddTks > 2:
+            if e.N_goodAddTks == 0 or e.N_goodAddTks > 3:
                 return False
         elif not e.N_goodAddTks == 0:
             return False

@@ -43,7 +43,7 @@ parser.add_argument ('--recreate', default=False, action='store_true', help='Rec
 parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
 parser.add_argument ('--trkControlRegion', default=False, action='store_true', help='Track control region selection')
 parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
-parser.add_argument ('--skipCut', type=str, default='', choices=['all', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
+parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
 ######## Arguments not for user #####################
 parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
 parser.add_argument ('--jN', type=int, default=None, help='Job number')
@@ -82,16 +82,27 @@ filesLocMap = {
 'DstPip_PUc0'     : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 'DstPi0_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# 'DstPi0nR_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
+# 'DstPi0_nR_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
 #
 'DstPipPi0_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstst_PipPi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstPipPi0_nR_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPipPi0_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
 'DstPipPim_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_PipPim_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstPipPim_nR_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPipPim_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
 'DstPi0Pi0_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
+'B0_DstPiPiPi_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
-'data_B0' : RDloc+'*_RDntuplizer_B2DstMu_200515_CAND.root',
+'Bp_DstPiPiPi_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
+#
+'TauDstPip_PUc0'      : MCloc+'BP_Tag_Bp_TauNuDstst_Pip_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+#
+'TauDstPi0_PUc0'      : MCloc+'BP_Tag_B0_TauNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+#
+#
+# 'data_B0' : RDloc+'*_RDntuplizer_B2DstMu_200515_CAND.root',
+'data_B0' : RDloc+'*_RDntuplizer_B2DstMu_201101_CAND.root',
 'data_antiB0' : RDloc+'*_RDntuplizer_antiB2DstMu_200624_CAND.root',
 'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_200611_CAND.root'
 }
@@ -209,6 +220,14 @@ def extractEventInfos(j, ev, corr=None):
     e.Dst_phi = p4_Dst.Phi()
     p4_vis = p4_Dst + p4_mu
     e.mass_D0pismu = p4_vis.M()
+
+    p4_mu_as_pi = rt.TLorentzVector()
+    p4_mu_as_pi.SetPtEtaPhiM(e.mu_pt, e.mu_eta, e.mu_phi, m_pi)
+    e.mass_D0pismu_muASpi = (p4_Dst + p4_mu_as_pi).M()
+
+    p4_mu_as_K = rt.TLorentzVector()
+    p4_mu_as_K.SetPtEtaPhiM(e.mu_pt, e.mu_eta, e.mu_phi, m_K)
+    e.mass_D0pismu_muASK = (p4_Dst + p4_mu_as_K).M()
     # print 'm_vis: {:.4f} {:.4f}'.format(ev.mass_D0pismu[j], e.m_vis)
 
     e.B_pt = p4_vis.Pt() * m_B0/ p4_vis.M()
@@ -252,17 +271,14 @@ def extractEventInfos(j, ev, corr=None):
     e.massMuTk = []
     e.mass2MissTk = []
     e.UmissTk = []
-    e.massVisTk12 = 0
-    e.massHadTk12 = 0
-    e.UmissTk12 = 0
 
-    p4_tk1 = None
+    p4_sumGoodTks = rt.TLorentzVector()
     for jj in range(idx_st, idx_stop):
         eta = ev.tksAdd_eta[jj]
         if np.abs(eta) >= 2.4:
             continue
         phi = ev.tksAdd_phi[jj]
-        pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 3e-3)
+        pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 2e-3)
         if pt < 0.5:
             continue
         #Avoid tracks duplicates
@@ -307,19 +323,32 @@ def extractEventInfos(j, ev, corr=None):
                 e.MC_tkMotherPdgId.insert(idx, ev.MC_addTk_pdgIdMother[jj])
                 e.MC_tkMotherMotherPdgId.insert(idx, ev.MC_addTk_pdgIdMotherMother[jj])
 
-        if e.N_goodAddTks == 1:
-            p4_tk1 = p4_tk.Clone('p4_tk1')
-        elif e.N_goodAddTks == 2:
-            e.massVisTk12 = (p4_vis + p4_tk1 + p4_tk).M()
-            e.massHadTk12 = (p4_Dst + p4_tk1 + p4_tk).M()
-            p_miss = p4_B - p4_vis - p4_tk - p4_tk1
-            e.UmissTk12 = p_miss.E() - p_miss.P()
+            p4_sumGoodTks += p4_tk
 
-    if e.N_goodAddTks < 2:
+
+        # if e.N_goodAddTks == 1:
+        #     p4_tk1 = p4_tk.Clone('p4_tk1')
+        # elif e.N_goodAddTks == 2:
+        #     e.massVisTk12 = (p4_vis + p4_tk1 + p4_tk).M()
+        #     e.massHadTk12 = (p4_Dst + p4_tk1 + p4_tk).M()
+        #     p_miss = p4_B - p4_vis - p4_tk - p4_tk1
+        #     e.UmissTk12 = p_miss.E() - p_miss.P()
+    p4_vis_wTks = p4_vis + p4_sumGoodTks
+    e.massVisTks = p4_vis_wTks.M()
+    e.massHadTks = (p4_Dst + p4_sumGoodTks).M()
+    e.massHadTks_DstMassConstraint = (p4_Dst + p4_sumGoodTks).M() - p4_Dst.M() + m_Dst
+
+    e.BwTks_pt = p4_vis_wTks.Pt() * m_B0/ p4_vis_wTks.M()
+    p4_BwTks = rt.TLorentzVector()
+    p4_BwTks.SetPtEtaPhiM(e.BwTks_pt, e.B_eta, e.B_phi, m_B0);
+    p_miss_wTks = p4_BwTks - p4_vis_wTks
+    e.UmissTks = p_miss_wTks.E() - p_miss_wTks.P()
+
+    if e.N_goodAddTks < 3:
         auxList = [e.tkCharge, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk, e.UmissTk]
         auxList += [e.MC_tkFlag, e.MC_tkPdgId, e.MC_tkMotherPdgId, e.MC_tkMotherMotherPdgId, e.MC_tk_dphi, e.MC_tk_deta, e.MC_tk_dpt]
         for l in auxList:
-            l += [0, 0]
+            l += [0, 0, 0]
 
     return e
 
@@ -377,6 +406,10 @@ def makeSelection(inputs):
 
             aux = (evEx.q2, evEx.Est_mu, evEx.M2_miss, evEx.U_miss,
                    evEx.mu_pt, evEx.mu_eta, evEx.mu_phi, ev.trgMu_sigdxy[idxTrg],
+                   ev.mu_dca_vtxDst[j], ev.mu_sigdca_vtxDst[j],
+                   ev.mu_dcaT_vtxDst[j], ev.mu_sigdcaT_vtxDst[j],
+                   ev.mu_dca_vtxDstMu[j], ev.mu_sigdca_vtxDstMu[j],
+                   ev.mu_dcaT_vtxDstMu[j], ev.mu_sigdcaT_vtxDstMu[j],
                    evEx.B_pt, evEx.B_eta, evEx.B_phi,
                    evEx.Dst_pt, evEx.Dst_eta, evEx.Dst_phi,
                    evEx.D0_pt, evEx.D0_eta, evEx.D0_phi,
@@ -386,21 +419,25 @@ def makeSelection(inputs):
                    evEx.pis_pt, evEx.pis_eta, evEx.pis_phi,
                    ev.pval_D0pis[j],
                    evEx.mass_piK, evEx.mass_D0pis, evEx.mass_D0pismu,
-                   ev.pval_D0pismu[j], ev.cos_D0pismu_PV[j], ev.cosT_D0pismu_PV[j],
+                   evEx.mass_D0pismu_muASpi, evEx.mass_D0pismu_muASK,
+                   ev.pval_D0pismu[j], ev.chi2_D0pismu[j],
+                   ev.d_vtxD0pismu_PV[j], ev.dxy_vtxD0pismu_PV[j],
+                   ev.cos_D0pismu_PV[j], ev.cosT_D0pismu_PV[j],
                    evEx.N_goodAddTks,
-                   evEx.tkCharge[0], evEx.tkCharge[1],
-                   evEx.tkPt[0], evEx.tkPt[1],
-                   evEx.tkPtError[0], evEx.tkPtError[1],
-                   evEx.tkEta[0], evEx.tkEta[1],
-                   evEx.tkPhi[0], evEx.tkPhi[1],
-                   evEx.massVis_wTk[0], evEx.massVis_wTk[1],
-                   evEx.massHad_wTk[0], evEx.massHad_wTk[1],
-                   evEx.massMuTk[0], evEx.massMuTk[1],
-                   evEx.mass2MissTk[0], evEx.mass2MissTk[1],
-                   evEx.UmissTk[0], evEx.UmissTk[1],
-                   evEx.massVisTk12,
-                   evEx.massHadTk12,
-                   evEx.UmissTk12,
+                   evEx.tkCharge[0], evEx.tkCharge[1], evEx.tkCharge[2],
+                   evEx.tkPt[0], evEx.tkPt[1], evEx.tkPt[2],
+                   evEx.tkPtError[0], evEx.tkPtError[1], evEx.tkPtError[2],
+                   evEx.tkEta[0], evEx.tkEta[1], evEx.tkEta[2],
+                   evEx.tkPhi[0], evEx.tkPhi[1], evEx.tkPhi[2],
+                   evEx.massVis_wTk[0], evEx.massVis_wTk[1], evEx.massVis_wTk[2],
+                   evEx.massHad_wTk[0], evEx.massHad_wTk[1], evEx.massHad_wTk[2],
+                   evEx.massMuTk[0], evEx.massMuTk[1], evEx.massMuTk[2],
+                   evEx.mass2MissTk[0], evEx.mass2MissTk[1], evEx.mass2MissTk[2],
+                   evEx.UmissTk[0], evEx.UmissTk[1], evEx.UmissTk[2],
+                   evEx.massVisTks,
+                   evEx.massHadTks,
+                   evEx.massHadTks_DstMassConstraint,
+                   evEx.UmissTks,
                    trigger_selection(idxTrg, ev, evEx, categories['low']),
                    trigger_selection(idxTrg, ev, evEx, categories['mid']),
                    trigger_selection(idxTrg, ev, evEx, categories['high']),
@@ -409,14 +446,16 @@ def makeSelection(inputs):
                   )
             if not 'data' in n:
                 aux += (ev.MC_q2, ev.MC_Est_mu, ev.MC_M2_miss,
-                        ev.MC_B_pt, ev.MC_B_eta, ev.MC_B_phi,
+                        ev.MC_B_pt, ev.MC_B_eta, ev.MC_B_phi, ev.MC_B_ctau,
                         ev.MC_Dst_pt, ev.MC_Dst_eta, ev.MC_Dst_phi,
-                        ev.MC_mu_pt, ev.MC_mu_eta, ev.MC_mu_phi, ev.MC_mu_IP,
+                        ev.MC_mu_pt, ev.MC_mu_eta, ev.MC_mu_phi,
+                        ev.MC_mu_TransvIP_PV, ev.MC_mu_TransvIP_vtxDst, ev.MC_mu_IP_vtxDst,
                         ev.MC_pi_pt, ev.MC_pi_eta, ev.MC_pi_phi,
                         ev.MC_K_pt, ev.MC_K_eta, ev.MC_K_phi,
                         ev.MC_pis_pt, ev.MC_pis_eta, ev.MC_pis_phi,
                         ev.MC_idxCand == j,
                         ev.MC_muMotherPdgId, ev.MC_munuSisterPdgId,
+                        ev.MC_MassCharmedBDaugther,
                         ev.MC_DstMotherPdgId, ev.MC_DstSisPdgId_heavy, ev.MC_DstSisPdgId_light,
                         evEx.MC_tkFlag[0], evEx.MC_tkFlag[1],
                         evEx.MC_tk_dpt[0], evEx.MC_tk_dpt[1],
@@ -473,7 +512,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
             print filepath
             raise
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
-        N_evts_per_job = 100000
+        N_evts_per_job = 130000
     else:
         d = os.path.dirname(filepath) + '/skimmed/'
         if not os.path.isdir(d):
@@ -502,20 +541,28 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         tree = rt.TChain('outA/Tevts')
         hAllNvtx = rt.TH1D('hAllNvtx', 'hAllNvtx', 101, -0.5, 100.5)
         hAllVtxZ = rt.TH1D('hAllVtxZ', 'hAllVtxZ', 100, -25, 25)
-        for fn in glob(filepath):
-            tree.Add(fn)
-            fAux = rt.TFile.Open(fn, 'READ')
-            hAux = fAux.Get('trgF/hAllNvts')
-            hAllNvtx.Add(hAux)
-            hAux = fAux.Get('trgF/hAllVtxZ')
-            hAllVtxZ.Add(hAux)
-            fAux.Close()
+        for i,fn in enumerate(glob(filepath)):
+            try:
+                tree.Add(fn)
+                fAux = rt.TFile.Open(fn, 'READ')
+                hAux = fAux.Get('trgF/hAllNvts')
+                hAllNvtx.Add(hAux)
+                hAux = fAux.Get('trgF/hAllVtxZ')
+                hAllVtxZ.Add(hAux)
+                fAux.Close()
+            except:
+                print '[ERROR] Problem with vertexes histograms in', fn
+                raise
         print 'Computing events from {} files'.format(tree.GetNtrees())
         N_cand_in = min(maxEvents, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
 
         leafs_names = ['q2', 'Est_mu', 'M2_miss', 'U_miss',
                        'mu_pt', 'mu_eta', 'mu_phi', 'mu_sigdxy',
+                       'mu_dca_vtxDst', 'mu_sigdca_vtxDst',
+                       'mu_dcaT_vtxDst', 'mu_sigdcaT_vtxDst',
+                       'mu_dca_vtxDstMu', 'mu_sigdca_vtxDstMu',
+                       'mu_dcaT_vtxDstMu', 'mu_sigdcaT_vtxDstMu',
                        'B_pt', 'B_eta', 'B_phi',
                        'Dst_pt', 'Dst_eta', 'Dst_phi',
                        'D0_pt', 'D0_eta', 'D0_phi',
@@ -525,35 +572,41 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'pis_pt', 'pis_eta', 'pis_phi',
                        'pval_D0pis',
                        'mass_piK', 'mass_D0pis', 'mass_D0pismu',
-                       'pval_D0pismu', 'cos_D0pismu_PV', 'cosT_D0pismu_PV',
+                       'mass_D0pismu_muASpi', 'mass_D0pismu_muASK',
+                       'pval_D0pismu', 'chi2_D0pismu',
+                       'd_vtxD0pismu_PV', 'dxy_vtxD0pismu_PV',
+                       'cos_D0pismu_PV', 'cosT_D0pismu_PV',
                        'N_goodAddTks',
-                       'tkCharge_0', 'tkCharge_1',
-                       'tkPt_0', 'tkPt_1',
-                       'tkPtError_0', 'tkPtError_1',
-                       'tkEta_0', 'tkEta_1',
-                       'tkPhi_0', 'tkPhi_1',
-                       'tkMassVis_0', 'tkMassVis_1',
-                       'tkMassHad_0', 'tkMassHad_1',
-                       'tkMassMuTk_0', 'tkMassMuTk_1',
-                       'tkMassMiss2_0', 'tkMassMiss2_1',
-                       'tkUmiss_0', 'tkUmiss_1',
-                       'tkMassVis12',
-                       'tkMassHad12',
-                       'tkUmiss12',
+                       'tkCharge_0', 'tkCharge_1', 'tkCharge_2',
+                       'tkPt_0', 'tkPt_1', 'tkPt_2',
+                       'tkPtError_0', 'tkPtError_1', 'tkPtError_2',
+                       'tkEta_0', 'tkEta_1', 'tkEta_2',
+                       'tkPhi_0', 'tkPhi_1', 'tkPhi_2',
+                       'tkMassVis_0', 'tkMassVis_1', 'tkMassVis_2',
+                       'tkMassHad_0', 'tkMassHad_1', 'tkMassHad_2',
+                       'tkMassMuTk_0', 'tkMassMuTk_1', 'tkMassMuTk_2',
+                       'tkMassMiss2_0', 'tkMassMiss2_1', 'tkMassMiss2_2',
+                       'tkUmiss_0', 'tkUmiss_1', 'tkUmiss_2',
+                       'massVisTks',
+                       'massHadTks',
+                       'massHadTks_DstMassConstraint',
+                       'UmissTks',
                        'cat_low', 'cat_mid', 'cat_high',
                        'muPass_Mu12_IP6', 'muPass_Mu9_IP6', 'muPass_Mu7_IP4',
                        'N_vtx', 'localVertexDensity'
                       ]
         if not 'data' in n:
             leafs_names += ['MC_q2', 'MC_Est_mu', 'MC_M2_miss',
-                            'MC_B_pt', 'MC_B_eta', 'MC_B_phi',
+                            'MC_B_pt', 'MC_B_eta', 'MC_B_phi', 'MC_B_ctau',
                             'MC_Dst_pt', 'MC_Dst_eta', 'MC_Dst_phi',
-                            'MC_mu_pt', 'MC_mu_eta', 'MC_mu_phi', 'MC_mu_IP',
+                            'MC_mu_pt', 'MC_mu_eta', 'MC_mu_phi',
+                            'MC_mu_TransvIP_PV', 'MC_mu_TransvIP_vtxDst', 'MC_mu_IP_vtxDst',
                             'MC_pi_pt', 'MC_pi_eta', 'MC_pi_phi',
                             'MC_K_pt', 'MC_K_eta', 'MC_K_phi',
                             'MC_pis_pt', 'MC_pis_eta', 'MC_pis_phi',
                             'MC_idxMatch',
                             'MC_muMotherPdgId', 'MC_munuSisterPdgId',
+                            'MC_MassCharmedBDaughter',
                             'MC_DstMotherPdgId', 'MC_DstSisterPdgId_heavy', 'MC_DstSisterPdgId_light',
                             'MC_tkFlag_0', 'MC_tkFlag_1',
                             'MC_tk_dpt_0', 'MC_tk_dpt_1',
@@ -753,6 +806,7 @@ if __name__ == "__main__":
             if args.skipCut == 'all':
                 skip.append('all')
             # skip.append([6, 11, 12]) #Mass D0, D* and D*-D0 (m piK)
+            # skip.append([14]) #Visib le system pointing cos
             # skip.append([16]) #Visible mass (m D0pismu)
             # skip.append([17]) #Additional tracks
             elif args.skipCut:

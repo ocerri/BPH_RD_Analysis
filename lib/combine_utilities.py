@@ -1,4 +1,4 @@
-import sys, os, pickle
+import sys, os, pickle, copy
 from glob import glob
 sys.path.append('../lib')
 import commands
@@ -14,6 +14,19 @@ import ROOT as rt
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
+
+def loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=False):
+    histo = {}
+    for fname in glob(histo_file_dir+'{}_[EAMU]*.root'.format(card_name)):
+        regionName = os.path.basename(fname)[len(card_name)+1:-5]
+        tfReg = rt.TFile.Open(histo_file_dir+'{}_{}.root'.format(card_name, regionName), 'READ')
+        histo[regionName] = {}
+        for n in [k.GetName() for k in tfReg.GetListOfKeys()]:
+            if not loadShapeVar and '__' in n:
+                continue
+            key = 'data' if 'data' in n else n
+            histo[regionName][key] = copy.deepcopy(tfReg.Get(n))
+    return histo
 
 def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
     f = ur.open(name)
@@ -71,7 +84,7 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
         print '----------------------------------\n'
     return np.array(res) if len(res) > 1 else res[0]
 
-def dumpDiffNuisances(output, outdir):
+def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False):
     name = []
     inVal = []
     outVal = []
@@ -81,10 +94,11 @@ def dumpDiffNuisances(output, outdir):
         if aux[0] == 'r': continue
         name.append(aux[0])
         inVal.append(aux[1])
-        outVal.append(aux[3])
+        idxOutVal = 2 if useBonlyResults else 3
+        outVal.append(aux[idxOutVal])
 
         xIn = float(aux[1].replace('!','').replace('*','').split(' +/- ')[0])
-        xOut = float(aux[3].replace('!','').replace('*','').split(' +/- ')[0])
+        xOut = float(aux[idxOutVal].replace('!','').replace('*','').split(' +/- ')[0])
         sigIn = float(aux[1].replace('!','').replace('*','').split(' +/- ')[1])
         outDipls.append((xIn-xOut)/sigIn)
 
@@ -96,9 +110,33 @@ def dumpDiffNuisances(output, outdir):
         for i in reversed(list(idxList)):
             t.add_row([name[i], inVal[i], outVal[i]])
         if st_idx == 0:
-            with open(outdir+'/nuisance_difference.txt', 'w') as dumpfile:
+            with open(outdir+'/nuisance_difference'+('_'+tag if tag else '')+'.txt', 'w') as dumpfile:
                 dumpfile.write('{}\n'.format(t))
-        else: print t
+
+            print 'Dumping text table'
+            with open(outdir+'/nuisance_difference'+('_'+tag if tag else '')+'_texTable.txt', 'w') as dumpfile:
+                cols = 2
+                for i in range(1, idxList.shape[0]):
+                    if not i%cols == 1:
+                        continue
+
+                    s = ''
+                    for j in range(cols):
+                        idx = idxList[-i-j]
+                        s += name[idx].replace('prop_bin', 'stat_').replace('_AddTk', '').replace('_', '\_')
+                        s += ' & $'
+                        s += outVal[idx].replace('!', '').split(' (')[0].replace('+/-', '\pm') + '$'
+                        if j == cols -1 :
+                            s += ' \\\\'
+                        else:
+                            s += ' & '
+                    dumpfile.write(s + '\n')
+                    lastVal = outVal[idx].replace('!', '').split(' +/-')[0]
+                    if np.abs(float(lastVal)) < 1.6:
+                        break
+
+        else:
+            print t
 
 stringJubCustomizationCaltechT2 = '''
 +RunAsOwner = True
