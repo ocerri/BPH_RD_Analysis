@@ -85,23 +85,22 @@ filesLocMap = {
 # 'DstPi0_nR_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
 #
 'DstPipPi0_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstst_PipPi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'DstPipPi0_nR_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPipPi0_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
+# 'DstPipPi0_nR_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPipPi0_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
 'DstPipPim_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_PipPim_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'DstPipPim_nR_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPipPim_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
+# 'DstPipPim_nR_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPipPim_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
 'DstPi0Pi0_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'B0_DstPiPiPi_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
-#
-'Bp_DstPiPiPi_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
+# 'B0_DstPiPiPi_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
+# #
+# 'Bp_DstPiPiPi_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
 'TauDstPip_PUc0'      : MCloc+'BP_Tag_Bp_TauNuDstst_Pip_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 'TauDstPi0_PUc0'      : MCloc+'BP_Tag_B0_TauNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 #
-# 'data_B0' : RDloc+'*_RDntuplizer_B2DstMu_200515_CAND.root',
 'data_B0' : RDloc+'*_RDntuplizer_B2DstMu_201101_CAND.root',
 'data_antiB0' : RDloc+'*_RDntuplizer_antiB2DstMu_200624_CAND.root',
 'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_200611_CAND.root'
@@ -219,6 +218,8 @@ def extractEventInfos(j, ev, corr=None):
     e.Dst_eta = p4_Dst.Eta()
     e.Dst_phi = p4_Dst.Phi()
     p4_vis = p4_Dst + p4_mu
+    e.D0pismu_eta = p4_vis.Eta()
+    e.D0pismu_phi = p4_vis.Phi()
     e.mass_D0pismu = p4_vis.M()
 
     p4_mu_as_pi = rt.TLorentzVector()
@@ -231,21 +232,32 @@ def extractEventInfos(j, ev, corr=None):
     # print 'm_vis: {:.4f} {:.4f}'.format(ev.mass_D0pismu[j], e.m_vis)
 
     e.B_pt = p4_vis.Pt() * m_B0/ p4_vis.M()
+
+    # Using direction from vertex
     e.B_eta = ev.B_D0pismu_eta[j]
     e.B_phi = ev.B_D0pismu_phi[j]
-    # print 'B0 pt: {:.4f} {:.4f}'.format(ev.B_D0pismu_pt[j], pt_B)
+
     p4_B = rt.TLorentzVector()
-    p4_B.SetPtEtaPhiM(e.B_pt, e.B_eta, e.B_phi, m_B0);
+    p4_B.SetPtEtaPhiM(e.B_pt, e.B_eta, e.B_phi, m_B0)
 
     e.M2_miss = (p4_B - p4_vis).M2()
     e.U_miss = (p4_B - p4_vis).E() - (p4_B - p4_vis).P()
     e.q2 = (p4_B - p4_Dst).M2()
-    # print 'q2: {:.4f} {:.4f}'.format(ev.q2_D0pismu[j], e.q2)
 
     p4st_mu = rt.TLorentzVector(p4_mu)
     p4st_mu.Boost(-1*p4_B.BoostVector())
     e.Est_mu = p4st_mu.E()
-    # print 'Est: {:.4f} {:.4f}'.format(ev.Est_mu_D0pismu[j], e.Est_mu)
+
+    # Using collinearity approximation
+    p4_B_coll = rt.TLorentzVector()
+    p4_B_coll.SetPtEtaPhiM(e.B_pt, e.D0pismu_eta, e.D0pismu_phi, m_B0)
+
+    e.M2_miss_coll = (p4_B_coll - p4_vis).M2()
+    e.q2_coll = (p4_B_coll - p4_Dst).M2()
+
+    p4st_mu = rt.TLorentzVector(p4_mu)
+    p4st_mu.Boost(-1*p4_B_coll.BoostVector())
+    e.Est_mu_coll = p4st_mu.E()
 
     #----------------- Additional tracks -------------------#
     idx_st = 0
@@ -405,6 +417,7 @@ def makeSelection(inputs):
             N_acc += 1
 
             aux = (evEx.q2, evEx.Est_mu, evEx.M2_miss, evEx.U_miss,
+                   evEx.q2_coll, evEx.Est_mu_coll, evEx.M2_miss_coll,
                    evEx.mu_pt, evEx.mu_eta, evEx.mu_phi, ev.trgMu_sigdxy[idxTrg],
                    ev.mu_dca_vtxDst[j], ev.mu_sigdca_vtxDst[j],
                    ev.mu_dcaT_vtxDst[j], ev.mu_sigdcaT_vtxDst[j],
@@ -420,6 +433,7 @@ def makeSelection(inputs):
                    ev.pval_D0pis[j],
                    evEx.mass_piK, evEx.mass_D0pis, evEx.mass_D0pismu,
                    evEx.mass_D0pismu_muASpi, evEx.mass_D0pismu_muASK,
+                   evEx.D0pismu_eta, evEx.D0pismu_phi,
                    ev.pval_D0pismu[j], ev.chi2_D0pismu[j],
                    ev.d_vtxD0pismu_PV[j], ev.dxy_vtxD0pismu_PV[j],
                    ev.cos_D0pismu_PV[j], ev.cosT_D0pismu_PV[j],
@@ -471,6 +485,13 @@ def makeSelection(inputs):
                         ev.wh_CLNeig1Down, ev.wh_CLNeig1Up,
                         ev.wh_CLNeig2Down, ev.wh_CLNeig2Up,
                         ev.wh_CLNeig3Down, ev.wh_CLNeig3Up,
+                        # ev.wh_BLPRCentral,
+                        # ev.wh_BLPReig1Down, ev.wh_BLPReig1Up,
+                        # ev.wh_BLPReig2Down, ev.wh_BLPReig2Up,
+                        # ev.wh_BLPReig3Down, ev.wh_BLPReig3Up,
+                        # ev.wh_BLPReig4Down, ev.wh_BLPReig4Up,
+                        # ev.wh_BLPReig5Down, ev.wh_BLPReig5Up,
+                        # ev.wh_BLPReig6Down, ev.wh_BLPReig6Up,
                        )
             ev_output.append(aux)
 
@@ -541,6 +562,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         tree = rt.TChain('outA/Tevts')
         hAllNvtx = rt.TH1D('hAllNvtx', 'hAllNvtx', 101, -0.5, 100.5)
         hAllVtxZ = rt.TH1D('hAllVtxZ', 'hAllVtxZ', 100, -25, 25)
+        print filepath
+        print len(glob(filepath))
         for i,fn in enumerate(glob(filepath)):
             try:
                 tree.Add(fn)
@@ -558,6 +581,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         print n, ': Total number of candidate events =', N_cand_in
 
         leafs_names = ['q2', 'Est_mu', 'M2_miss', 'U_miss',
+                       'q2_coll', 'Est_mu_coll', 'M2_miss_coll',
                        'mu_pt', 'mu_eta', 'mu_phi', 'mu_sigdxy',
                        'mu_dca_vtxDst', 'mu_sigdca_vtxDst',
                        'mu_dcaT_vtxDst', 'mu_sigdcaT_vtxDst',
@@ -573,6 +597,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'pval_D0pis',
                        'mass_piK', 'mass_D0pis', 'mass_D0pismu',
                        'mass_D0pismu_muASpi', 'mass_D0pismu_muASK',
+                       'D0pismu_eta', 'D0pismu_phi',
                        'pval_D0pismu', 'chi2_D0pismu',
                        'd_vtxD0pismu_PV', 'dxy_vtxD0pismu_PV',
                        'cos_D0pismu_PV', 'cosT_D0pismu_PV',
@@ -621,10 +646,14 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'wh_CLNR0Down', 'wh_CLNR0Up',
                             'wh_CLNeig1Down', 'wh_CLNeig1Up',
                             'wh_CLNeig2Down', 'wh_CLNeig2Up',
-                            'wh_CLNeig3Down', 'wh_CLNeig3Up'
-                            # 'wh_CLNR1Down', 'wh_CLNR1Up',
-                            # 'wh_CLNR2Down', 'wh_CLNR2Up',
-                            # 'wh_CLNRhoSqDown', 'wh_CLNRhoSqUp'
+                            'wh_CLNeig3Down', 'wh_CLNeig3Up',
+                            # 'wh_BLPRCentral',
+                            # 'wh_BLPReig1Down', 'wh_BLPReig1Up',
+                            # 'wh_BLPReig2Down', 'wh_BLPReig2Up',
+                            # 'wh_BLPReig3Down', 'wh_BLPReig3Up',
+                            # 'wh_BLPReig4Down', 'wh_BLPReig4Up',
+                            # 'wh_BLPReig5Down', 'wh_BLPReig5Up',
+                            # 'wh_BLPReig6Down', 'wh_BLPReig6Up',
                             ]
 
         applyCorr = None

@@ -8,7 +8,7 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import tdrstyle
 tdrstyle.setTDRStyle()
 
-col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'BpDstst': rt.kOrange-3, 'B0Dstst': rt.kViolet-7, 'TauDstst':rt.kMagenta-9, 'PiPiPi':rt.kYellow-7}
+col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'BpDstst': rt.kOrange-3, 'B0Dstst': rt.kViolet-7, 'TauDstst':rt.kMagenta-9, 'JpsiKst':rt.kYellow-7}
 
 label_dic = {'data' : 'Data',
              'mu'   : 'B#rightarrow D*#mu#nu',
@@ -18,6 +18,7 @@ label_dic = {'data' : 'Data',
              'BpDstst': 'B^{+}#rightarrow D**#mu#nu',
              'B0Dstst': 'B^{0}#rightarrow D**#mu#nu',
              'TauDstst': 'B#rightarrow D**#tau#nu',
+             'JpsiKst': 'B#rightarrow J/#PsiK*',
             }
 
 fillStyleVar = [1, 3345, 3354, 1, 1, 1, 1, 1, 1]
@@ -39,7 +40,7 @@ def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name='', 
     if not background:
         leg.SetFillStyle(0)
     leg.AddEntry(h_list[0], label_dic['data'], 'lep')
-    for n in ['mu', 'tau', 'Hc']:
+    for n in ['mu', 'tau', 'Hc', 'JpsiKst']:
         for h in h_list:
             if 'h_aux_'+n+cat_name == h.GetName():
                 leg.AddEntry(h, label_dic[n], 'f')
@@ -292,7 +293,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                     h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
                     h_dr.GetYaxis().SetNdivisions(402)
                 else:
-                    h_dr.SetLineWidth(2)
+                    h_dr.SetLineWidth(1)
                     ax = h_dr.GetYaxis()
                     ax.SetRangeUser(-3, 3)
                     ax.SetNdivisions(-6)
@@ -520,7 +521,7 @@ def plot_SingleCategory(CMS_lumi,
             h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
             h_dr.GetYaxis().SetNdivisions(402)
         else:
-            h_dr.SetLineWidth(2)
+            h_dr.SetLineWidth(1)
             ax = h_dr.GetYaxis()
             ax.SetRangeUser(-3, 3)
             ax.SetNdivisions(-6)

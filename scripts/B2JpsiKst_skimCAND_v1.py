@@ -42,7 +42,7 @@ parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of 
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
 parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
 parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'probe', 'none'], help='Category(ies)', nargs='+')
-parser.add_argument ('--skipCut', type=str, default='', choices=['all', '16', '17'], help='Cut to skip')
+parser.add_argument ('--skipCut', type=str, default='', choices=['all', '7'], help='Cut to skip')
 ######## Arguments not for user #####################
 parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
 parser.add_argument ('--jN', type=int, default=None, help='Job number')
@@ -168,15 +168,28 @@ def extractEventInfos(j, ev, corr=None):
 
     e.mass_piK = compMass(e.pi_pt, e.K_pt, e.pi_eta, e.K_eta, e.pi_phi, e.K_phi, m_pi, m_K)
     # mass_piK_recomp = compMass(ev.piRefit_pt[j], ev.KRefit_pt[j], ev.piRefit_eta[j], ev.KRefit_eta[j], ev.piRefit_phi[j], ev.KRefit_phi[j], m_pi, m_K)
-    e.mass_Kpi = compMass(e.pi_pt, e.K_pt, e.pi_eta, e.K_eta, e.pi_phi, e.K_phi, m_K, m_pi)
-    # mass_Kpi_recomp = compMass(ev.piRefit_pt[j], ev.KRefit_pt[j], ev.piRefit_eta[j], ev.KRefit_eta[j], ev.piRefit_phi[j], ev.KRefit_phi[j], m_K, m_pi)
-    e.mass_KK = compMass(e.pi_pt, e.K_pt, e.pi_eta, e.K_eta, e.pi_phi, e.K_phi, m_K, m_K)
-
     p4_B = p4_mup + p4_mum + p4_K + p4_pi
     e.mass_mumupiK = p4_B.M()
+    e.mass_mumupiK_cJpsi = p4_B.M() - e.mass_mumu + m_jpsi
+    e.mass_mumupiK_cJpsi_cKst = p4_B.M() - e.mass_mumu + m_jpsi - e.mass_piK + m_Kst
     e.B_pt = p4_B.Pt()
     e.B_eta = p4_B.Eta()
     e.B_phi = p4_B.Phi()
+
+
+    e.mass_Kpi = compMass(e.pi_pt, e.K_pt, e.pi_eta, e.K_eta, e.pi_phi, e.K_phi, m_K, m_pi)
+    # mass_Kpi_recomp = compMass(ev.piRefit_pt[j], ev.KRefit_pt[j], ev.piRefit_eta[j], ev.KRefit_eta[j], ev.piRefit_phi[j], ev.KRefit_phi[j], m_K, m_pi)
+    p4_K.SetPtEtaPhiM(e.pi_pt, e.pi_eta, e.pi_phi, m_K)
+    p4_pi.SetPtEtaPhiM(e.K_pt, e.K_eta, e.K_phi, m_pi)
+    p4_B = p4_mup + p4_mum + p4_K + p4_pi
+    e.mass_mumuKpi = p4_B.M()
+    e.mass_mumuKpi_cJpsi = p4_B.M() - e.mass_mumu + m_jpsi
+    e.mass_mumuKpi_cJpsi_cKst = p4_B.M() - e.mass_mumu + m_jpsi - e.mass_Kpi + m_Kst
+    e.antiB_pt = p4_B.Pt()
+    e.antiB_eta = p4_B.Eta()
+    e.antiB_phi = p4_B.Phi()
+
+    e.mass_KK = compMass(e.pi_pt, e.K_pt, e.pi_eta, e.K_eta, e.pi_phi, e.K_phi, m_K, m_K)
 
     return e
 
@@ -240,10 +253,12 @@ def makeSelection(inputs):
                    evEx.pi_pt, evEx.pi_eta, evEx.pi_phi, ev.pi_sigdxy_PV[j],
                    ev.pval_piK[j], evEx.mass_piK, evEx.mass_Kpi, evEx.mass_KK,
                    ev.sigdxy_vtxKst_PV[j],
-                   ev.pval_mumupiK[j], evEx.mass_mumupiK,
+                   ev.pval_mumupiK[j],
+                   evEx.mass_mumupiK, evEx.mass_mumupiK_cJpsi, evEx.mass_mumupiK_cJpsi_cKst,
                    evEx.B_pt, evEx.B_eta,
                    ev.cos_B_PV_mumupiK[j], ev.sigd_vtxB_PV_mumupiK[j],
-                   # ev.cosT_B_PV_mumupiK[j], ev.sigdxy_vtxB_PV[j],
+                   evEx.mass_mumuKpi, evEx.mass_mumuKpi_cJpsi, evEx.mass_mumuKpi_cJpsi_cKst,
+                   evEx.antiB_pt, evEx.antiB_eta,
                    category_selection(j, ev, evEx, categories['low']),
                    category_selection(j, ev, evEx, categories['mid']),
                    category_selection(j, ev, evEx, categories['high']),
@@ -340,12 +355,14 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                         'Jpsi_pt', 'cosT_Jpsi_PV',
                         'K_pt','K_eta','K_phi', 'K_sigdxy_PV',
                         'pi_pt','pi_eta','pi_phi', 'pi_sigdxy_PV',
-                        'pval_piK', 'mass_piK', 'mass_piK_CPconj', 'mass_KK',
+                        'pval_piK', 'mass_piK', 'mass_Kpi', 'mass_KK',
                         'sigdxy_vtxKst_PV',
                         'pval_mumupiK', 'mass_mumupiK',
+                        'mass_mumupiK_cJpsi', 'mass_mumupiK_cJpsi_cKst',
                         'B_pt', 'B_eta',
                         'cos_B_PV', 'sigd_vtxB_PV',
-                        # 'cosT_B_PV', 'sigdxy_vtxB_PV',
+                        'mass_mumuKpi', 'mass_mumuKpi_cJpsi', 'mass_mumuKpi_cJpsi_cKst',
+                        'antiB_pt', 'antiB_eta',
                         'cat_low', 'cat_mid', 'cat_high',
                         'N_vtx'
                       ]

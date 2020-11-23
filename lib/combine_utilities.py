@@ -51,16 +51,17 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
             plt.plot(2*nll_u, r_u, '.--', color=color)
             plt.plot(2*nll_l, r_l, '.--', color=color)
             plt.plot(nll_arr[0], c, 'o', color='gray')
-            plt.xlim(-0.1, 4.5)
-            plt.ylim(r_l[np.argmax(nll_l < 4)], r_u[np.argmax(nll_u > 4)])
+            idxL = np.argmax(nll_l < 4) if np.max(nll_l) >= 4 else -1
+            idxU = np.argmax(nll_u < 4) if np.max(nll_u) >= 4 else -1
+            plt.ylim(r_l[idxL], r_u[idxU])
             plt.xlabel('$-2\Delta\log(L)$')
             plt.ylabel('POI')
             plt.grid()
         if np.all(nll_l[:-1] >= nll_l[1:]) and np.all(nll_u[:-1] <= nll_u[1:]):
-            f_l = interp1d(nll_l, r_l, 'quadratic')
+            f_l = interp1d(nll_l, r_l, 'quadratic', fill_value='extrapolate')
             l = f_l(0.5)
             l2 = f_l(2)
-            f_u = interp1d(nll_u, r_u, 'quadratic')
+            f_u = interp1d(nll_u, r_u, 'quadratic', fill_value='extrapolate')
             u = f_u(0.5)
             u2 = f_u(2.0)
         else:
@@ -84,7 +85,7 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
         print '----------------------------------\n'
     return np.array(res) if len(res) > 1 else res[0]
 
-def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False):
+def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False, parsToPrint=15):
     name = []
     inVal = []
     outVal = []
@@ -103,7 +104,7 @@ def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False):
         outDipls.append((xIn-xOut)/sigIn)
 
     outDipls = np.argsort(np.abs(np.array(outDipls)))
-    for st_idx in [-15, 0]:
+    for st_idx in [-parsToPrint, 0]:
         idxList = outDipls[st_idx:]
         t = PrettyTable()
         t.field_names = ['Parameter', 'pre-fit', 'post-fit']
