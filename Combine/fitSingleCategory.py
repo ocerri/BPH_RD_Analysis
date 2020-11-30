@@ -61,7 +61,7 @@ parser.add_argument ('--dataType', default=0, choices=[0,1,2], help='0: both, 1:
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic')
 
 
-availableSteps = ['histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
+availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
 defaultPipeline = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'GoF']
 parser.add_argument ('--step', '-s', type=str, default=defaultPipeline, choices=availableSteps, help='Category(ies)', nargs='+')
 
@@ -168,6 +168,21 @@ histo_file_dir = '/storage/user/ocerri/BPhysics/data/_root/histos4combine/'
 
 webFolder = '/storage/user/ocerri/public_html/BPH_RDst/Combine/' + card_name
 if not os.path.isdir(webFolder):
+    os.makedirs(webFolder)
+    os.system('cp '+webFolder+'/../index.php '+webFolder)
+
+
+########################### -------- Clean previous results ------------------ #########################
+
+def cleanPreviousResults():
+    os.system('rm -v '+card_location.replace('.txt', '*'))
+
+    os.system('rm -v '+histo_file_dir+os.path.basename(card_location).replace('.txt', '_*'))
+
+    os.system('rm -rfv '+outdir)
+    os.system('mkdir -p ' + outdir + '/fig')
+
+    os.system('rm -rfv '+webFolder)
     os.makedirs(webFolder)
     os.system('cp '+webFolder+'/../index.php '+webFolder)
 
@@ -429,7 +444,7 @@ def createHistograms():
         ]
     binning['mu_pt'] = n_q2bins*[{'low': array('d', list(np.arange(7, 9, 0.05))+[9] ),
                                   'mid': array('d', list(np.arange(9, 12, 0.05)) +[12] ),
-                                  'high': array('d', list(np.logspace(np.log10(12), np.log10(50), 40))
+                                  'high': array('d', list(np.logspace(np.log10(12), np.log10(50), 40)))
                                  }[category]]
 
     binning['Dst_pt'] = n_q2bins*[array('d', list(np.arange(5, 30, 1)) )]
@@ -1640,7 +1655,7 @@ def nuisancesDiff(tag, out, forceRDst):
         raise
     dumpDiffNuisances(output, out, tag='_RDstFixed' if forceRDst else '',
                       useBonlyResults=forceRDst, parsToPrint=100)
-    cmd = 'cp {}nuisance_difference.txt {}/'.format(out, webFolder)
+    cmd = 'cp {}/nuisance_difference.txt {}/'.format(out, webFolder)
     print cmd
     status, output = commands.getstatusoutput(cmd)
     if status:
@@ -1947,6 +1962,10 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 
 
 if __name__ == "__main__":
+
+    if 'clean' in args.step:
+        print '-----> Cleaning previous results'
+        cleanPreviousResults()
 
     if 'histos' in args.step:
         createHistograms()
