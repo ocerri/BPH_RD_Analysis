@@ -102,7 +102,7 @@ filesLocMap = {
 #
 #
 'data_B0' : RDloc+'*_RDntuplizer_B2DstMu_201101_CAND.root',
-'data_antiB0' : RDloc+'*_RDntuplizer_antiB2DstMu_200624_CAND.root',
+'data_antiB0' : RDloc+'*_RDntuplizer_antiB2DstMu_201122_CAND.root',
 'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_200611_CAND.root'
 }
 
@@ -319,7 +319,7 @@ def extractEventInfos(j, ev, corr=None):
             e.tkPtError.insert(idx, ev.tksAdd_ptError[jj])
             e.tkEta.insert(idx, eta)
             e.tkPhi.insert(idx, phi)
-            e.tkCharge.insert(idx, ev.tksAdd_charge[jj])
+            e.tkCharge.insert(idx, ev.tksAdd_charge[jj]*ev.trgMu_charge[0])
             e.massVis_wTk.insert(idx, mVis_wTk)
             e.massHad_wTk.insert(idx, (p4_Dst + p4_tk).M())
             e.massMuTk.insert(idx, (p4_mu + p4_tk).M())

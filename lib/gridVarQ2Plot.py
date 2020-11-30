@@ -104,7 +104,6 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
             max_entries['M2_miss'] = max(h_dic['data'].GetMaximum(), max_entries['M2_miss'])
         elif 'Est' in k:
             max_entries['Est_mu'] = max(h_dic['data'].GetMaximum(), max_entries['Est_mu'])
-
     for i_q2 in range(len(binning['q2'])-1):
         q2_l = binning['q2'][i_q2]
         q2_h = binning['q2'][i_q2 + 1]
@@ -483,6 +482,11 @@ def plot_SingleCategory(CMS_lumi,
             c_MC = h_tot.GetBinContent(i)
             e_MC = h_tot.GetBinError(i)
             if pullsRatio:
+                if c_MC == 0 and c == 0:
+                    c_MC = 1
+                    c = 1
+                elif c_MC == 0:
+                    c_MC = 1e-10
                 h_dr.SetBinContent(i, c/c_MC)
                 h_dr.SetBinError(i, e/c_MC)
             else:
@@ -550,6 +554,5 @@ def plot_SingleCategory(CMS_lumi,
         h_dr.Draw('sameP')
 
         canvas.dnd.append([pad, h_dr, h_tot, g_up, g_down])
-
     canvas.Draw()
     return canvas

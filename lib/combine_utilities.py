@@ -5,6 +5,7 @@ import commands
 from prettytable import PrettyTable
 import json, yaml
 import numpy as np
+import pandas as pd
 from scipy.interpolate import interp1d
 from array import array
 import matplotlib.pyplot as plt
@@ -16,10 +17,12 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
 
 def loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=False):
+    if not histo_file_dir[-1] == '/':
+        histo_file_dir += '/'
     histo = {}
-    for fname in glob(histo_file_dir+'{}_[EAMU]*.root'.format(card_name)):
+    for fname in glob(histo_file_dir+'{}_*.root'.format(card_name)):
         regionName = os.path.basename(fname)[len(card_name)+1:-5]
-        tfReg = rt.TFile.Open(histo_file_dir+'{}_{}.root'.format(card_name, regionName), 'READ')
+        tfReg = rt.TFile.Open(fname, 'READ')
         histo[regionName] = {}
         for n in [k.GetName() for k in tfReg.GetListOfKeys()]:
             if not loadShapeVar and '__' in n:
@@ -29,10 +32,13 @@ def loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=False):
     return histo
 
 def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
-    f = ur.open(name)
-    iToy_arr = f['limit']['iToy'].array()
-    r_arr_raw = f['limit']['r'].array()
-    nll_arr_raw = f['limit']['deltaNLL'].array()
+    if not os.path.isfile(name):
+        print 'File not found:', name
+        raise
+    arr = rtnp.root2array(name, treename='limit')
+    iToy_arr = arr['iToy']
+    r_arr_raw = arr['r']
+    nll_arr_raw = arr['deltaNLL']
     res = []
     for iToy in np.unique(iToy_arr):
         sel = iToy_arr == iToy
@@ -52,7 +58,7 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
             plt.plot(2*nll_l, r_l, '.--', color=color)
             plt.plot(nll_arr[0], c, 'o', color='gray')
             idxL = np.argmax(nll_l < 4) if np.max(nll_l) >= 4 else -1
-            idxU = np.argmax(nll_u < 4) if np.max(nll_u) >= 4 else -1
+            idxU = np.argmax(nll_u < 4) if np.max(nll_u) >= 4 else 0
             plt.ylim(r_l[idxL], r_u[idxU])
             plt.xlabel('$-2\Delta\log(L)$')
             plt.ylabel('POI')
@@ -104,40 +110,51 @@ def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False, parsToPrint
         outDipls.append((xIn-xOut)/sigIn)
 
     outDipls = np.argsort(np.abs(np.array(outDipls)))
-    for st_idx in [-parsToPrint, 0]:
-        idxList = outDipls[st_idx:]
-        t = PrettyTable()
-        t.field_names = ['Parameter', 'pre-fit', 'post-fit']
-        for i in reversed(list(idxList)):
-            t.add_row([name[i], inVal[i], outVal[i]])
-        if st_idx == 0:
-            with open(outdir+'/nuisance_difference'+('_'+tag if tag else '')+'.txt', 'w') as dumpfile:
-                dumpfile.write('{}\n'.format(t))
 
-            print 'Dumping text table'
-            with open(outdir+'/nuisance_difference'+('_'+tag if tag else '')+'_texTable.txt', 'w') as dumpfile:
-                cols = 2
-                for i in range(1, idxList.shape[0]):
-                    if not i%cols == 1:
-                        continue
-
-                    s = ''
-                    for j in range(cols):
-                        idx = idxList[-i-j]
-                        s += name[idx].replace('prop_bin', 'stat_').replace('_AddTk', '').replace('_', '\_')
-                        s += ' & $'
-                        s += outVal[idx].replace('!', '').split(' (')[0].replace('+/-', '\pm') + '$'
-                        if j == cols -1 :
-                            s += ' \\\\'
-                        else:
-                            s += ' & '
-                    dumpfile.write(s + '\n')
-                    lastVal = outVal[idx].replace('!', '').split(' +/-')[0]
-                    if np.abs(float(lastVal)) < 1.6:
-                        break
-
+    # Print top parameters
+    t = PrettyTable()
+    t.field_names = ['Parameter', 'pre-fit', 'post-fit']
+    i = outDipls.shape[0] - 1
+    nPrinted = 0
+    while i>=0 and nPrinted < parsToPrint:
+        idx = outDipls[i]
+        if name[idx].startswith('prop_bin'):
+            i -= 1
         else:
-            print t
+            t.add_row([name[idx], inVal[idx], outVal[idx]])
+            nPrinted += 1
+            i -= 1
+    print t
+
+    # Saving the whole diff
+    t = PrettyTable()
+    t.field_names = ['Parameter', 'pre-fit', 'post-fit']
+    for i in reversed(list(outDipls)): t.add_row([name[i], inVal[i], outVal[i]])
+
+    with open(outdir+'/nuisance_difference'+('_'+tag if tag else '')+'.txt', 'w') as dumpfile:
+        dumpfile.write('{}\n'.format(t))
+
+    with open(outdir+'/nuisance_difference'+('_'+tag if tag else '')+'_texTable.txt', 'w') as dumpfile:
+        cols = 2
+        for i in range(1, outDipls.shape[0]):
+            if not i%cols == 1:
+                continue
+
+            s = ''
+            for j in range(cols):
+                idx = outDipls[-i-j]
+                s += name[idx].replace('prop_bin', 'stat_').replace('_AddTk', '').replace('_', '\_')
+                s += ' & $'
+                s += outVal[idx].replace('*', '').replace('!', '').split(' (')[0].replace('+/-', '\pm') + '$'
+                if j == cols -1 :
+                    s += ' \\\\'
+                else:
+                    s += ' & '
+            dumpfile.write(s + '\n')
+            lastVal = outVal[idx].replace('*', '').replace('!', '').split(' +/-')[0]
+            if np.abs(float(lastVal)) < 1.6:
+                break
+
 
 stringJubCustomizationCaltechT2 = '''
 +RunAsOwner = True

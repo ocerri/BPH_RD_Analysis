@@ -83,8 +83,12 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
     if not (14 in skipCut):
         if not ev.cos_D0pismu_PV[j] > 0.99:
             return False
+    # Cuts on the observables
     if not (15 in skipCut):
-        if not (e.q2 > -2. and e.q2 < 12):
+        # sel = e.q2 > -2. and e.q2 < 12
+        sel = e.q2 > 0 and e.q2 < 12
+        sel = sel and e.M2_miss > 0
+        if not sel:
             return False
     if not (16 in skipCut):
         if not e.mass_D0pismu < 5.4:
