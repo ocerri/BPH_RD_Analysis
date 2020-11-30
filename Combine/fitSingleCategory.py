@@ -15,7 +15,7 @@ To do:
 """
 
 
-import sys, os, pickle, time, json, yaml, itertools, commands
+import sys, os, pickle, time, json, yaml, itertools, commands, re
 from glob import glob
 sys.path.append('../lib')
 sys.path.append('../analysis')
@@ -61,8 +61,8 @@ parser.add_argument ('--dataType', default=0, choices=[0,1,2], help='0: both, 1:
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic')
 
 
-availableSteps = ['histos', 'preFitPlots', 'card', 'workspace', 'bias', 'prescan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
-defaultPipeline = ['histos', 'preFitPlots', 'card', 'workspace', 'prescan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'GoF']
+availableSteps = ['histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
+defaultPipeline = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'GoF']
 parser.add_argument ('--step', '-s', type=str, default=defaultPipeline, choices=availableSteps, help='Category(ies)', nargs='+')
 
 parser.add_argument ('--forceRDst', default=False, action='store_true', help='Perform fit fixing R(D*) to 0.295')
@@ -70,14 +70,18 @@ parser.add_argument ('--forceRDst', default=False, action='store_true', help='Pe
 parser.add_argument ('--seed', default=6741, type=int, help='Seed used by Combine')
 parser.add_argument ('--RDstLims', default=[0.1, 0.5], type=int, help='Initial boundaries of R(D*)', nargs='+')
 
+# Scan options
+parser.add_argument ('--maskScan', type=str, default=[], nargs='+', help='Channels to mask during likelyhood scan. If this list is non empty, the full card is used (default is fitregionsOnly)')
+parser.add_argument ('--tagScan', type=str, default='')
+
 # Impacts options
 parser.add_argument ('--collectImpacts', default=False, action='store_true', help='Only collect impact fits which have been previously run')
 parser.add_argument ('--subOnlyImpacts', default=False, action='store_true', help='Only submit impact fits, do not collect results')
 
 # Goodness Of Fit options
-parser.add_argument ('--algoGoF', type=str, default='Sat', choices=['Sat', 'AD', 'KS'], help='Algorithm to be used for the goodness of fit test')
+parser.add_argument ('--algoGoF', type=str, default=['Sat', 'AD', 'KS'], choices=['Sat', 'AD', 'KS'], help='Algorithm to be used for the goodness of fit test', nargs='+')
 parser.add_argument ('--maskEvalGoF', type=str, default=[], nargs='+', help='Additional channels to mask during GoF evaluation')
-parser.add_argument ('--tagGoF', type=str, default='All')
+parser.add_argument ('--tagGoF', type=str, default='all')
 
 parser.add_argument ('--showPlots', default=False, action='store_true', help='Show plots by setting ROOT batch mode OFF (default ON)')
 parser.add_argument ('--showCard', default=False, action='store_true', help='Dump card on std outoput')
@@ -425,7 +429,7 @@ def createHistograms():
         ]
     binning['mu_pt'] = n_q2bins*[{'low': array('d', list(np.arange(7, 9, 0.05))+[9] ),
                                   'mid': array('d', list(np.arange(9, 12, 0.05)) +[12] ),
-                                  'high': array('d', list(np.arange(12, 20, 0.1)))
+                                  'high': array('d', list(np.logspace(np.log10(12), np.log10(50), 40))
                                  }[category]]
 
     binning['Dst_pt'] = n_q2bins*[array('d', list(np.arange(5, 30, 1)) )]
@@ -1004,7 +1008,7 @@ def drawPlots(tag, hDic, scale_dic={}):
         cAux = plot_SingleCategory(CMS_lumi, hDic['B_pt'], draw_pulls=True, scale_dic=scale_dic,
                                    addText=cat.name.capitalize(), logy=False, legBkg=True,
                                    procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
-                                   min_y=1, tag=tag+'B_pt', legLoc=[0.65, 0.45, 0.9, 0.75])
+                                   min_y=1, tag=tag+'B_pt', legLoc=[0.65, 0.4, 0.9, 0.75])
         cAux.SaveAs(outdir+'/fig/B_pt_'+tag+'.png')
         cAux.SaveAs(webFolder+'/B_pt_'+tag+'.png')
         outCanvas.append(cAux)
@@ -1016,7 +1020,7 @@ def drawPlots(tag, hDic, scale_dic={}):
         cAux = plot_SingleCategory(CMS_lumi, hDic['B_eta'], draw_pulls=True, scale_dic=scale_dic,
                                    addText=cat.name.capitalize(), logy=False, legBkg=True,
                                    procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
-                                   min_y=1, tag=tag+'B_eta', legLoc=[0.44, 0.23, 0.64, 0.53])
+                                   min_y=1, tag=tag+'B_eta', legLoc=[0.44, 0.23, 0.63, 0.53])
         cAux.SaveAs(outdir+'/fig/B_eta_'+tag+'.png')
         cAux.SaveAs(webFolder+'/B_eta_'+tag+'.png')
         outCanvas.append(cAux)
@@ -1067,7 +1071,7 @@ def drawPlots(tag, hDic, scale_dic={}):
                                    procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=1,
                                    tag=tag+'mu_pt_q2bin'+str(i_q2),
-                                   legLoc=[0.5, 0.4, 0.51, 0.41],
+                                   legLoc=[0.7, 0.5, 0.9, 0.75],
                                    maskData = (not args.unblinded) and (False if i_q2 < 2 else True)
                                    )
         cAux.SaveAs(outdir+'/fig/muPt_q2bin'+str(i_q2)+'_'+tag+'.png')
@@ -1089,7 +1093,7 @@ def drawPlots(tag, hDic, scale_dic={}):
                                    procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=1,
                                    tag=tag+'Dst_pt_q2bin'+str(i_q2),
-                                   legLoc=[0.5, 0.4, 0.51, 0.41],
+                                   legLoc=[0.7, 0.4, 0.9, 0.75],
                                    maskData = (not args.unblinded) and (False if i_q2 < 2 else True)
                                    )
         cAux.SaveAs(outdir+'/fig/DstPt_q2bin'+str(i_q2)+'_'+tag+'.png')
@@ -1476,6 +1480,7 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
 ########################### -------- Likelihood scan ------------------ #########################
 
 def runScan(tag, card, out, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=50, maskStr='', strategy=1, draw=True):
+    if not out[-1] == '/': out += '/'
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit'
     cmd += ' --algo grid --points='+str(nPoints)
@@ -1495,8 +1500,14 @@ def runScan(tag, card, out, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=50, maskSt
         raise
 
     if draw:
+        json.dump({'r': 'R(D*)'}, open(out+'renameDicLikelihoodScan.json', 'w'))
+
         cmd = 'cd ' + out + '; '
         cmd += 'plot1DScan.py higgsCombine{t}.MultiDimFit.mH120.root -o scan{t}'.format(t=tag)
+        cmd += ' --main-label "{} {}'.format('Obs.' if not args.asimov else 'Asimov', category.capitalize())
+        if not args.unblinded: cmd += ' (blinded)'
+        cmd += '"'
+        cmd += ' --translate ' + out+'renameDicLikelihoodScan.json'
         print cmd
         status, output = commands.getstatusoutput(cmd)
         if status:
@@ -1509,7 +1520,6 @@ def runScan(tag, card, out, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=50, maskSt
             print output
             raise
 
-    if not out[-1] == '/': out += '/'
     print 'Extracting new POI boundaries'
     res = getUncertaintyFromLimitTree(out+'higgsCombine{}.MultiDimFit.mH120.root'.format(tag))
     rLimitsOut = [res[0] - 3*res[1], res[0] + 3*res[2]]
@@ -1630,6 +1640,12 @@ def nuisancesDiff(tag, out, forceRDst):
         raise
     dumpDiffNuisances(output, out, tag='_RDstFixed' if forceRDst else '',
                       useBonlyResults=forceRDst, parsToPrint=100)
+    cmd = 'cp {}nuisance_difference.txt {}/'.format(out, webFolder)
+    print cmd
+    status, output = commands.getstatusoutput(cmd)
+    if status:
+        print output
+        raise
 
 
 ########################### -------- Uncertainty breakdown ------------------ #########################
@@ -1732,11 +1748,11 @@ def runNuisanceImpacts(card, out, maskStr='', rVal=SM_RDst, submit=True, collect
 
     if submit:
         if os.path.isdir(out+'impactPlots'):
-            os.system('rm -rf ')
+            os.system('rm -rf '+out+'impactPlots')
         os.mkdir(out+'impactPlots')
 
         cmd = 'cd {}impactPlots; '.format(out)
-        cmd += ' combineTool.py -M Impacts --doInitialFit'
+        cmd += ' combineTool.py -M Impacts --doInitialFit -m 0'
         cmd += ' --robustFit 1 --X-rtd MINIMIZER_analytic'
         cmd += ' -d ' + card.replace('.txt', '.root')
         cmd += ' --setParameters r={:.2f}'.format(rVal)
@@ -1754,7 +1770,7 @@ def runNuisanceImpacts(card, out, maskStr='', rVal=SM_RDst, submit=True, collect
         # If running on Tier2 condor remmeber to add this line to CombineToolBase.py ln 11
         # ``source /cvmfs/cms.cern.ch/cmsset_default.sh``
         cmd = 'cd {}impactPlots;'.format(out)
-        cmd += ' combineTool.py -M Impacts --doFits'
+        cmd += ' combineTool.py -M Impacts --doFits -m 0'
         cmd += ' --robustFit 1 --X-rtd MINIMIZER_analytic'
         cmd += ' --parallel 100 --job-mode condor --task-name combineImpacts_'+category
         cmd += ' --sub-opts "{}"'.format(stringJubCustomizationCaltechT2.replace('"', '\\\"').replace('$', '\$'))
@@ -1779,7 +1795,7 @@ def runNuisanceImpacts(card, out, maskStr='', rVal=SM_RDst, submit=True, collect
                     print l
                     sys.stdout.flush()
         cmd = 'cd {}impactPlots;'.format(out)
-        cmd += ' combineTool.py -M Impacts -o impacts.json'
+        cmd += ' combineTool.py -M Impacts -o impacts.json -m 0'
         cmd += ' -d ' + card.replace('.txt', '.root')
         print cmd
         status, output = commands.getstatusoutput(cmd)
@@ -1836,14 +1852,14 @@ def runNuisanceImpacts(card, out, maskStr='', rVal=SM_RDst, submit=True, collect
         json.dump(rename, open(out+'impactPlots/rename.json', 'w'))
 
         cmd = 'cd {};'.format(out)
-        cmd += 'plotImpacts.py -i impactPlots/impacts.json -o impacts -t impactPlots/rename.json --max-pages 3'
+        cmd += 'plotImpacts.py -i impactPlots/impacts.json -o impacts -t impactPlots/rename.json --max-pages 1'
         print cmd
         status, output = commands.getstatusoutput(cmd)
         if status:
             print output
             raise
 
-        cmd = 'cp {}impacs.pdf {}/'.format(out, webFolder)
+        cmd = 'cp {}impacts.pdf {}/'.format(out, webFolder)
         status, output = commands.getstatusoutput(cmd)
         if status:
             print output
@@ -1851,6 +1867,9 @@ def runNuisanceImpacts(card, out, maskStr='', rVal=SM_RDst, submit=True, collect
 
 
 ########################### -------- Goodness of Fit ------------------ #########################
+def runCommand(cmd):
+    status, output = commands.getstatusoutput(cmd)
+    return [status, output]
 
 def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=SM_RDst):
     # Always to be tun with fitRegionsOnly cards
@@ -1883,16 +1902,13 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
         raise
     arr = rtnp.root2array(gofOutdir+'/higgsCombineObs'+tag+'.GoodnessOfFit.mH120.100.root', treename='limit')
     s_obs = arr['limit'][0]
-    print 'Observed test statistics:', s_obs 
+    print 'Observed test statistics: {:.1f}'.format(s_obs)
 
 
     # Run the test stat toy distribution
     cmdToys = cmd.replace('-n Obs', '-n Toys')
     cmdToys = cmdToys.replace('-t 0 -s 100', '-t 20 -s -1')
     print cmdToys
-    def runCommand(cmd):
-        status, output = commands.getstatusoutput(cmd)
-        return [status, output]
 
     Nrep = 20
     p = Pool(min(20,Nrep))
@@ -1916,13 +1932,14 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
     plt.legend(loc='upper right')
     plt.xlabel('Test statistic (algo {})'.format(algo))
     plt.ylabel('Probability / {:.1f}'.format(0.5*(center[2]-center[1])))
-    plt.savefig(out + 'fig/GoF_results'+tag+'.png')
-    plt.savefig(webFolder + '/GoF_results'+tag+'.png')
+    plt.savefig(out + 'fig/resultsGoF'+tag+'.png')
+    plt.savefig(webFolder + '/resultsGoF'+tag+'.png')
 
-    strRes = tag + ' '*(55-len(strRes))
-    strRes += '{:.1f}'.format(s_obs)
+    strRes = tag
+    strRes += ' '*(55-len(strRes))
+    strRes += '{:.2f}'.format(s_obs)
     strRes += ' '*(70-len(strRes))
-    strRes += '{:.1f}\t{:.1f}'.format(np.percentile(s_toys, 50), np.percentile(s_toys, 95))
+    strRes += '{:.2f} {:.2f} {:.2f}'.format(np.percentile(s_toys, 50), np.percentile(s_toys, 95), np.percentile(s_toys, 99))
     print strRes
     os.system('echo "{}" >> {}GoF_results.txt'.format(strRes, out));
 
@@ -1976,9 +1993,20 @@ if __name__ == "__main__":
         globalChannelMasking += ['Unrolled_q2bin2', 'Unrolled_q2bin3']
     globalChannelMaskingStr = ','.join(['mask_{}=1'.format(c) for c in globalChannelMasking])
 
-    if 'prescan' in args.step:
-        fit_RDst, rDst_postFitRegion = runScan(args.cardTag+'Pre', card_location.replace('.txt', '_fitRegionsOnly.txt'),
-                                               out=outdir, rLimits=rDst_postFitRegion, strategy=1, draw=True)
+    if 'scan' in args.step:
+        if args.maskScan:
+            maskList = []
+            for n in args.maskScan:
+                for kn in histo.keys():
+                    if not re.match(n, kn) is None:
+                        print 'Masking', kn
+                        maskList.append('mask_'+kn+'=1')
+            maskStr = ','.join(maskList)
+            fit_RDst, rDst_postFitRegion = runScan(args.cardTag+args.tagScan, card_location, maskStr=maskStr,
+                                                   out=outdir, rLimits=rDst_postFitRegion, strategy=1, draw=True)
+        else:
+            fit_RDst, rDst_postFitRegion = runScan(args.cardTag+'Base', card_location.replace('.txt', '_fitRegionsOnly.txt'),
+                                                   out=outdir, rLimits=rDst_postFitRegion, strategy=1, draw=True)
 
     if 'fitDiag' in args.step:
         print '-----> Running fit diagnostic'
@@ -2007,7 +2035,19 @@ if __name__ == "__main__":
 
     if 'GoF' in args.step:
         print '-----> Goodnees of Fit'
-        print args.maskEvalGoF
-        maskStr = ''
-        runGoodnessOfFit(args.tagGoF, card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
-                         args.algoGoF, fixRDst=args.forceRDst, maskEvalGoF=maskStr)
+        maskList = []
+        if args.maskEvalGoF:
+            if len(args.algoGoF) > 1 or args.algoGoF[0] != 'Sat':
+                print 'Only saturated algorith accept masks. Running only algo=Sat'
+                args.algoGoF = ['Sat']
+
+            for n in args.maskEvalGoF:
+                for kn in histo.keys():
+                    if not re.match(n, kn) is None:
+                        print 'Masking', kn
+                        maskList.append('mask_'+kn+'=1')
+        maskStr = ','.join(maskList)
+        for algo in args.algoGoF:
+            runGoodnessOfFit(args.tagGoF, card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+                             algo, fixRDst=args.forceRDst, maskEvalGoF=maskStr)
+            print '-'

@@ -380,7 +380,8 @@ def plot_SingleCategory(CMS_lumi,
     h.GetXaxis().SetTitleOffset(1.1)
     h.GetYaxis().SetTitleSize(0.06)
     h.GetYaxis().SetLabelSize(0.07)
-    h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + 'GeV' if xtitle else '')
+    if xtitle:
+        h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + 'GeV')
     if max_y is None:
         max_y = np.max([hhh.GetMaximum() for hhh in h_dic.values()])*1.3
     if maskData:
