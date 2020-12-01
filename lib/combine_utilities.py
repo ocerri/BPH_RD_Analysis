@@ -16,11 +16,13 @@ rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
 
-def loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=False):
+def loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=False, verbose=False):
     if not histo_file_dir[-1] == '/':
         histo_file_dir += '/'
     histo = {}
     for fname in glob(histo_file_dir+'{}_*.root'.format(card_name)):
+        if verbose:
+            print 'Loading histos from:', fname
         regionName = os.path.basename(fname)[len(card_name)+1:-5]
         tfReg = rt.TFile.Open(fname, 'READ')
         histo[regionName] = {}

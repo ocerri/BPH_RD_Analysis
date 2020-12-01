@@ -106,7 +106,8 @@ binning = {'q2': array('d', [0, 3.5, 6, 9.4, 12])}
 # binning['q2'] = array('d', [-2, 2.5, 6, 9.4, 12])
 
 SM_RDst = 0.295
-CMS_lumi.integrated_lumi = {'low':6.4, 'mid':20.7, 'high':26.4, 'single':20.7}[category] #fb^-1
+expectedLumi = {'low':6.4, 'mid':20.7, 'high':26.4, 'single':20.7} #fb^-1
+CMS_lumi.integrated_lumi = expectedLumi[category]
 
 FreeParFF = {
    'CLN': ['R0', 'eig1', 'eig2', 'eig3'],

@@ -254,6 +254,11 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                     c_MC = h_tot.GetBinContent(i)
                     e_MC = h_tot.GetBinError(i)
                     if pullsRatio:
+                        if c_MC == 0 and c == 0:
+                            c_MC = 1
+                            c = 1
+                        elif c_MC == 0:
+                            c_MC = 1e-10
                         h_dr.SetBinContent(i, c/c_MC)
                         h_dr.SetBinError(i, e/c_MC)
                     else:
