@@ -444,7 +444,10 @@ def createHistograms(category):
                                   'High': array('d', list(np.logspace(np.log10(12), np.log10(50), 40)))
                                  }[category.name]]
 
-    binning['Dst_pt'] = n_q2bins*[array('d', list(np.arange(5, 30, 1)) )]
+    binning['Dst_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(3, 35, 1)) ),
+                                   'Mid':  array('d', list(np.arange(4, 40, 1)) ),
+                                   'High': array('d', list(np.arange(5, 50, 1)) )
+                                  }[category.name]]
     binning_2D = [
         [
     #         array('d', [-2.5] + list(np.arange(-1.8, -0.2, 0.4)) + [-0.2, 0., 0.2, 0.6, 8] ),
