@@ -1468,7 +1468,7 @@ def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
 
     print '-----> Running the toys scans'
     cmd = 'cd ' + out + '; '
-    cmd += 'combine -M MultiDimFit --algo grid --points=50'
+    cmd += 'combine -M MultiDimFit --algo grid --points=70'
     cmd += ' --robustFit 1 --cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_analytic'
     cmd += ' --seed ' + str(seed)
     cmd += ' -d ' + card.replace('.txt', '.root')
@@ -1476,7 +1476,7 @@ def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
     cmd += ' --setParameters r={:.2f}'.format(rVal)
     if maskStr:
         cmd += ','+maskStr
-    cmd += ' --setParameterRanges r=0.15,0.5'
+    cmd += ' --setParameterRanges r=0.15,0.45'
     cmd += ' -n Scan -m {:.0f}'.format(1000*rVal)
     cmd += ' --verbose 1'
     print cmd
