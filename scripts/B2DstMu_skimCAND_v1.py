@@ -485,13 +485,13 @@ def makeSelection(inputs):
                         ev.wh_CLNeig1Down, ev.wh_CLNeig1Up,
                         ev.wh_CLNeig2Down, ev.wh_CLNeig2Up,
                         ev.wh_CLNeig3Down, ev.wh_CLNeig3Up,
-                        # ev.wh_BLPRCentral,
-                        # ev.wh_BLPReig1Down, ev.wh_BLPReig1Up,
-                        # ev.wh_BLPReig2Down, ev.wh_BLPReig2Up,
-                        # ev.wh_BLPReig3Down, ev.wh_BLPReig3Up,
-                        # ev.wh_BLPReig4Down, ev.wh_BLPReig4Up,
-                        # ev.wh_BLPReig5Down, ev.wh_BLPReig5Up,
-                        # ev.wh_BLPReig6Down, ev.wh_BLPReig6Up,
+                        ev.wh_BLPRCentral,
+                        ev.wh_BLPReig1Down, ev.wh_BLPReig1Up,
+                        ev.wh_BLPReig2Down, ev.wh_BLPReig2Up,
+                        ev.wh_BLPReig3Down, ev.wh_BLPReig3Up,
+                        ev.wh_BLPReig4Down, ev.wh_BLPReig4Up,
+                        ev.wh_BLPReig5Down, ev.wh_BLPReig5Up,
+                        ev.wh_BLPReig6Down, ev.wh_BLPReig6Up,
                        )
             ev_output.append(aux)
 
@@ -647,13 +647,13 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'wh_CLNeig1Down', 'wh_CLNeig1Up',
                             'wh_CLNeig2Down', 'wh_CLNeig2Up',
                             'wh_CLNeig3Down', 'wh_CLNeig3Up',
-                            # 'wh_BLPRCentral',
-                            # 'wh_BLPReig1Down', 'wh_BLPReig1Up',
-                            # 'wh_BLPReig2Down', 'wh_BLPReig2Up',
-                            # 'wh_BLPReig3Down', 'wh_BLPReig3Up',
-                            # 'wh_BLPReig4Down', 'wh_BLPReig4Up',
-                            # 'wh_BLPReig5Down', 'wh_BLPReig5Up',
-                            # 'wh_BLPReig6Down', 'wh_BLPReig6Up',
+                            'wh_BLPRCentral',
+                            'wh_BLPReig1Down', 'wh_BLPReig1Up',
+                            'wh_BLPReig2Down', 'wh_BLPReig2Up',
+                            'wh_BLPReig3Down', 'wh_BLPReig3Up',
+                            'wh_BLPReig4Down', 'wh_BLPReig4Up',
+                            'wh_BLPReig5Down', 'wh_BLPReig5Up',
+                            'wh_BLPReig6Down', 'wh_BLPReig6Up',
                             ]
 
         applyCorr = None
@@ -684,6 +684,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 outputs = p.map(makeSelection, inputs)
             elif args.parallelType == 'jobs':
                 tmpDir = 'tmp/B2DstMu_skimCAND_' + n
+                if args.trkControlRegion:
+                    tmpDir += '_trkControl'
                 os.system('rm -rf ' + tmpDir + '/out')
                 os.system('rm -rf ' + tmpDir + '/*.p')
                 os.makedirs(tmpDir + '/out')
@@ -693,6 +695,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 print 'Submitting jobs'
                 cmd = 'condor_submit {}/jobs.jdl'.format(tmpDir)
                 cmd += ' -batch-name skim_' + n
+                if args.trkControlRegion:
+                    cmd += '_trkControl'
                 status, output = commands.getstatusoutput(cmd)
                 if status !=0:
                     print 'Error in processing command:\n   ['+cmd+']'
@@ -705,7 +709,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                     status, output = commands.getstatusoutput('condor_q')
                     found = False
                     for line in output.split('\n'):
-                        if 'skim_'+n in line:
+                        aux = 'skim_'+n+('_trkControl' if args.trkControlRegion else '')
+                        if aux in line:
                             print line
                             time.sleep(10)
                             found = True

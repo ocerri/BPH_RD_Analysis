@@ -53,7 +53,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument ('--category', '-c', type=str, default='low', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category')
 parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use')
-parser.add_argument ('--cardTag', '-v', default='vTest', help='Card name initial tag')
+parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial tag')
 
 parser.add_argument ('--unblinded', default=False, action='store_true', help='Unblind the fit regions')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data')
@@ -535,6 +535,7 @@ def createHistograms(category):
             print 'Including B +/- pT corrections'
             weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
         # Hammer corrections to the FF
+        print ' '.join([k for k in ds.columns if k.startswith('wh_')])
         if n in ['mu', 'tau'] and schemeFF != 'NoFF':
             print 'Including FF corrections (Hammer)'
             weights['B2DstFF'] = ds['wh_'+schemeFF+'Central']*sMC.effCand['rate_den']/sMC.effCand['rate_'+schemeFF+'Central']
@@ -743,7 +744,9 @@ def createHistograms(category):
     binning['AddTk_pp_mHad'] = [15, 2.25, 3.75]
 
     # Fill control regions histrograms
-    for k in sideSelecton.keys(): histo[k] = {}
+    for k in sideSelecton.keys():
+        histo[k] = {}
+
     totalCounting = {}
     for n in processOrder:
         ds = dSetTkSide[n]
@@ -839,11 +842,12 @@ def createHistograms(category):
         for k, selFun in sideSelecton.iteritems():
             sel[k] = selFun(ds)
             nTotSel = float(np.sum(sel[k]))
-            print 'N tot selected {}: {:.0f}'.format(k, nTotSel)
+            # print 'N tot selected {}: {:.0f}'.format(k, nTotSel)
             nExp = nTotExp * nTotSel / sel[k].shape[0]
-            print 'N tot expected {} (before weights): {:.0f}'.format(k, nExp)
+            # print 'N tot expected {} (before weights): {:.0f}'.format(k, nExp)
             nAux = nTotExp * np.sum(weightsCentral[sel[k]]) / sel[k].shape[0]
-            print 'N tot expected {} (after weights): {:.0f}'.format(k, nAux)
+            # print 'N tot expected {} (after weights): {:.0f}'.format(k, nAux)
+            print 'N tot {}: {:.0f} (sel), {:.0f} (exp. bare), {:.0f} (exp. weights)'.format(k, nTotSel, nExp, nAux)
             latexTableString[k] = '{:.0f} ({:.0f})'.format(nAux, nTotSel)
             if not k in totalCounting.keys():
                 totalCounting[k] = [0, 0]
@@ -958,7 +962,7 @@ def createHistograms(category):
     ######################################################
     ########## Dump root file
     ######################################################
-
+    print 'Dumping histos in root files'
     if not os.path.isdir(histo_file_dir): os.makedirs(histo_file_dir)
 
     for cat_name, h_dic in histo.iteritems():
@@ -2050,7 +2054,6 @@ def submitRunToCondor():
     with open(jobDir+'/job_'+jN+'.jdl', 'w') as fsub:
         fsub.write(job)
 
-    print 'Submitting job...'
     cmd = 'cd '+jobDir+'; condor_submit job_'+jN+'.jdl'
     cmd += ' -batch-name ' + card_name + '_jN'+jN
     print cmd
@@ -2092,7 +2095,7 @@ if __name__ == "__main__":
             histo[c] = loadHisto4CombineFromRoot(histo_file_dir, card_name.replace('comb', c))
     else:
         loadShapeVar = 'card' in args.step
-        histo = loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=loadShapeVar)
+        histo = loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=loadShapeVar, verbose=False)
 
     if 'preFitPlots' in args.step:
         if args.category == 'comb':
