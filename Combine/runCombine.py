@@ -71,6 +71,11 @@ parser.add_argument ('--forceRDst', default=False, action='store_true', help='Pe
 parser.add_argument ('--seed', default=6741, type=int, help='Seed used by Combine')
 parser.add_argument ('--RDstLims', default=[0.1, 0.5], type=int, help='Initial boundaries of R(D*)', nargs='+')
 
+# Bias options
+parser.add_argument ('--runBiasToys', default=False, action='store_true', help='Only generate toys and run scans for bias, do not collect results.')
+parser.add_argument ('--nToys', default=10, type=int, help='Number of toys to run')
+parser.add_argument ('--runBiasAnalysis', default=False, action='store_true', help='Only analyze bias scans which have been previously produced.')
+
 # Scan options
 parser.add_argument ('--maskScan', type=str, default=[], nargs='+', help='Channels to mask during likelyhood scan. If this list is non empty, the full card is used (default is fitregionsOnly)')
 parser.add_argument ('--tagScan', type=str, default='')
@@ -1446,34 +1451,33 @@ def createWorkspace(cardLoc):
 ########################### -------- Bias studies ------------------ #########################
 
 def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
-    # To be debugged
-    print card, out, seed, nToys
-    exit()
-    cmd += 'cd ' + out + '; '
+    print '-----> Generating toys'
+    cmd = 'cd ' + out + '; '
     cmd += 'combine -M GenerateOnly'
     cmd += ' -d ' + card.replace('.txt', '.root')
     cmd += ' --seed ' + str(seed)
     cmd += ' --noMCbonly 1'
     cmd += ' --setParameters r={} --freezeParameters r'.format(rVal)
     cmd += ' --toysFrequentist -t {} --saveToys'.format(nToys)
-    cmd += ' -n Toys -m {:.0f}'.format(100*rVal)
+    cmd += ' -n Toys -m {:.0f}'.format(1000*rVal)
     print cmd
     status, output = commands.getstatusoutput(cmd)
     if status:
         print output
         raise
 
+    print '-----> Running the toys scans'
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit --algo grid --points=50'
     cmd += ' --robustFit 1 --cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_analytic'
     cmd += ' --seed ' + str(seed)
     cmd += ' -d ' + card.replace('.txt', '.root')
-    cmd += ' --toysFile higgsCombineToys.GenerateOnly.mH{}.{}.root -t {}'.format(100*rVal, seed, nToys)
+    cmd += ' --toysFile higgsCombineToys.GenerateOnly.mH{:.0f}.{}.root -t {}'.format(1000*rVal, seed, nToys)
     cmd += ' --setParameters r={:.2f}'.format(rVal)
     if maskStr:
         cmd += ','+maskStr
     cmd += ' --setParameterRanges r=0.15,0.5'
-    cmd += ' -n Scan -m {:.0f}'.format(100*rVal)
+    cmd += ' -n Scan -m {:.0f}'.format(1000*rVal)
     cmd += ' --verbose 1'
     print cmd
     status, output = commands.getstatusoutput(cmd)
@@ -1486,10 +1490,13 @@ def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
 def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     print '-----> Collectiong bias toys scans'
     if not scansLoc[-1] == '/': scansLoc += '/'
-    fnames = glob(scansLoc + 'higgsCombineScan.MultiDimFit.mH{:.0f}.*.root'.format(100*rVal))
-    res = np.zeros(0)
+    fnames = glob(scansLoc + 'higgsCombineScan.MultiDimFit.mH{:.0f}.*.root'.format(1000*rVal))
+    res = None
     for fname in fnames:
-        res = np.concatenate((res, getUncertaintyFromLimitTree(fname, verbose=False)), axis=0)
+        if res is None:
+            res = getUncertaintyFromLimitTree(fname, verbose=False)
+        else:
+            res = np.concatenate((res, getUncertaintyFromLimitTree(fname, verbose=False)), axis=0)
     r = res[:,0]
     rLoErr = res[:,1]
     rHiErr = res[:,2]
@@ -1604,7 +1611,8 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
         print output
         raise
     for line in output.split('\n'):
-            if 'ERROR' in line: print line.replace('ERROR', '\033[1m\x1b[31mError\x1b[0m')
+            if 'ERROR' in line: print line.replace('ERROR', '\033[1m\x1b[31mERROR\x1b[0m')
+            if 'Error' in line: print line.replace('Error', '\033[1m\x1b[31mError\x1b[0m')
             if line.startswith('customStartingPoint'): print line
 
     if not out[-1] == '/': out += '/'
@@ -2143,8 +2151,14 @@ if __name__ == "__main__":
 
     if 'bias' in args.step:
         biasOut = outdir + '/biasStudyToys'
-        biasToysScan(card_location.replace('.txt', '_fitRegionsOnly.txt'), biasOut, args.seed)
-        collectBiasToysResults(biasOut)
+        if not os.path.isdir(biasOut):
+            os.makedirs(biasOut)
+
+        both = args.runBiasAnalysis and args.runBiasToys
+        if (not args.runBiasAnalysis) or both:
+            biasToysScan(card_location.replace('.txt', '_fitRegionsOnly.txt'), biasOut, args.seed, args.nToys)
+        if (not args.runBiasToys) or both:
+            collectBiasToysResults(biasOut)
 
     ################### Define combine auxiliary variables ###################
     rDst_postFitRegion = args.RDstLims
