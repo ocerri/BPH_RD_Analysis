@@ -5,10 +5,8 @@
 To activate the environment run: cd ~/work/CMSSW_10_2_13/src/; cmsenv; cd ~/BPhysics/Combine/
 
 ######## Release notes #########
-New from v16:
-- Only positive q2 and M2_miss
-- Revert to old B pT calibration
-- Remove Muon pt correction
+New from previous version:
+- Added tracking efficiency
 
 To do:
 - Add combinatorial and fake from data template
@@ -48,8 +46,11 @@ CMS_lumi.extraText = "     Preliminary"
 donotdelete = []
 
 import argparse
-parser = argparse.ArgumentParser()
-
+parser = argparse.ArgumentParser(description='Script used to run combine on the R(D*) analysis',
+                                 epilog='Test example: ./runCombine.py -c low',
+                                 add_help=True
+                                 )
+parser.add_argument ('--HELP', '-H', default=False, action='store_true', help='Print help message.')
 parser.add_argument ('--category', '-c', type=str, default='low', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category')
 parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use')
@@ -93,6 +94,9 @@ parser.add_argument ('--showPlots', default=False, action='store_true', help='Sh
 parser.add_argument ('--showCard', default=False, action='store_true', help='Dump card on std outoput')
 
 args = parser.parse_args()
+if args.HELP:
+    parser.print_help()
+    exit()
 
 schemeFF = args.schemeFF
 if not args.showPlots:
@@ -1199,10 +1203,17 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ######################################################
     ########## Scale systematics uncertainties
     ######################################################
-    #pp -> bb cros-section * luminosity
+    #### pp -> bb cros-section * luminosity
     card += 'xsecpp2bbXlumi'+category.trg+' lnN' + ' 1.2'*nProc*nCat + '\n'
 
-    # Branching ratio uncertainty
+    #### Tracking efficiency uncertainty
+    card += 'trkEff param 1.0 0.024\n'
+    card += 'trkEff rateParam AddTk_p_* * 1.0\n'
+    card += 'trkEff rateParam AddTk_m_* * 1.0\n'
+    for charge in ['pp', 'pm', 'mm']:
+        card += 'trkEff2 rateParam AddTk_'+charge+'_* * (@0*@1) trkEff,trkEff\n'
+
+    #### Branching ratio uncertainty
     decayBR = pickle.load(open('/storage/user/ocerri/BPhysics/data/forcedDecayChannelsFactors.pickle', 'rb'))
 
     for n in processes:
@@ -1221,7 +1232,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         card += n + 'Br lnN' + aux*nCat + '\n'
 
 
-    # Branching ratio uncertainty with isospin symmetry constraint
+    #### Branching ratio uncertainty with isospin symmetry constraint
     val = ' {:.2f}'.format(1+decayBR['DstPip'][1]/decayBR['DstPip'][0]) #DstPi0 has no info
     aux = ''
     for n in processes:
@@ -1435,7 +1446,7 @@ def createWorkspace(cardLoc):
     print cardLoc
     cmd = 'text2workspace.py ' + cardLoc
     cmd += ' -o ' + cardLoc.replace('.txt', '.root')
-    cmd += ' --no-b-only --verbose 1 --channel-masks'
+    cmd += ' --no-b-only --verbose 2 --channel-masks'
     # cmd += ' --no-wrappers'
     print cmd
     status, output = commands.getstatusoutput(cmd)
