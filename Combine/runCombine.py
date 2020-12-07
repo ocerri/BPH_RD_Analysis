@@ -58,7 +58,7 @@ parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial 
 
 parser.add_argument ('--unblinded', default=False, action='store_true', help='Unblind the fit regions')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data')
-parser.add_argument ('--dataType', default=0, choices=[0,1,2], help='0: both, 1: only B0, 2: only anti-B0')
+parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic')
 
 
@@ -254,8 +254,8 @@ def loadDatasets(category, loadRD, dataType):
                 dSet['data'] = pd.concat([dSet['data'], aux])
                 dSetTkSide['data'] = pd.concat([dSetTkSide['data'], auxTk])
             else:
-                dSet['data'] = dSet['data']
-                dSetTkSide['data'] = dSetTkSide['data']
+                dSet['data'] = aux
+                dSetTkSide['data'] = auxTk
 
     return MCsample, dSet, dSetTkSide
 
@@ -1207,7 +1207,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += 'xsecpp2bbXlumi'+category.trg+' lnN' + ' 1.2'*nProc*nCat + '\n'
 
     #### Tracking efficiency uncertainty
-    card += 'trkEff param 1.0 0.024\n'
+    card += 'trkEff param 1.0 0.021\n'
     card += 'trkEff rateParam AddTk_p_* * 1.0\n'
     card += 'trkEff rateParam AddTk_m_* * 1.0\n'
     for charge in ['pp', 'pm', 'mm']:
@@ -1425,11 +1425,20 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     return card
 
 def createCombinationCard(fitRegionsOnly=False):
-    cl = card_location.replace('.txt', '_fitRegionsOnly.txt') if fitRegionsOnly else card_location
-    cmd = 'cd '+os.path.dirname(cl)+'; '
-    cl = os.path.basename(cl)
+    clFull = card_location.replace('.txt', '_fitRegionsOnly.txt') if fitRegionsOnly else card_location
+    cmd = 'cd '+os.path.dirname(clFull)+'; '
+    cl = os.path.basename(clFull)
     cmd += 'combineCards.py'
     for c in categoriesToCombine:
+        singleCatCardLoc = clFull.replace('comb', c)
+        nWait = 0
+        while not os.path.isfile(singleCatCardLoc):
+            if nWait > 10:
+                print '[ERROR] Waited too long...goodbye.'
+                raise
+            print 'Waiting for {} card to be produced'.format(c)
+            time.sleep(30)
+            nWait += 1
         cmd += ' {}={}'.format(c, cl.replace('comb', c))
     cmd += ' > ' + cl
     print cmd
