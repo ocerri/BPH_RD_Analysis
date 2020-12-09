@@ -267,8 +267,8 @@ def computeBrVarWeights(ds, selItems={}, relScale=0.2, keepNorm=False):
     up = np.where(sel, 1.+relScale, 1.)
     down = np.where(sel, max(0, 1.-relScale), 1.)
     if keepNorm:
-        up = float(up.shape[0])/np.sum(up)
-        down = float(down.shape[0])/np.sum(down)
+        up = (float(up.shape[0])/np.sum(up)) * up
+        down = (float(down.shape[0])/np.sum(down)) * down
     return w, up, down
 
 def computeWidthVarWeights(ds, selItems=[], relScale=0.1): #Gamma modification factor
