@@ -147,7 +147,11 @@ def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False, parsToPrint
             s = ''
             for j in range(cols):
                 idx = outDipls[-i-j]
-                s += name[idx].replace('prop_bin', 'stat_').replace('_AddTk', '').replace('_', '\_')
+                bName = name[idx].replace('prop_bin', '').replace('_AddTk', '')
+                if 'bin' in bName:
+                    bName = bName.replace('_bin', ' (') + ')'
+                bName = bName.replace('_', ' ')
+                s += bName
                 s += ' & $'
                 s += outVal[idx].replace('*', '').replace('!', '').split(' (')[0].replace('+/-', '\pm') + '$'
                 if j == cols -1 :

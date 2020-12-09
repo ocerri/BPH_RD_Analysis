@@ -1703,14 +1703,14 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
     rt.gStyle.SetPaintTextFormat('.1f')
 
     N = h2.GetNbinsX()
-    n=35
+    n=36
     h2.GetXaxis().SetRange(1, n)
     h2.GetYaxis().SetRangeUser(N-n, N)
     h2.SetMarkerSize(.8)
     h2.LabelsOption("v")
     h2.GetXaxis().SetLabelSize(0.03)
     h2.GetYaxis().SetLabelSize(0.03)
-    CC = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(900, 700), tag='tl', mL=0.22, mR=0.15, mB=0.25)
+    CC = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(900, 700), tag='tl', mL=0.2, mR=0.14, mB=0.25)
     CC.SaveAs(out+'fig/covariance_zoom'+ ('_RDstFixed' if forceRDst else '')+'.png')
     CC.SaveAs(webFolder+'/covariance_zoom'+ ('_RDstFixed' if forceRDst else '')+'.png')
 
