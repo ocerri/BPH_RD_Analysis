@@ -1204,14 +1204,14 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ########## Scale systematics uncertainties
     ######################################################
     #### pp -> bb cros-section * luminosity
-    card += 'xsecpp2bbXlumi'+category.trg+' lnN' + ' 1.2'*nProc*nCat + '\n'
+    card += 'xsecpp2bbXlumi'+category.trg+' lnN' + ' 1.15'*nProc*nCat + '\n'
 
     #### Tracking efficiency uncertainty
     card += 'trkEff param 1.0 0.021\n'
     card += 'trkEff rateParam AddTk_p_* * 1.0\n'
     card += 'trkEff rateParam AddTk_m_* * 1.0\n'
     for charge in ['pp', 'pm', 'mm']:
-        card += 'trkEff2 rateParam AddTk_'+charge+'_* * (@0*@1) trkEff,trkEff\n'
+        card += 'trkEff2 rateParam AddTk_'+charge+'_* * (@0*@0) trkEff\n'
 
     #### Branching ratio uncertainty
     decayBR = pickle.load(open('/storage/user/ocerri/BPhysics/data/forcedDecayChannelsFactors.pickle', 'rb'))
@@ -1700,16 +1700,26 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
                     histo_postfit[regName][n] = h_post
 
     h2 = fFitDiagnostics.Get('covariance_fit_' + ('b' if forceRDst else 's'))
-    rt.gStyle.SetPaintTextFormat('.1f')
-
+    h2.Scale(100.)
+    rt.gStyle.SetPaintTextFormat('.0f')
     N = h2.GetNbinsX()
     n=36
-    h2.GetXaxis().SetRange(1, n)
-    h2.GetYaxis().SetRangeUser(N-n, N)
-    h2.SetMarkerSize(.8)
     h2.LabelsOption("v")
+
+    h2.SetMarkerSize(2.0)
+    h2.GetXaxis().SetLabelSize(0.1)
+    h2.GetYaxis().SetLabelSize(0.1)
+    h2.GetXaxis().SetRange(1, n)
+    h2.GetYaxis().SetRangeUser(0, 1)
+    CC1 = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(900, 300), tag='tl1', mL=0.05, mR=0.01, mB=0.8)
+    CC1.SaveAs(out+'fig/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.png')
+    CC1.SaveAs(webFolder+'/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.png')
+
+    h2.SetMarkerSize(.8)
     h2.GetXaxis().SetLabelSize(0.03)
     h2.GetYaxis().SetLabelSize(0.03)
+    h2.GetXaxis().SetRange(1, n)
+    h2.GetYaxis().SetRangeUser(N-n, N)
     CC = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(900, 700), tag='tl', mL=0.2, mR=0.14, mB=0.25)
     CC.SaveAs(out+'fig/covariance_zoom'+ ('_RDstFixed' if forceRDst else '')+'.png')
     CC.SaveAs(webFolder+'/covariance_zoom'+ ('_RDstFixed' if forceRDst else '')+'.png')
@@ -2159,6 +2169,14 @@ if __name__ == "__main__":
                 print output
                 raise
 
+        cl = card_location.replace('.txt', '_fitRegionsOnly.txt')
+        cmd = 'cd ' + os.path.dirname(cl) + '; '
+        cmd += 'ValidateDatacards.py ' + os.path.basename(cl) + ' -p 3 -c 0.2'
+        print cmd
+        status, output = commands.getstatusoutput(cmd)
+        if ('ERROR' in output) or ('There were  ' in output):
+            print output
+
         print '\n'
         args.step.remove('card')
 
@@ -2237,15 +2255,15 @@ if __name__ == "__main__":
     if 'postFitPlots' in args.step:
         print '-----> Getting postfit results'
         histo_post, _, _ = getPostfitHistos(args.cardTag, outdir, forceRDst=args.forceRDst, histo_prefit=histo)
-        if args.category == 'comb':
-            cPost = {}
-            for c in categoriesToCombine:
-                tag = 'postfit'+c.capitalize()+ ('_RDstFixed' if args.forceRDst else '')
-                cPost[c] = drawPlots(tag, histo_post[c], c.capitalize())
-        else:
-            tag = 'postfit'+ ('_RDstFixed' if args.forceRDst else '')
-            cPost = drawPlots(tag, histo_post, args.category.capitalize())
-        nuisancesDiff(args.cardTag, outdir, args.forceRDst)
+        # if args.category == 'comb':
+        #     cPost = {}
+        #     for c in categoriesToCombine:
+        #         tag = 'postfit'+c.capitalize()+ ('_RDstFixed' if args.forceRDst else '')
+        #         cPost[c] = drawPlots(tag, histo_post[c], c.capitalize())
+        # else:
+        #     tag = 'postfit'+ ('_RDstFixed' if args.forceRDst else '')
+        #     cPost = drawPlots(tag, histo_post, args.category.capitalize())
+        # nuisancesDiff(args.cardTag, outdir, args.forceRDst)
         print '\n'
 
     if 'uncBreakdown' in args.step:
