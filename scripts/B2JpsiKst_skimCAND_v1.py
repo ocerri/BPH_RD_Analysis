@@ -185,11 +185,16 @@ def extractEventInfos(j, ev, corr=None):
     e.mass_mumuKpi = p4_B.M()
     e.mass_mumuKpi_cJpsi = p4_B.M() - e.mass_mumu + m_jpsi
     e.mass_mumuKpi_cJpsi_cKst = p4_B.M() - e.mass_mumu + m_jpsi - e.mass_Kpi + m_Kst
-    e.antiB_pt = p4_B.Pt()
-    e.antiB_eta = p4_B.Eta()
-    e.antiB_phi = p4_B.Phi()
 
     e.mass_KK = compMass(e.pi_pt, e.K_pt, e.pi_eta, e.K_eta, e.pi_phi, e.K_phi, m_K, m_K)
+
+    e.isAntiB = abs(e.mass_piK - m_Kst) > abs(e.mass_Kpi - m_Kst)
+    e.mass_candKst = e.mass_Kpi if e.isAntiB else e.mass_piK
+    e.mass_candB = e.mass_mumuKpi_cJpsi if e.isAntiB else e.mass_mumupiK_cJpsi
+    if e.isAntiB:
+        e.B_pt = p4_B.Pt()
+        e.B_eta = p4_B.Eta()
+        e.B_phi = p4_B.Phi()
 
     return e
 
@@ -255,10 +260,10 @@ def makeSelection(inputs):
                    ev.sigdxy_vtxKst_PV[j],
                    ev.pval_mumupiK[j],
                    evEx.mass_mumupiK, evEx.mass_mumupiK_cJpsi, evEx.mass_mumupiK_cJpsi_cKst,
-                   evEx.B_pt, evEx.B_eta,
+                   evEx.B_pt, evEx.B_eta, evEx.B_phi,
                    ev.cos_B_PV_mumupiK[j], ev.sigd_vtxB_PV_mumupiK[j],
                    evEx.mass_mumuKpi, evEx.mass_mumuKpi_cJpsi, evEx.mass_mumuKpi_cJpsi_cKst,
-                   evEx.antiB_pt, evEx.antiB_eta,
+                   evEx.isAntiB, evEx.mass_candKst, evEx.mass_candB,
                    category_selection(j, ev, evEx, categories['low']),
                    category_selection(j, ev, evEx, categories['mid']),
                    category_selection(j, ev, evEx, categories['high']),
@@ -359,10 +364,10 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                         'sigdxy_vtxKst_PV',
                         'pval_mumupiK', 'mass_mumupiK',
                         'mass_mumupiK_cJpsi', 'mass_mumupiK_cJpsi_cKst',
-                        'B_pt', 'B_eta',
+                        'B_pt', 'B_eta', 'B_phi',
                         'cos_B_PV', 'sigd_vtxB_PV',
                         'mass_mumuKpi', 'mass_mumuKpi_cJpsi', 'mass_mumuKpi_cJpsi_cKst',
-                        'antiB_pt', 'antiB_eta',
+                        'isAntiB', 'mass_candKst', 'mass_candB',
                         'cat_low', 'cat_mid', 'cat_high',
                         'N_vtx'
                       ]

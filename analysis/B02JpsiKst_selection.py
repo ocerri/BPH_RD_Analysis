@@ -90,9 +90,7 @@ def candidate_selection(j, ev, evEx, skipCut=None):
     if not ev.pval_piK[j] > 0.1:
         return False
     if not (7 in skipCut):
-        if not abs(evEx.mass_piK - 0.8955) <  0.07:
-            return False
-        if not abs(evEx.mass_piK - 0.8955) < abs(evEx.mass_Kpi - 0.8955):
+        if not abs(evEx.mass_candKst - 0.8955) <  0.07:
             return False
     if not evEx.mass_KK > 1.035:
         return False

@@ -103,7 +103,8 @@ filesLocMap = {
 #
 'data_B0' : RDloc+'*_RDntuplizer_B2DstMu_201101_CAND.root',
 'data_antiB0' : RDloc+'*_RDntuplizer_antiB2DstMu_201122_CAND.root',
-'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_200611_CAND.root'
+'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_201125_CAND.root',
+'data_combDstpMup' : RDloc+'*_RDntuplizer_combDpstMup_201125_CAND.root',
 }
 
 def getTLVfromField(ev, n, idx, mass):

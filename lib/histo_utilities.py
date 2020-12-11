@@ -60,6 +60,7 @@ def create_TH1D(x, name='h', title=None,
                 axis_title = ['',''],
                 opt='',
                 scale_histo=None,
+                widthNorm=False,
                 minEmptyBins=None,
                 color=None
                ):
@@ -107,10 +108,13 @@ def create_TH1D(x, name='h', title=None,
 
     rtnp.fill_hist(h, x, weights=weights)
     if not scale_histo is None:
-        if scale_histo == 'norm':
+        if 'norm' in scale_histo:
             h.Scale(1./h.Integral())
-        else:
+        elif isinstance(scale_histo, (int, float)):
             h.Scale(scale_histo)
+    if widthNorm:
+        h.Scale(1., 'width')
+
 
     if not minEmptyBins is None:
         for i in range(1, h.GetNbinsX()+1):
