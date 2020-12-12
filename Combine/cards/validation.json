@@ -59,6 +59,18 @@
                     "value_u": 1.24
                 }
             },
+            "high_Unrolled_q2bin2": {
+                "BmDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.24
+                }
+            },
+            "high_Unrolled_q2bin3": {
+                "BmDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.24
+                }
+            },
             "low_AddTk_m_mHad": {
                 "BmDstmHc": {
                     "value_d": 0.0,
@@ -101,6 +113,18 @@
                     "value_u": 1.24
                 }
             },
+            "low_Unrolled_q2bin2": {
+                "BmDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.24
+                }
+            },
+            "low_Unrolled_q2bin3": {
+                "BmDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.24
+                }
+            },
             "mid_AddTk_m_mHad": {
                 "BmDstmHc": {
                     "value_d": 0.0,
@@ -126,6 +150,18 @@
                 }
             },
             "mid_Unrolled_q2bin1": {
+                "BmDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.24
+                }
+            },
+            "mid_Unrolled_q2bin2": {
+                "BmDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.24
+                }
+            },
+            "mid_Unrolled_q2bin3": {
                 "BmDstmHc": {
                     "value_d": 0.0,
                     "value_u": 1.24
@@ -169,6 +205,18 @@
                     "value_u": 1.22
                 }
             },
+            "high_Unrolled_q2bin2": {
+                "BpDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.22
+                }
+            },
+            "high_Unrolled_q2bin3": {
+                "BpDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.22
+                }
+            },
             "low_AddTk_m_mHad": {
                 "BpDstmHc": {
                     "value_d": 0.0,
@@ -211,6 +259,18 @@
                     "value_u": 1.22
                 }
             },
+            "low_Unrolled_q2bin2": {
+                "BpDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.22
+                }
+            },
+            "low_Unrolled_q2bin3": {
+                "BpDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.22
+                }
+            },
             "mid_AddTk_m_mHad": {
                 "BpDstmHc": {
                     "value_d": 0.0,
@@ -248,6 +308,18 @@
                 }
             },
             "mid_Unrolled_q2bin1": {
+                "BpDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.22
+                }
+            },
+            "mid_Unrolled_q2bin2": {
+                "BpDstmHc": {
+                    "value_d": 0.0,
+                    "value_u": 1.22
+                }
+            },
+            "mid_Unrolled_q2bin3": {
                 "BpDstmHc": {
                     "value_d": 0.0,
                     "value_u": 1.22
@@ -421,6 +493,26 @@
                     "value_u": 1.21
                 }
             },
+            "high_Unrolled_q2bin2": {
+                "TauDstPi0": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                },
+                "TauDstPip": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                }
+            },
+            "high_Unrolled_q2bin3": {
+                "TauDstPi0": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                },
+                "TauDstPip": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                }
+            },
             "low_AddTk_m_mHad": {
                 "TauDstPi0": {
                     "value_d": 0.0,
@@ -491,6 +583,26 @@
                     "value_u": 1.21
                 }
             },
+            "low_Unrolled_q2bin2": {
+                "TauDstPi0": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                },
+                "TauDstPip": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                }
+            },
+            "low_Unrolled_q2bin3": {
+                "TauDstPi0": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                },
+                "TauDstPip": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                }
+            },
             "mid_AddTk_m_mHad": {
                 "TauDstPi0": {
                     "value_d": 0.0,
@@ -552,6 +664,26 @@
                 }
             },
             "mid_Unrolled_q2bin1": {
+                "TauDstPi0": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                },
+                "TauDstPip": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                }
+            },
+            "mid_Unrolled_q2bin2": {
+                "TauDstPi0": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                },
+                "TauDstPip": {
+                    "value_d": 0.0,
+                    "value_u": 1.21
+                }
+            },
+            "mid_Unrolled_q2bin3": {
                 "TauDstPi0": {
                     "value_d": 0.0,
                     "value_u": 1.21
@@ -653,6 +785,12 @@
                 "TauDstPip": {
                     "value_d": 0.9997775846022623,
                     "value_u": 0.9984363052115726
+                }
+            },
+            "low_Unrolled_q2bin3": {
+                "TauDstPip": {
+                    "value_d": 1.000141226413197,
+                    "value_u": 1.0000003153723784
                 }
             }
         }

@@ -106,8 +106,9 @@ if not args.showPlots:
 
 if len(args.RDstLims) > 2:
     raise
-elif args.RDstLims[1] <= args.RDstLims[0]:
-    raise
+elif len(args.RDstLims) == 2:
+    if args.RDstLims[1] <= args.RDstLims[0]:
+        raise
 
 ########################### ---- Define standards ----------- ########################
 categoriesToCombine = ['low', 'mid', 'high']
@@ -2242,7 +2243,8 @@ if __name__ == "__main__":
         else:
             fit_RDst, rDst_postFitRegion = runScan(args.cardTag+'Base', card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                                    args.category.capitalize(),
-                                                   rLimits=[0.15], strategy=1, draw=True)
+                                                   rLimits=[0.8] if args.unblinded else [0.15], 
+                                                   strategy=1, draw=True)
 
     if 'fitDiag' in args.step:
         print '-----> Running fit diagnostic'
