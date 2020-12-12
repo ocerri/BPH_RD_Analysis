@@ -34,7 +34,7 @@ from B02JpsiKst_selection import candidate_selection, category_selection
 
 import argparse
 parser = argparse.ArgumentParser()
-#Example: python B2JpsiKst_skimCAND_v1.py -d n_PU20 --maxEvents 80000 --applyCorr
+#Example: python B2JpsiKst_skimCAND_v1.py -d n_PUc0 --maxEvents 80000 --applyCorr
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
@@ -315,13 +315,13 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
             print filepath
             raise
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
-        N_evts_per_job = 150000
+        N_evts_per_job = 100000
     else:
         d = os.path.dirname(filepath) + '/skimmed/'
         if not os.path.isdir(d):
             os.makedirs(d)
         fskimmed_name = d + catName
-        N_evts_per_job = 20000
+        N_evts_per_job = 30000
     if not skipCut == []:
         print 'Skipping cut(s)', skipCut
         if skipCut == 'all':

@@ -6,10 +6,10 @@ To activate the environment run: cd ~/work/CMSSW_10_2_13/src/; cmsenv; cd ~/BPhy
 
 ######## Release notes #########
 New from previous version:
-- Added tracking efficiency
+- Poly B0 calibrations
 
 To do:
-- Add combinatorial and fake from data template
+- Add combinatorial and fake from data template (not sure thare are 0 events)
 """
 
 
@@ -317,7 +317,7 @@ def createHistograms(category):
     decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors.pickle', 'rb'))
 
     loc = dataDir+'/calibration/triggerScaleFactors/'
-    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v3.root', 'READ')
+    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v5.root', 'READ')
     hTriggerSF = fTriggerSF.Get('hSF_HLT_' + category.trg)
     def computeTrgSF(ds, selection=None):
         trgSF = np.ones_like(ds['q2'])
@@ -370,8 +370,8 @@ def createHistograms(category):
         return muonSF, up, down
 
 
-    cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/pwWeights_{}.txt'.format(category.name))
-    # cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/polyCoeffWeights_{}.pkl'.format(category.name))
+    # cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/pwWeights_{}.txt'.format(category.name))
+    cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/polyCoeffWeights_{}.pkl'.format(category.name))
     cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/pwWeights_{}.txt'.format(category.name))
     # cal_pT_mu = pTCalReader(calibration_file=dataDir+'/calibration/MuonPtSpectrum/polyCoeffWeights_{}.pkl'.format(category.name))
     def computePtWeights(ds, var, tag, cal_pT):
@@ -448,9 +448,9 @@ def createHistograms(category):
             array('d', [0.3] + list(np.arange(0.5, 2.1, 0.05)) + [2.1] ),
             [24, 0.3, 2.0],
         ]
-    binning['mu_pt'] = n_q2bins*[{'Low': array('d', list(np.arange(7, 9, 0.05))+[9] ),
-                                  'Mid': array('d', list(np.arange(9, 12, 0.05)) +[12] ),
-                                  'High': array('d', list(np.logspace(np.log10(12), np.log10(50), 40)))
+    binning['mu_pt'] = n_q2bins*[{'Low': array('d', list(np.arange(7.2, 9.2, 0.05))+[9.2] ),
+                                  'Mid': array('d', list(np.arange(9.2, 12.2, 0.05)) +[12.2] ),
+                                  'High': array('d', list(8+np.logspace(np.log10(12.2-8), np.log10(60), 30)) )
                                  }[category.name]]
 
     binning['Dst_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(3, 35, 1)) ),
@@ -544,7 +544,6 @@ def createHistograms(category):
             print 'Including B +/- pT corrections'
             weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
         # Hammer corrections to the FF
-        print ' '.join([k for k in ds.columns if k.startswith('wh_')])
         if n in ['mu', 'tau'] and schemeFF != 'NoFF':
             print 'Including FF corrections (Hammer)'
             weights['B2DstFF'] = ds['wh_'+schemeFF+'Central']*sMC.effCand['rate_den']/sMC.effCand['rate_'+schemeFF+'Central']
@@ -1037,7 +1036,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         print 'Creating B_pt'
         hDic['B_pt']['data'].GetXaxis().SetTitle('B p_{T} [GeV]')
         hDic['B_pt']['data'].GetYaxis().SetTitle('Events')
-        cAux = plot_SingleCategory(CMS_lumi, hDic['B_pt'], draw_pulls=True, scale_dic=scale_dic,
+        cAux = plot_SingleCategory(CMS_lumi, hDic['B_pt'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
                                    addText='Cat. '+catName, logy=False, legBkg=True,
                                    procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=1, tag=tag+'B_pt', legLoc=[0.65, 0.4, 0.9, 0.75])
@@ -1049,7 +1048,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         print 'Creating B_eta'
         hDic['B_eta']['data'].GetXaxis().SetTitle('B #eta')
         hDic['B_eta']['data'].GetYaxis().SetTitle('Events')
-        cAux = plot_SingleCategory(CMS_lumi, hDic['B_eta'], draw_pulls=True, scale_dic=scale_dic,
+        cAux = plot_SingleCategory(CMS_lumi, hDic['B_eta'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
                                    addText='Cat. '+catName, logy=False, legBkg=True,
                                    procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=1, tag=tag+'B_eta', legLoc=[0.44, 0.23, 0.63, 0.53])
@@ -1287,7 +1286,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     aux = ''
     for p in processes:
         if p in SamplesB0:
-            aux += ' 0.7'
+            aux += ' 1.'
         else:
             aux += ' -'
     names = []
@@ -2255,15 +2254,15 @@ if __name__ == "__main__":
     if 'postFitPlots' in args.step:
         print '-----> Getting postfit results'
         histo_post, _, _ = getPostfitHistos(args.cardTag, outdir, forceRDst=args.forceRDst, histo_prefit=histo)
-        # if args.category == 'comb':
-        #     cPost = {}
-        #     for c in categoriesToCombine:
-        #         tag = 'postfit'+c.capitalize()+ ('_RDstFixed' if args.forceRDst else '')
-        #         cPost[c] = drawPlots(tag, histo_post[c], c.capitalize())
-        # else:
-        #     tag = 'postfit'+ ('_RDstFixed' if args.forceRDst else '')
-        #     cPost = drawPlots(tag, histo_post, args.category.capitalize())
-        # nuisancesDiff(args.cardTag, outdir, args.forceRDst)
+        if args.category == 'comb':
+            cPost = {}
+            for c in categoriesToCombine:
+                tag = 'postfit'+c.capitalize()+ ('_RDstFixed' if args.forceRDst else '')
+                cPost[c] = drawPlots(tag, histo_post[c], c.capitalize())
+        else:
+            tag = 'postfit'+ ('_RDstFixed' if args.forceRDst else '')
+            cPost = drawPlots(tag, histo_post, args.category.capitalize())
+        nuisancesDiff(args.cardTag, outdir, args.forceRDst)
         print '\n'
 
     if 'uncBreakdown' in args.step:

@@ -108,10 +108,10 @@ def create_TH1D(x, name='h', title=None,
 
     rtnp.fill_hist(h, x, weights=weights)
     if not scale_histo is None:
-        if 'norm' in scale_histo:
-            h.Scale(1./h.Integral())
-        elif isinstance(scale_histo, (int, float)):
+        if isinstance(scale_histo, (int, float)):
             h.Scale(scale_histo)
+        elif 'norm' in scale_histo:
+            h.Scale(1./h.Integral())
     if widthNorm:
         h.Scale(1., 'width')
 

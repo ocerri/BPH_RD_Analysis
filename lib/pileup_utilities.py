@@ -2,7 +2,7 @@ import numpy as np
 import ROOT as rt
 
 class pileupReweighter(object):
-    def __init__(self, mcSkimFile, cat, dataDate='200515'):
+    def __init__(self, mcSkimFile, cat, histoName='hAllNvtx', dataDate='200515'):
         loc = '../data/cmsRD/ParkingBPH{}/'+'Run2018D-05May2019promptD-v1_RDntuplizer_PrescaleVertices_{}_CAND.root'.format(dataDate)
         fAuxPileupRD = []
 
@@ -18,7 +18,7 @@ class pileupReweighter(object):
         hPileupTarget.Scale(1./hPileupTarget.Integral())
 
         fAuxPileupMC = rt.TFile.Open(mcSkimFile, 'READ')
-        hPileupGen = fAuxPileupMC.Get('hAllNvtx')
+        hPileupGen = fAuxPileupMC.Get(histoName)
         hPileupGen.Scale(1./hPileupGen.Integral())
 
         weights = np.ones(hPileupGen.GetNbinsX())

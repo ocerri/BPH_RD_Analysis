@@ -257,90 +257,96 @@
         "BrB02DstD0Kstp": {
             "high_AddTk_mm_mHad": {
                 "DstmD0": {
-                    "value_d": 0.7309153899903652,
-                    "value_u": 1.2690846100096347
+                    "value_d": 0.7403524736479146,
+                    "value_u": 1.2596475263520852
                 }
             },
             "low_Unrolled_q2bin0": {
                 "DstmD0": {
                     "value_d": 0.5,
-                    "value_u": 1.5000000000000002
+                    "value_u": 1.5
                 }
             }
         },
         "BrB02DstDpKst0": {
             "high_AddTk_p_mHad": {
                 "DstmDp": {
-                    "value_d": 0.7575756718682589,
-                    "value_u": 1.2424243281317415
+                    "value_d": 0.7550044111681556,
+                    "value_u": 1.2449955888318436
                 }
             },
             "high_AddTk_pm_mVis": {
                 "DstmDp": {
-                    "value_d": 0.7111251582649968,
-                    "value_u": 1.2888748417350044
+                    "value_d": 0.7090099731875347,
+                    "value_u": 1.2909900268124652
                 }
             },
             "high_AddTk_pp_mHad": {
                 "DstmDp": {
-                    "value_d": 0.7669661896282779,
-                    "value_u": 1.233033810371722
+                    "value_d": 0.5,
+                    "value_u": 1.5000000000000002
+                }
+            },
+            "low_AddTk_m_mHad": {
+                "DstmDp": {
+                    "value_d": 0.7892926950866019,
+                    "value_u": 1.2107073049133983
                 }
             },
             "low_AddTk_mm_mHad": {
                 "DstmDp": {
-                    "value_d": 0.646296059081701,
-                    "value_u": 1.3537039409182992
+                    "value_d": 0.6686732641669755,
+                    "value_u": 1.3313267358330245
                 }
             },
             "low_AddTk_p_mHad": {
                 "DstmDp": {
-                    "value_d": 0.7497779512900339,
-                    "value_u": 1.2502220487099664
+                    "value_d": 0.7414547175361457,
+                    "value_u": 1.2585452824638546
                 }
             },
             "low_AddTk_pm_mVis": {
                 "DstmDp": {
-                    "value_d": 0.7227716127869104,
-                    "value_u": 1.2772283872130898
+                    "value_d": 0.72014143436528,
+                    "value_u": 1.2798585656347203
                 }
             },
             "low_AddTk_pp_mHad": {
                 "DstmDp": {
-                    "value_d": 0.6666017440376842,
-                    "value_u": 1.3333982559623152
+                    "value_d": 0.6466688135189166,
+                    "value_u": 1.353331186481083
                 }
             },
             "mid_AddTk_m_mHad": {
                 "DstmDp": {
-                    "value_d": 0.7904478983564833,
-                    "value_u": 1.2095521016435165
+                    "value_d": 0.7919825848591489,
+                    "value_u": 1.2080174151408511
                 }
             },
             "mid_AddTk_p_mHad": {
                 "DstmDp": {
-                    "value_d": 0.76160295904301,
-                    "value_u": 1.2383970409569904
+                    "value_d": 0.7726408005332075,
+                    "value_u": 1.2273591994667932
                 }
             },
             "mid_AddTk_pm_mVis": {
                 "DstmDp": {
-                    "value_d": 0.7284361081774134,
-                    "value_u": 1.2715638918225867
+                    "value_d": 0.730870386208985,
+                    "value_u": 1.2691296137910146
                 }
             }
         },
         "BrB02DstDstpKst0": {
             "high_AddTk_mm_mHad": {
                 "DstmDp": {
-                    "value_d": 0.7594788229990769,
-                    "value_u": 1.240521177000923
+                    "value_d": 0.7690393903313072,
+                    "value_u": 1.2309606096686927
                 }
             },
-            "high_AddTk_pp_mHad": {
-                "DstmDp": {
-                    "value_d": 0.7330338103717219,
-                    "value_u": 1.266966189628278
+            "low_AddTk_mm_mHad": {
+                "DstmD0": {
+                    "value_d": 0.7829818899170093,
+                    "value_u": 1.2170181100829907
                 }
             }
         },
@@ -558,103 +564,95 @@
         }
     },
     "smallShapeEff": {
+        "DstPiPiWidth": {
+            "low_AddTk_p_mHad": {
+                "DstPi0Pi0": {
+                    "diff_d": 1.0704987012066996e-06,
+                    "diff_u": 1.0704987016087844e-06
+                }
+            }
+        },
         "fDststWide": {
             "high_AddTk_p_mHad": {
                 "TauDstPip": {
-                    "diff_d": 8.631445195326495e-07,
-                    "diff_u": 8.631445195326495e-07
+                    "diff_d": 9.70997648076315e-07,
+                    "diff_u": 9.70997648076315e-07
                 }
             },
             "low_AddTk_p_mHad": {
                 "TauDstPip": {
-                    "diff_d": 9.124245003864613e-07,
-                    "diff_u": 9.124245003864613e-07
+                    "diff_d": 7.741827771131337e-07,
+                    "diff_u": 7.741827771131337e-07
                 }
             },
             "mid_AddTk_p_mHad": {
                 "TauDstPip": {
-                    "diff_d": 1.0721603180060192e-06,
-                    "diff_u": 1.0721603180060192e-06
+                    "diff_d": 8.532638425167162e-07,
+                    "diff_u": 8.532638425167162e-07
+                }
+            },
+            "mid_AddTk_pp_mHad": {
+                "TauDstPip": {
+                    "diff_d": 6.789833267533e-07,
+                    "diff_u": 6.789833267533e-07
                 }
             }
         },
         "tkPVfrac": {
             "high_AddTk_p_mHad": {
                 "BpDstmHc": {
-                    "diff_d": 1.1429712160735137e-06,
-                    "diff_u": 1.1429712160735137e-06
+                    "diff_d": 8.839954271365394e-07,
+                    "diff_u": 8.839954271365394e-07
+                },
+                "DstmD0": {
+                    "diff_d": 7.588124101287284e-07,
+                    "diff_u": 7.588124101287284e-07
                 }
             },
             "mid_AddTk_m_mHad": {
                 "BmDstmHc": {
-                    "diff_d": 1.0265208399200492e-06,
-                    "diff_u": 1.0265208399200492e-06
+                    "diff_d": 8.386344814356247e-07,
+                    "diff_u": 8.386344814356247e-07
                 }
             },
             "mid_AddTk_p_mHad": {
                 "BpDstmHc": {
-                    "diff_d": 1.0446134911173971e-06,
-                    "diff_u": 1.0446134911173971e-06
+                    "diff_d": 8.051153639728404e-07,
+                    "diff_u": 8.051153639728404e-07
                 }
             }
         }
     },
     "uncertVarySameDirect": {
-        "B0pT": {
-            "high_Unrolled_q2bin0": {
-                "DstmD0": {
-                    "value_d": 0.0,
-                    "value_u": 0.7
-                },
-                "DstmDp": {
-                    "value_d": 0.0,
-                    "value_u": 0.7
-                },
-                "mu": {
-                    "value_d": 1.0000574918942942,
-                    "value_u": 1.0000652449987792
-                }
-            },
-            "mid_AddTk_m_mHad": {
-                "DstPi0": {
-                    "value_d": 0.9997226625717965,
-                    "value_u": 0.9998521721696589
-                },
-                "DstPi0Pi0": {
-                    "value_d": 0.9999060708838935,
-                    "value_u": 0.9996393644826607
-                }
-            },
-            "mid_AddTk_p_mHad": {
-                "DstPi0": {
-                    "value_d": 0.999717984632179,
-                    "value_u": 0.9998448853415923
-                }
-            },
-            "mid_Unrolled_q2bin0": {
-                "DstmD0": {
-                    "value_d": 0.0,
-                    "value_u": 0.7
-                },
-                "DstmDsp": {
-                    "value_d": 0.9998310037742044,
-                    "value_u": 0.9997841825776645
+        "B0pT_lam4": {
+            "mid_Unrolled_q2bin1": {
+                "tau": {
+                    "value_d": 0.9946078502225105,
+                    "value_u": 0.9999999999999999
                 }
             }
         },
         "B2DstCLNR0": {
-            "high_AddTk_m_mHad": {
+            "mid_AddTk_m_mHad": {
                 "tau": {
-                    "value_d": 0.9997890756235215,
-                    "value_u": 0.9998221457708034
+                    "value_d": 0.999943891384107,
+                    "value_u": 0.9998214705290888
                 }
             }
         },
         "BpPt": {
-            "mid_AddTk_pp_mHad": {
-                "DstPipPi0": {
-                    "value_d": 0.9997798992159922,
-                    "value_u": 0.9997173606361925
+            "mid_Unrolled_q2bin1": {
+                "TauDstPip": {
+                    "value_d": 0.9996300371633556,
+                    "value_u": 0.9999423497355652
+                }
+            }
+        },
+        "D2460_1StWidth": {
+            "low_AddTk_mm_mHad": {
+                "TauDstPip": {
+                    "value_d": 0.9997775846022623,
+                    "value_u": 0.9984363052115726
                 }
             }
         }

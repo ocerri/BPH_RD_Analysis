@@ -142,7 +142,9 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
             h.GetYaxis().SetTitleSize(0.06)
             h.GetYaxis().SetLabelSize(0.07)
             iunits = xAx_title[vark].find('[') + 1
-            h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + xAx_title[vark][iunits:-1])
+            # h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + xAx_title[vark][iunits:-1])
+            h.GetYaxis().SetTitle('Candidates / ' + xAx_title[vark][iunits:-1])
+            h.Scale(1., 'width')
             max_y = 1.3*h.GetMaximum()
             if max_y_shared:
                 max_y = max_entries[vark]*1.3
@@ -164,7 +166,6 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                     h.SetFillColor(col_dic[k])
                     h.SetFillStyle(1)
                     if not mergeDstst: h.SetFillStyle(fillStyleVar[iproc])
-                    h.Sumw2(0)
                     hh = h_list[-1]
                     if not hh.GetName() == 'h_aux_data_'+cat_name:
                         h.Add(hh)
@@ -178,7 +179,6 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 h.SetFillColor(col_dic['Hc'])
                 h.SetFillStyle(1)
                 if not mergeHc: h.SetFillStyle(fillStyleVar[iproc])
-                h.Sumw2(0)
                 hh = h_list[-1]
                 if not hh.GetName() == 'h_aux_data_'+cat_name:
                     h.Add(hh)
@@ -193,7 +193,6 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 h.SetLineWidth(0)
                 h.SetFillColor(col_dic[procName])
                 h.SetFillStyle(1)
-                h.Sumw2(0)
                 hh = h_list[-1]
                 if not hh.GetName() == 'h_aux_data_'+cat_name:
                     h.Add(hh)
@@ -201,6 +200,8 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
 
             h_list[0].Draw('E1')
             for h in reversed(h_list[1:]):
+                h.Scale(1., 'width')
+                h.Sumw2(0)
                 h.Draw('SAME')
             if not i_q2 in iq2_maskData:
                 h_list[0].Draw('SAMEE1') #Draw it a second time to bring it in foreground
@@ -243,6 +244,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 if pullsRatio:
                     h_dr.GetYaxis().SetTitle('RD/MC')
                 h_tot = h_dic['total'].Clone('h_aux_total')
+                h_tot.Scale(1., 'width')
                 g_up = rt.TGraph()
                 yExp = 1 if pullsRatio else 0
                 g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), yExp)
