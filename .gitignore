@@ -15,6 +15,7 @@ tmp
 */*/tmp
 .ipynb_checkpoints
 Combine/results/*
+Combine/cards/validation.json
 *.gz
 *.out
 *.log
