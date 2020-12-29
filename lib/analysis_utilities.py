@@ -170,3 +170,7 @@ class DSetLoader(object):
             with open(self.skimmed_dir + '/{}.log'.format(catName), 'r') as f:
                 aux = f.readlines()[-1][:-1].split(' ')
                 return [float(aux[1])*1e-2, float(aux[3])*1e-2]
+
+    def printSkimEffLatex(self, catName):
+        r, dr = self.getSkimEff(catName)
+        return '${:.2f} \\pm {:.2f}$'.format(r*100, dr*100)

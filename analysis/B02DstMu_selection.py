@@ -1,13 +1,18 @@
 import numpy as np
 
 def exclusiveTrigger(j, ev, trgAcc, trgNegate = []):
-    if not hasattr(ev, 'trgMu_'+trgAcc):
-        return False
-    if getattr(ev, 'trgMu_'+trgAcc)[j] == 0:
+    prefix = ''
+    if hasattr(ev, 'trgMu_'+trgAcc):
+        prefix = 'trgMu_'
+    elif hasattr(ev, 'trgObj_'+trgAcc):
+        prefix = 'trgObj_'
+    else:
+        raise
+    if getattr(ev, prefix+trgAcc)[j] == 0:
         return False
     for t in trgNegate:
         if hasattr(ev, t):
-            if getattr(ev, 'trgMu_'+t)[j] == 1:
+            if getattr(ev, prefix+t)[j] == 1:
                 return False
     return True
 
@@ -18,7 +23,8 @@ def trigger_selection(j, ev, evEx, cat):
         return False
     if not ev.trgMu_sigdxy[j] > cat.minIP:
         return False
-    if not abs(ev.trgMu_eta[j]) < 1.5:
+    eta = ev.trgMu_eta[j] if hasattr(ev, 'trgMu_eta') else ev.trgCand_eta[j]
+    if not abs(eta) < 1.5:
         return False
     return True
 

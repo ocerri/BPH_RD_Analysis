@@ -67,44 +67,46 @@ filesLocMap = {
 'tau_PU20'       : MCloc+'BPH_Tag-B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
 'tau_PUc0'       : MCloc+'BP_Tag_B0_TauNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'Hc_PU20'        : MCloc+'BPH_Tag-B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3'+MCend,
+# 'Hc_PU20'        : MCloc+'BPH_Tag-B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3'+MCend,
 # 'Hc_PUc0'        : MCloc+'BP_Tag_B0_DmstHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'DstmDsp_PUc0'   : MCloc+'BP_Tag_B0_DstmDsp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'DstmDp_PUc0'   : MCloc+'BP_Tag_B0_DstmDp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'DstmD0_PUc0'   : MCloc+'BP_Tag_B0_DstmD0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstmDsp_PUc0'      : MCloc+'BP_Tag_B0_DstmDsp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstmDp_PUc0'       : MCloc+'BP_Tag_B0_DstmDp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstmD0_PUc0'       : MCloc+'BP_Tag_B0_DstmD0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'BpDstmHc_PUc0'   : MCloc+'BP_Tag_Bp_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'BmDstmHc_PUc0'   : MCloc+'BP_Tag_Bm_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'antiB0DstmHc_PUc0'   : MCloc+'BP_Tag_antiB0_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'BpDstmHc_PUc0'     : MCloc+'BP_Tag_Bp_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'BmDstmHc_PUc0'     : MCloc+'BP_Tag_Bm_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'antiB0DstmHc_PUc0' : MCloc+'BP_Tag_antiB0_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'DstPip_PU20'     : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-'DstPip_PUc0'     : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstPip_PU20'       : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+'DstPip_PUc0'       : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'DstPi0_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstPi0_PUc0'       : MCloc+'BP_Tag_B0_MuNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 # 'DstPi0_nR_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
 #
-'DstPipPi0_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstst_PipPi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstPipPi0_PUc0'    : MCloc+'BP_Tag_Bp_MuNuDstst_PipPi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 # 'DstPipPi0_nR_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPipPi0_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
-'DstPipPim_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_PipPim_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstPipPim_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_PipPim_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 # 'DstPipPim_nR_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPipPim_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
-'DstPi0Pi0_PUc0' : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'DstPi0Pi0_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 # 'B0_DstPiPiPi_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 # #
 # 'Bp_DstPiPiPi_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
-'TauDstPip_PUc0'      : MCloc+'BP_Tag_Bp_TauNuDstst_Pip_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'TauDstPip_PUc0'    : MCloc+'BP_Tag_Bp_TauNuDstst_Pip_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'TauDstPi0_PUc0'      : MCloc+'BP_Tag_B0_TauNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'TauDstPi0_PUc0'    : MCloc+'BP_Tag_B0_TauNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 #
-'data_B0' : RDloc+'*_RDntuplizer_B2DstMu_201101_CAND.root',
-'data_antiB0' : RDloc+'*_RDntuplizer_antiB2DstMu_201122_CAND.root',
+'data_B0'          : RDloc+'*_RDntuplizer_B2DstMu_201101_CAND.root',
+'data_antiB0'      : RDloc+'*_RDntuplizer_antiB2DstMu_201122_CAND.root',
 'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_201125_CAND.root',
 'data_combDstpMup' : RDloc+'*_RDntuplizer_combDpstMup_201125_CAND.root',
+'data_DstmHadp'    : RDloc+'*_RDntuplizer_B2DstHad_201102_CAND.root',
+'data_DstpHadm'    : RDloc+'*_RDntuplizer_B2DstpHadm_201228_CAND.root'
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -320,7 +322,8 @@ def extractEventInfos(j, ev, corr=None):
             e.tkPtError.insert(idx, ev.tksAdd_ptError[jj])
             e.tkEta.insert(idx, eta)
             e.tkPhi.insert(idx, phi)
-            e.tkCharge.insert(idx, ev.tksAdd_charge[jj]*ev.trgMu_charge[0])
+            auxQ = ev.trgMu_charge[0] if hasattr(ev, 'trgMu_charge') else ev.trgCand_charge[0]
+            e.tkCharge.insert(idx, ev.tksAdd_charge[jj]*auxQ)
             e.massVis_wTk.insert(idx, mVis_wTk)
             e.massHad_wTk.insert(idx, (p4_Dst + p4_tk).M())
             e.massMuTk.insert(idx, (p4_mu + p4_tk).M())
@@ -404,7 +407,7 @@ def makeSelection(inputs):
 
         ev_output = []
         for j in range(ev.pval_piK.size()):
-            idxTrg = int(ev.mu_trgMu_idx[j])
+            idxTrg = int(ev.mu_trgMu_idx[j]) if hasattr(ev, 'mu_trgMu_idx') else int(ev.mu_trgCand_idx[j])
             evEx = extractEventInfos(j, ev, corr)
 
             if not cat is None:
@@ -456,7 +459,9 @@ def makeSelection(inputs):
                    trigger_selection(idxTrg, ev, evEx, categories['low']),
                    trigger_selection(idxTrg, ev, evEx, categories['mid']),
                    trigger_selection(idxTrg, ev, evEx, categories['high']),
-                   ev.trgMu_HLT_Mu12_IP6[idxTrg], ev.trgMu_HLT_Mu9_IP6[idxTrg], ev.trgMu_HLT_Mu7_IP4[idxTrg],
+                   ev.trgMu_HLT_Mu12_IP6[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu12_IP6') else ev.trgObj_HLT_Mu12_IP6[idxTrg],
+                   ev.trgMu_HLT_Mu9_IP6[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu9_IP6') else ev.trgObj_HLT_Mu9_IP6[idxTrg],
+                   ev.trgMu_HLT_Mu7_IP4[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu7_IP4') else ev.trgObj_HLT_Mu7_IP4[idxTrg],
                    ev.N_vertexes, ev.localVertexDensity[j]
                   )
             if not 'data' in n:

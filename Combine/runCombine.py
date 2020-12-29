@@ -7,6 +7,7 @@ To activate the environment run: cd ~/work/CMSSW_10_2_13/src/; cmsenv; cd ~/BPhy
 ######## Release notes #########
 New from previous version:
 - Poly B0 calibrations
+- Use non corrected MC by default
 
 To do:
 - Add combinatorial and fake from data template (not sure thare are 0 events)
@@ -46,20 +47,21 @@ CMS_lumi.extraText = "     Preliminary"
 donotdelete = []
 
 import argparse
-parser = argparse.ArgumentParser(description='Script used to run combine on the R(D*) analysis',
+parser = argparse.ArgumentParser(description='Script used to run combine on the R(D*) analysis.',
                                  epilog='Test example: ./runCombine.py -c low',
                                  add_help=True
                                  )
 parser.add_argument ('--HELP', '-H', default=False, action='store_true', help='Print help message.')
-parser.add_argument ('--category', '-c', type=str, default='low', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category')
-parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit')
-parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use')
-parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial tag')
+parser.add_argument ('--category', '-c', type=str, default='low', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
+parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit.')
+parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
+parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial tag.')
 
-parser.add_argument ('--unblinded', default=False, action='store_true', help='Unblind the fit regions')
-parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data')
-parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0')
-parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic')
+parser.add_argument ('--unblinded', default=False, action='store_true', help='Unblind the fit regions.')
+parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
+parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
+parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
+parser.add_argument ('--bareMC', default=True, action='store_true', help='Use bare MC instead of the corrected one.')
 
 
 availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
@@ -70,7 +72,7 @@ parser.add_argument ('--submit', default=False, action='store_true', help='Submi
 parser.add_argument ('--forceRDst', default=False, action='store_true', help='Perform fit fixing R(D*) to 0.295')
 # parser.add_argument ('--fitRegionsOnly', default=False, action='store_true', help='Include only regions used for fitting')
 parser.add_argument ('--seed', default=6741, type=int, help='Seed used by Combine')
-parser.add_argument ('--RDstLims', default=[0.1, 0.5], type=int, help='Initial boundaries of R(D*)', nargs='+')
+parser.add_argument ('--RDstLims', default=[0.1, 0.5], type=int, help='Initial boundaries for R(D*).', nargs='+')
 
 # Bias options
 parser.add_argument ('--runBiasToys', default=False, action='store_true', help='Only generate toys and run scans for bias, do not collect results.')
@@ -78,7 +80,7 @@ parser.add_argument ('--nToys', default=10, type=int, help='Number of toys to ru
 parser.add_argument ('--runBiasAnalysis', default=False, action='store_true', help='Only analyze bias scans which have been previously produced.')
 
 # Scan options
-parser.add_argument ('--maskScan', type=str, default=[], nargs='+', help='Channels to mask during likelyhood scan. If this list is non empty, the full card is used (default is fitregionsOnly)')
+parser.add_argument ('--maskScan', type=str, default=[], nargs='+', help='Channels to mask during likelyhood scan. If this list is non empty, the full card is used (default is fitregionsOnly).')
 parser.add_argument ('--tagScan', type=str, default='')
 
 # Impacts options
@@ -114,7 +116,6 @@ elif len(args.RDstLims) == 2:
 categoriesToCombine = ['low', 'mid', 'high']
 
 binning = {'q2': array('d', [0, 3.5, 6, 9.4, 12])}
-# binning['q2'] = array('d', [-2, 2.5, 6, 9.4, 12])
 
 SM_RDst = 0.295
 expectedLumi = {'Low':6.4, 'Mid':20.7, 'High':26.4, 'Single':20.7} #fb^-1
@@ -225,10 +226,12 @@ def loadDatasets(category, loadRD, dataType):
 
     dSet = {}
     dSetTkSide = {}
+    mcType = 'bare' if args.bareMC else 'corr'
+    print 'mcType:', mcType
     for n, s in MCsample.iteritems():
         if not n in processOrder: raise
-        dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_corr.root'.format(category.name)))
-        dSetTkSide[n] = rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_corr.root'.format(category.name))
+        dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType)))
+        dSetTkSide[n] = rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType))
 
     if loadRD:
         print 'Loading data datasets'
@@ -2130,6 +2133,14 @@ if __name__ == "__main__":
         histo = {}
         for c in categoriesToCombine:
             print '---- Loading', c
+            present = False
+            while not present:
+                n = len(glob(os.path.join(histo_file_dir, card_name.replace('comb', c)) + '_*.root'))
+                if n>2:
+                    present = True
+                else:
+                    print 'Waiting for ' + c
+                    time.sleep(10)
             histo[c] = loadHisto4CombineFromRoot(histo_file_dir, card_name.replace('comb', c))
     else:
         loadShapeVar = 'card' in args.step
@@ -2243,7 +2254,7 @@ if __name__ == "__main__":
         else:
             fit_RDst, rDst_postFitRegion = runScan(args.cardTag+'Base', card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                                    args.category.capitalize(),
-                                                   rLimits=[0.8] if args.unblinded else [0.15], 
+                                                   rLimits=[0.8] if args.unblinded else [0.15],
                                                    strategy=1, draw=True)
 
     if 'fitDiag' in args.step:
