@@ -22,3 +22,5 @@ Combine/cards/validation.json
 *.aux
 documents/AN-19-162/*
 !documents/AN-19-162/README.md
+documents/BPH-20-005/*
+!documents/BPH-20-005/README.md

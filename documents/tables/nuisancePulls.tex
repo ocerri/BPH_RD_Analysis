@@ -1,0 +1,107 @@
+\documentclass[a4paper,12pt,twoside]{book}
+
+\usepackage{setspace}
+\usepackage{balance}
+\usepackage[font={small,it}]{caption}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{listings}
+\usepackage{slashed}
+\usepackage{hyperref}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+\usepackage{floatflt}
+\usepackage{float}
+%\usepackage{rotating}
+\usepackage{chngcntr}
+\usepackage{nicefrac}
+\usepackage{relsize}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{accents}
+\usepackage{color}
+%\usepackage[amssymb, cdot, mediumqspace, thickqspace]{SIunits}
+\usepackage{booktabs}
+\usepackage{braket}
+\usepackage{appendix}
+\usepackage{pdfpages}
+\usepackage{midpage}
+\usepackage{makecell}
+
+\usepackage[a4paper,top=3.5cm,bottom=3.5cm,left=3cm,right=2.5cm]{geometry}
+
+%%Watermark (Scritta Draft)
+%\usepackage[printwatermark]{xwatermark}
+%\newwatermark[allpages,color=lightgray!50,angle=60,scale=5,xpos=0,ypos=0]{DRAFT}
+
+
+
+
+%opening
+\title{Table}
+\author{Olmo Cerri}
+\date{\today}
+
+
+
+
+\begin{document}
+
+\begin{table}[h!]
+\centering
+\caption{Postfit nuisance difference for the combined blinded fit to real data.}
+\begin{tabular}{|c|c||c|c|}
+ \hline
+ Parameter & Postfit [$\sigma$] & Parameter & Postfit [$\sigma$]  \\
+ \hline
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% PUT HERE THE NUISANCES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+DstPiBr & $+6.61 \pm 0.70$ & fDststWide & $+6.01 \pm 0.56$ \\
+B2DstCLNeig2 & $+5.34 \pm 0.70$ & B0pT & $-4.37 \pm 0.73$ \\
+stat\_high\_p\_mHad\_bin9 & $-3.78 \pm 0.53$ & B2DstCLNeig3 & $+3.54 \pm 0.67$ \\
+stat\_mid\_Unrolled\_q2bin1\_bin34 & $+3.43 \pm 0.73$ & stat\_high\_Unrolled\_q2bin1\_bin20 & $-3.20 \pm 0.60$ \\
+stat\_high\_mm\_mHad\_bin13\_mu & $+6.23 \pm 1.60$ & BmDstmHcBr & $+2.95 \pm 0.29$ \\
+stat\_mid\_Unrolled\_q2bin1\_bin53 & $-2.83 \pm 0.70$ & stat\_mid\_p\_mHad\_bin10 & $-2.81 \pm 0.65$ \\
+stat\_mid\_Unrolled\_q2bin1\_bin45 & $+2.78 \pm 0.72$ & stat\_high\_Unrolled\_q2bin1\_bin33 & $-2.68 \pm 0.62$ \\
+stat\_high\_p\_mHad\_bin10 & $-2.52 \pm 0.55$ & stat\_high\_m\_mHad\_bin25 & $+2.47 \pm 0.58$ \\
+B2DstCLNeig1 & $-2.41 \pm 0.85$ & stat\_high\_p\_mHad\_bin0 & $+2.40 \pm 0.58$ \\
+stat\_mid\_p\_mHad\_bin14 & $-2.30 \pm 0.79$ & stat\_high\_Unrolled\_q2bin1\_bin38 & $-2.25 \pm 0.61$ \\
+stat\_mid\_Unrolled\_q2bin1\_bin40 & $+2.23 \pm 0.72$ & stat\_high\_Unrolled\_q2bin1\_bin10 & $-2.21 \pm 0.64$ \\
+stat\_mid\_pp\_mHad\_bin0 & $+2.20 \pm 0.74$ & stat\_high\_pm\_mVis\_bin19 & $-2.19 \pm 0.49$ \\
+stat\_low\_Unrolled\_q2bin1\_bin30 & $+2.17 \pm 0.80$ & stat\_high\_Unrolled\_q2bin1\_bin58 & $-2.13 \pm 0.62$ \\
+stat\_mid\_m\_mHad\_bin21 & $-2.13 \pm 0.53$ & stat\_mid\_Unrolled\_q2bin1\_bin9 & $-2.12 \pm 0.70$ \\
+stat\_low\_pm\_mVis\_bin21 & $-2.08 \pm 0.63$ & stat\_high\_p\_mHad\_bin30 & $+2.04 \pm 0.59$ \\
+stat\_mid\_p\_mHad\_bin9 & $-2.01 \pm 0.63$ & stat\_high\_Unrolled\_q2bin1\_bin5 & $-2.01 \pm 0.67$ \\
+stat\_mid\_Unrolled\_q2bin1\_bin29 & $+1.99 \pm 0.72$ & stat\_high\_Unrolled\_q2bin1\_bin32 & $-1.98 \pm 0.61$ \\
+stat\_mid\_Unrolled\_q2bin1\_bin38 & $-1.98 \pm 0.69$ & D2460\_1StWidth & $-1.97 \pm 0.26$ \\
+stat\_mid\_p\_mHad\_bin11 & $-1.97 \pm 0.65$ & stat\_mid\_Unrolled\_q2bin1\_bin32 & $-1.90 \pm 0.69$ \\
+stat\_high\_Unrolled\_q2bin1\_bin23 & $+1.90 \pm 0.65$ & stat\_high\_m\_mHad\_bin20 & $-1.89 \pm 0.46$ \\
+stat\_low\_p\_mHad\_bin10 & $-1.89 \pm 0.78$ & stat\_high\_pm\_mVis\_bin8 & $+1.88 \pm 0.68$ \\
+stat\_high\_m\_mHad\_bin26 & $+1.87 \pm 0.58$ & stat\_mid\_Unrolled\_q2bin1\_bin54 & $+1.87 \pm 0.72$ \\
+stat\_high\_Unrolled\_q2bin0\_bin23 & $+1.87 \pm 0.65$ & stat\_high\_m\_mHad\_bin10 & $+1.80 \pm 0.51$ \\
+stat\_high\_m\_mHad\_bin7 & $+1.79 \pm 0.51$ & stat\_high\_mm\_mHad\_bin12\_BmDstmHc & $+2.77 \pm 0.85$ \\
+stat\_high\_p\_mHad\_bin5 & $+1.76 \pm 0.56$ & stat\_mid\_Unrolled\_q2bin0\_bin38 & $-1.75 \pm 0.70$ \\
+stat\_high\_Unrolled\_q2bin1\_bin29 & $+1.71 \pm 0.64$ & stat\_mid\_p\_mHad\_bin26 & $+1.71 \pm 0.65$ \\
+stat\_high\_Unrolled\_q2bin1\_bin15 & $-1.70 \pm 0.62$ & stat\_high\_p\_mHad\_bin19 & $-1.68 \pm 0.59$ \\
+stat\_mid\_mm\_mHad\_bin13 & $-1.68 \pm 0.35$ & D2420\_10Width & $-1.67 \pm 0.12$ \\
+stat\_high\_p\_mHad\_bin27 & $+1.66 \pm 0.56$ & stat\_high\_Unrolled\_q2bin1\_bin30 & $+1.65 \pm 0.64$ \\
+stat\_low\_m\_mHad\_bin17 & $-1.63 \pm 0.74$ & stat\_mid\_m\_mHad\_bin10 & $+1.63 \pm 0.60$ \\
+stat\_high\_Unrolled\_q2bin1\_bin11 & $-1.63 \pm 0.64$ & stat\_high\_Unrolled\_q2bin1\_bin51 & $-1.63 \pm 0.52$ \\
+stat\_low\_mm\_mHad\_bin7 & $+1.62 \pm 0.62$ & BrB02DstDstpKst0 & $+1.62 \pm 0.73$ \\
+stat\_high\_p\_mHad\_bin8 & $-1.61 \pm 0.54$ & stat\_high\_Unrolled\_q2bin1\_bin1 & $+1.61 \pm 0.61$ \\
+stat\_mid\_p\_mHad\_bin12 & $+1.60 \pm 0.68$ & stat\_low\_Unrolled\_q2bin1\_bin5 & $-1.58 \pm 0.86$ \\
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ \hline
+\end{tabular}
+\label{table:postfitNuisanceDifference}
+\end{table}
+
+\end{document}
