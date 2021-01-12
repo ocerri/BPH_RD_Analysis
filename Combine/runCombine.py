@@ -61,7 +61,7 @@ parser.add_argument ('--unblinded', default=False, action='store_true', help='Un
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
 parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
-parser.add_argument ('--bareMC', default=True, action='store_true', help='Use bare MC instead of the corrected one.')
+parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
 
 
 availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
@@ -207,6 +207,7 @@ def loadDatasets(category, loadRD, dataType):
     MCsample = {
     'tau' : DSetLoader('B0_TauNuDmst_PUc0'),
     'mu' : DSetLoader('B0_MuNuDmst_PUc0'),
+    # 'mu' : DSetLoader('B0_MuNuDmst_SoftQCDall_PUc0'),
     'DstmD0' : DSetLoader('B0_DstmD0_PUc0'),
     'DstmDp' : DSetLoader('B0_DstmDp_PUc0'),
     'DstmDsp' : DSetLoader('B0_DstmDsp_PUc0'),
@@ -310,12 +311,12 @@ def computeTksPVweights(ds, relScale=0.05, centralVal=0.39/0.10):
 
 def createHistograms(category):
     MCsample, dSet, dSetTkSide = loadDatasets(category, not args.asimov, args.dataType)
-
+    mcType = 'bare' if args.bareMC else 'corr'
     ######################################################
     ########## Load calibrations
     ######################################################
     from pileup_utilities import pileupReweighter
-    puReweighter = pileupReweighter(MCsample['mu'].skimmed_dir + '/{}_corr.root'.format(category.name), category)
+    puReweighter = pileupReweighter(MCsample['mu'].skimmed_dir + '/{}_{}.root'.format(category.name, mcType), category)
 
     dataDir = '/storage/user/ocerri/BPhysics/data'
     decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors.pickle', 'rb'))
@@ -374,8 +375,8 @@ def createHistograms(category):
         return muonSF, up, down
 
 
-    # cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/pwWeights_{}.txt'.format(category.name))
-    cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/polyCoeffWeights_{}.pkl'.format(category.name))
+    cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/pwWeights_{}.txt'.format(category.name))
+    # cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/polyCoeffWeights_{}.pkl'.format(category.name))
     cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/pwWeights_{}.txt'.format(category.name))
     # cal_pT_mu = pTCalReader(calibration_file=dataDir+'/calibration/MuonPtSpectrum/polyCoeffWeights_{}.pkl'.format(category.name))
     def computePtWeights(ds, var, tag, cal_pT):
@@ -510,7 +511,7 @@ def createHistograms(category):
         totalCounting[1] += 1e-3*nTotSelected
         nGenExp = sMC.effMCgen['xsec'][0] * expectedLumi[category.name] * RDoMC_normRatio
         eff = [1, 0]
-        for f, df in [sMC.effMCgen['effGEN'], decayBR[n], sMC.effCand['effCAND'], sMC.getSkimEff(category.name+'_corr')]:
+        for f, df in [sMC.effMCgen['effGEN'], decayBR[n], sMC.effCand['effCAND'], sMC.getSkimEff(category.name+'_'+mcType)]:
             eff[0] *= f
             eff[1] += np.square(df/f)
         eff[1] = eff[0] * np.sqrt(eff[1])
@@ -840,7 +841,7 @@ def createHistograms(category):
         for f, df in [sMC.effMCgen['effGEN'],
                       decayBR[n],
                       sMC.effCand['effCAND'],
-                      sMC.getSkimEff(category.name+'_trkCtrl_corr'),
+                      sMC.getSkimEff(category.name+'_trkCtrl_'+mcType),
                      ]:
             eff[0] *= f
             eff[1] += np.square(df/f)
@@ -1047,6 +1048,16 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux.SaveAs(outdir+'/fig/B_pt_'+tag+'.png')
         cAux.SaveAs(webFolder+'/B_pt_'+tag+'.png')
         outCanvas.append(cAux)
+        if 'prefit' in tag:
+            hDic['B_pt']['data'].GetYaxis().SetTitle('Normalized events')
+            cAux = plot_SingleCategory(CMS_lumi, hDic['B_pt'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
+                                       density=True,
+                                       addText='Cat. '+catName, logy=False, legBkg=True,
+                                       procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                                       min_y=0, tag=tag+'B_pt', legLoc=[0.65, 0.4, 0.9, 0.75])
+            cAux.SaveAs(outdir+'/fig/B_pt_norm_'+tag+'.png')
+            cAux.SaveAs(webFolder+'/B_pt_norm_'+tag+'.png')
+            outCanvas.append(cAux)
 
     if 'B_eta' in hDic.keys():
         print 'Creating B_eta'
@@ -1499,7 +1510,7 @@ def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
     cmd += ' --setParameters r={:.2f}'.format(rVal)
     if maskStr:
         cmd += ','+maskStr
-    cmd += ' --setParameterRanges r=0.15,0.45'
+    cmd += ' --setParameterRanges r=0.2,0.4'
     cmd += ' -n Scan -m {:.0f}'.format(1000*rVal)
     cmd += ' --verbose 1'
     print cmd
@@ -1533,13 +1544,16 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     plt.fill_between(x, 2*[m-sm], 2*[m+sm], color='#ff7f0e', alpha=0.3)
     plt.plot(x, 2*[m], color='#d62728', lw=1, label='Toys mean')
     plt.plot(x, [rVal, rVal], 'm--', lw=2, label='Injected value')
+    ymin, ymax = plt.ylim()
+    xmin, xmax = plt.ylim()
+    plt.text(xmin + 0.2*(xmax-xmin), ymin + 0.07*(ymax-ymin), 'Estimated bias: $({:.1f} \pm {:.1f})$ %'.format(100*(m-rVal)/rVal, 100*sm/rVal))
     plt.legend(loc='upper right', numpoints=1)
     plt.xlabel('Toy number')
     plt.ylabel(r'$R(D^*)$')
     plt.savefig(outdir + '/fig/biasStudy_toysResults.png')
     plt.savefig(webFolder + '/biasStudy_toysResults.png')
 
-    z = (r - rVal)/(0.5*(rLoErr + rHiErr))
+    z = 1.6*(r - rVal)/(0.5*(rLoErr + rHiErr))
     h = create_TH1D(z, name='hZtest', binning=[int(2*np.sqrt(r.shape[0])), -4, 4], axis_title=['#hat{R(D*)} - R(D*) / #sigma', 'Number of toys'])
     h.Sumw2()
     h.Fit('gaus', 'ILQ')
@@ -1624,7 +1638,7 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
         cmd += ',' + maskStr
     runName = tag + ('_RDstFixed' if forceRDst else '')
     cmd += ' -n ' + runName
-    cmd += ' --saveShapes --saveWithUncertainties --saveNormalizations'
+    cmd += ' --saveShapes --saveWithUncertainties --saveNormalizations  --saveWorkspace'
     cmd += ' --trackParameters rgx{.*}'
     cmd += ' --plots'
     cmd += ' --verbose 0'
@@ -1742,9 +1756,9 @@ def nuisancesDiff(tag, out, forceRDst):
     if status:
         print output
         raise
-    dumpDiffNuisances(output, out, tag='_RDstFixed' if forceRDst else '',
+    dumpDiffNuisances(output, out, tag='RDstFixed' if forceRDst else '',
                       useBonlyResults=forceRDst, parsToPrint=100)
-    cmd = 'cp {}/nuisance_difference.txt {}/'.format(out, webFolder)
+    cmd = 'cp {}/nuisance_difference{}.txt {}/'.format(out, '_RDstFixed' if forceRDst else '', webFolder)
     print cmd
     status, output = commands.getstatusoutput(cmd)
     if status:
@@ -1916,32 +1930,39 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         'B2DstCLNeig2':'#lambda_{2} (CLN B#rightarrow D*l#nu)',
         'B2DstCLNeig3':'#lambda_{3} (CLN B#rightarrow D*l#nu)',
         'trgSF': 'Trigger scale factor',
+        'trkEff': 'Tracking efficiency',
+        # 'tkPVfrac': 'Tracks fraction',
         'xsecpp2bbXlumi': 'Luminosity*#sigma_{pp#rightarrowbb}',
+        'xsecpp2bbXlumiMu7_IP4': 'Luminosity*#sigma_{pp#rightarrowbb} (Low)',
+        'xsecpp2bbXlumiMu9_IP6': 'Luminosity*#sigma_{pp#rightarrowbb} (Mid)',
+        'xsecpp2bbXlumiMu12_IP6': 'Luminosity*#sigma_{pp#rightarrowbb} (High)',
+        'BrB02DstDpK0': 'Branching fraction B^{0}#rightarrow D*^{-}D^{+}K^{0}',
+        'BrB02DstDst0Kstp': 'Branching fraction B^{0}#rightarrow D*^{-}D*^{0}K^{+}',
+        'BrB02DstD0Kstp'  : 'Branching fraction B^{0}#rightarrow D*^{-}D^{0}K*^{+}',
         }
         for i in range(1,5):
             s = str(i)
             rename['B0pT_lam'+s] = 'B_{0} p_{T} #lambda_{'+s+'}'
 
         procName_dic = {
-        'mu'        : 'B_{0}#rightarrow D*#mu#nu',
-        'tau'       : 'B_{0}#rightarrow D*#tau#nu',
-        'DstmD0'    : 'B^{+}#rightarrow D*D_{0}(#muY) + X',
+        'mu'        : 'B^{0}#rightarrow D*#mu#nu',
+        'tau'       : 'B^{0}#rightarrow D*#tau#nu',
+        'DstmD0'    : 'B^{+}#rightarrow D*D^{0}(#muY) + X',
         'DstmDp'    : 'B^{+}#rightarrow D*D^{+}(#muY) + X',
         'DstmDsp'   : 'B^{+}#rightarrow D*D_{s}^{+}(#muX)',
         'DstPip'    : 'B^{+}#rightarrow D*#pi^{+}#mu#nu',
         'DstPipPi0' : 'B^{+}#rightarrow D*#pi^{+}#pi^{0}#mu#nu',
-        'DstPi0'    : 'B_{0}#rightarrow D*#pi^{0}#mu#nu',
-        'DstPipPim' : 'B_{0}#rightarrow D*#pi^{+}#pi^{-}#mu#nu',
-        'DstPi0Pi0' : 'B_{0}#rightarrow D*#pi^{0}#pi^{0}#mu#nu',
+        'DstPi0'    : 'B^{0}#rightarrow D*#pi^{0}#mu#nu',
+        'DstPipPim' : 'B^{0}#rightarrow D*#pi^{+}#pi^{-}#mu#nu',
+        'DstPi0Pi0' : 'B^{0}#rightarrow D*#pi^{0}#pi^{0}#mu#nu',
         'BpDstmHc'  : 'B^{+}#rightarrow D*D(#muX)',
         'BmDstmHc'  : 'B^{-}#rightarrow D*D(#muX)',
-        'antiB0DstmHc'  : '#bar{B}_{0}#rightarrow D*D(#muX)',
+        'antiB0DstmHc'  : '#bar{B}^{0}#rightarrow D*D(#muX)',
         'DstPi'     : 'B #rightarrow D**(#rightarrow D*#pi)#mu#nu',
         'DstPiPi'   : 'B #rightarrow D**(#rightarrow D*#pi#pi)#mu#nu',
+        'TauDstPi'  : 'B #rightarrow D**(#rightarrow D*#pi)#tau#nu',
         }
-
-        for n in procName_dic:
-            rename[n+'Br'] = 'Branching fraction ' + procName_dic[n]
+        for n in procName_dic: rename[n+'Br'] = 'Branching fraction ' + procName_dic[n]
 
         d = json.load(open(out+'impactPlots/impacts.json', 'r'))
         for par in d['params']:
@@ -2070,7 +2091,7 @@ jdlTemplate = '\n'.join([
               'x509userproxy     = $ENV(X509_USER_PROXY)',
               'on_exit_remove    = (ExitBySignal == False) && (ExitCode == 0)',
               'on_exit_hold      = (ExitBySignal == True) || (ExitCode != 0)',
-              'periodic_release  =  (NumJobStarts < 3) && ((CurrentTime - EnteredCurrentStatus) > (60*20))',
+              'periodic_release  =  (NumJobStarts < 2) && ((CurrentTime - EnteredCurrentStatus) > (60*5))',
               '+PeriodicRemove   = ((JobStatus =?= 2) && ((MemoryUsage =!= UNDEFINED && MemoryUsage > 2.5*RequestMemory)))',
               'max_retries       = 3',
               'requirements      = Machine =!= LastRemoteHost',
@@ -2254,7 +2275,7 @@ if __name__ == "__main__":
         else:
             fit_RDst, rDst_postFitRegion = runScan(args.cardTag+'Base', card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                                    args.category.capitalize(),
-                                                   rLimits=[0.8] if args.unblinded else [0.15],
+                                                   rLimits=[0.08] if args.unblinded else [0.15],
                                                    strategy=1, draw=True)
 
     if 'fitDiag' in args.step:

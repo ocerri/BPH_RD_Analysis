@@ -82,7 +82,7 @@ def getControlSideText(k):
         else: raise
     return t + str(Q)
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=1, max_y_shared=False, mergeDstst=True, mergeHc=True, pullsRatio=False, categoryText=None, cNameTag='', iq2_maskData=[]):
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=[1,5], max_y_shared=False, mergeDstst=True, mergeHc=True, pullsRatio=False, categoryText=None, cNameTag='', iq2_maskData=[]):
     if not categoryText is None:
         cNameTag += categoryText
     canvas = rt.TCanvas('c_out'+cNameTag, 'c_out'+cNameTag, 50, 50, 2*600, 400*len(binning['q2'])-1)
@@ -212,13 +212,13 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
             l.SetTextFont(42)
             l.DrawLatexNDC(0.17, 0.86, q2_txt)
             if not categoryText is None:
-                l.DrawLatexNDC(0.17, 0.8, 'Cat. '+categoryText)
+                l.DrawLatexNDC(0.17, 0.8, 'Category '+categoryText)
 
             CMS_lumi.CMS_lumi(pad, -1, 33, cmsTextSize=0.75*1.2, lumiTextSize=0.6*1.2)
             if logy:
                 pad.SetLogy()
 
-            if i_pad == iPad_legend:
+            if i_pad in iPad_legend:
                 loc=[0.6, 0.38, 0.92, 0.7]
                 if draw_pulls:
                     loc=[0.6, 0.25, 0.92, 0.7]
@@ -335,6 +335,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
 def plot_SingleCategory(CMS_lumi,
                         h_dic,
                         scale_dic={},
+                        density=False,
                         min_y=1e-4,
                         max_y=None,
                         draw_pulls=False,
@@ -388,13 +389,13 @@ def plot_SingleCategory(CMS_lumi,
     h.GetYaxis().SetTitleSize(0.06)
     h.GetYaxis().SetLabelSize(0.07)
     if xtitle:
-        h.GetYaxis().SetTitle('Candidates / {:.2f} '.format(h.GetBinWidth(3)) + 'GeV')
-    if max_y is None:
-        max_y = np.max([hhh.GetMaximum() for hhh in h_dic.values()])*1.3
+        yUnits = 'Normalized candidates' if density else 'Candidates'
+        h.GetYaxis().SetTitle(yUnits + ' / {:.2f} '.format(h.GetBinWidth(3)) + 'GeV')
     if maskData:
         h.Scale(0)
         h.Sumw2(0)
-    h.GetYaxis().SetRangeUser(min_y, max_y)
+    elif density:
+        h.Scale(1./h.Integral())
     h_list = [h]
 
     for iProc, procName in enumerate(procOrder):
@@ -441,7 +442,15 @@ def plot_SingleCategory(CMS_lumi,
             if not hh.GetName() == 'h_aux_data'+tag:
                 h.Add(hh)
             h_list.append(h)
+    if density:
+        integralTotMC = h_list[-1].Integral()
+        for hhh in h_list[1:]:
+            hhh.Scale(1./integralTotMC)
+            hhh.Sumw2(0)
 
+    if max_y is None:
+        max_y = np.max([hhh.GetMaximum() for hhh in h_list])*1.3
+    h_list[0].GetYaxis().SetRangeUser(min_y, max_y)
 
     h_list[0].Draw('E1')
     for h in reversed(h_list[1:]):
@@ -479,6 +488,8 @@ def plot_SingleCategory(CMS_lumi,
         if pullsRatio:
             h_dr.GetYaxis().SetTitle('RD/MC')
         h_tot = h_dic['total'].Clone('h_aux_total'+tag)
+        if density:
+            h_tot.Scale(1./h_tot.Integral())
         g_up = rt.TGraph()
         yExp = 1 if pullsRatio else 0
         g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), yExp)

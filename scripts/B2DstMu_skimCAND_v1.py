@@ -34,7 +34,7 @@ from B02DstMu_selection import candidate_selection, trigger_selection
 
 import argparse
 parser = argparse.ArgumentParser()
-#Example: python B2DstMu_skimCAND_v1.py -d mu_PU20 --maxEvents 80000 --applyCorr
+#Example: python B2DstMu_skimCAND_v1.py -d mu_PUc0 --applyCorr
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
@@ -61,6 +61,7 @@ filesLocMap = {
 'mu_PU0'         : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
 'mu_PU20'        : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
 'mu_PUc0'        : MCloc+'BP_Tag_B0_MuNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'muSoft_PUc0'    : MCloc+'BP_Tag_B0_MuNuDmst_SoftQCDall_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 'mu_PU35'        : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU35_10-2-3'+MCend,
 #
 'tau_PU0'        : MCloc+'B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
