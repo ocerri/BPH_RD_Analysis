@@ -528,7 +528,7 @@ def makeSelection(inputs):
 
 def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControlRegion=False, maxEvents=args.maxEvents):
     if cat is None:
-        catName = 'None'
+        catName = 'NoCat'
     else:
         catName = cat.name
     print '\n' + 50*'-'
@@ -834,31 +834,18 @@ if __name__ == "__main__":
             recreate = file_loc.keys()
         print '-'*50 + '\n'
 
-        if 'none' in args.cat:
-            print 'Running w/o category (ignoring other categories)'
-            sc = []
-            if args.skipCut == 'all':
-                sc = 'all'
-            for n, fp in file_loc.iteritems():
-                    create_dSet(n, fp, cat=None, skipCut=sc, applyCorrections=args.applyCorr, trkControlRegion=args.trkControlRegion)
-
+        skip = []
+        if args.skipCut == 'all':
+            skip.append('all')
+        elif args.skipCut:
+            skip.append([int(args.skipCut)])
         else:
-            skip = []
-            if args.skipCut == 'all':
-                skip.append('all')
-            # skip.append([6, 11, 12]) #Mass D0, D* and D*-D0 (m piK)
-            # skip.append([14]) #Visib le system pointing cos
-            # skip.append([16]) #Visible mass (m D0pismu)
-            # skip.append([17]) #Additional tracks
-            elif args.skipCut:
-                skip.append([int(args.skipCut)])
-            else:
-                skip.append([])
+            skip.append([])
 
-            for idx in skip:
-                for cn in args.cat:
-                    for n, fp in file_loc.iteritems():
-                        create_dSet(n, fp, categories[cn], skipCut=idx, applyCorrections=args.applyCorr, trkControlRegion=args.trkControlRegion)
+        for idx in skip:
+            for cn in args.cat:
+                for n, fp in file_loc.iteritems():
+                    create_dSet(n, fp, categories[cn], skipCut=idx, applyCorrections=args.applyCorr, trkControlRegion=args.trkControlRegion)
     elif args.function == 'makeSel':
         tmpDir = args.tmpDir
         input = pickle.load( open( tmpDir+'/input_{}.p'.format(args.jN), 'rb' ) )

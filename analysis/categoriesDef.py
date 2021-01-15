@@ -30,4 +30,6 @@ cat['single'].max_pt = 1e6
 cat['single'].trg = 'Mu9_IP6'
 cat['single'].minIP = 7
 
+cat['none'] = None
+
 categories = cat
