@@ -1218,14 +1218,20 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ########## Scale systematics uncertainties
     ######################################################
     #### pp -> bb cros-section * luminosity
-    card += 'xsecpp2bbXlumi'+category.trg+' lnN' + ' 1.15'*nProc*nCat + '\n'
+    card += 'overallNorm'+category.trg+' lnN' + ' 1.1'*nProc*nCat + '\n'
 
     #### Tracking efficiency uncertainty
-    card += 'trkEff param 1.0 0.021\n'
-    card += 'trkEff rateParam AddTk_p_* * 1.0\n'
-    card += 'trkEff rateParam AddTk_m_* * 1.0\n'
-    for charge in ['pp', 'pm', 'mm']:
-        card += 'trkEff2 rateParam AddTk_'+charge+'_* * (@0*@0) trkEff\n'
+    card += 'trkEff lnN'
+    for c in categories:
+        val = ''
+        if re.match('AddTk_[pm]_', c):
+            val = ' 1.021'
+        elif re.match('AddTk_[pm]{2}_', c):
+            val = ' 1.042441' # 1.021^2
+        else:
+            val = ' -'
+        card += val*len(processes)
+    card += '\n'
 
     #### Branching ratio uncertainty
     decayBR = pickle.load(open('/storage/user/ocerri/BPhysics/data/forcedDecayChannelsFactors.pickle', 'rb'))
@@ -1506,7 +1512,7 @@ def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
     cmd += ' --robustFit 1 --cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_analytic'
     cmd += ' --seed ' + str(seed)
     cmd += ' -d ' + card.replace('.txt', '.root')
-    cmd += ' --toysFile higgsCombineToys.GenerateOnly.mH{:.0f}.{}.root -t {}'.format(1000*rVal, seed, nToys)
+    cmd += ' --toysFrequentist --toysFile higgsCombineToys.GenerateOnly.mH{:.0f}.{}.root -t {}'.format(1000*rVal, seed, nToys)
     cmd += ' --setParameters r={:.2f}'.format(rVal)
     if maskStr:
         cmd += ','+maskStr
@@ -1932,10 +1938,10 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         'trgSF': 'Trigger scale factor',
         'trkEff': 'Tracking efficiency',
         # 'tkPVfrac': 'Tracks fraction',
-        'xsecpp2bbXlumi': 'Luminosity*#sigma_{pp#rightarrowbb}',
-        'xsecpp2bbXlumiMu7_IP4': 'Luminosity*#sigma_{pp#rightarrowbb} (Low)',
-        'xsecpp2bbXlumiMu9_IP6': 'Luminosity*#sigma_{pp#rightarrowbb} (Mid)',
-        'xsecpp2bbXlumiMu12_IP6': 'Luminosity*#sigma_{pp#rightarrowbb} (High)',
+        'overallNorm': 'Overall norm',
+        'overallNormMu7_IP4': 'Overall norm (Low)',
+        'overallNormMu9_IP6': 'Overall norm (Mid)',
+        'overallNormMu12_IP6': 'Overall norm (High)',
         'BrB02DstDpK0': 'Branching fraction B^{0}#rightarrow D*^{-}D^{+}K^{0}',
         'BrB02DstDst0Kstp': 'Branching fraction B^{0}#rightarrow D*^{-}D*^{0}K^{+}',
         'BrB02DstD0Kstp'  : 'Branching fraction B^{0}#rightarrow D*^{-}D^{0}K*^{+}',
