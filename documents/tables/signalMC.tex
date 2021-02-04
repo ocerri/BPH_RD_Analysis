@@ -1,0 +1,48 @@
+\documentclass[a4paper,12pt,twoside]{book}
+
+\usepackage{setspace}
+\usepackage{balance}
+\usepackage[font={small,it}]{caption}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage{listings}
+\usepackage{slashed}
+\usepackage{hyperref}
+\usepackage{authblk}
+\usepackage{fancyhdr}
+\usepackage{floatflt}
+\usepackage{float}
+
+\usepackage[a4paper,top=3.5cm,bottom=3.5cm,left=3cm,right=2.5cm]{geometry}
+
+\let\mtcleardoublepage\cleardoublepage
+\renewcommand{\cleardoublepage}{\clearpage{\pagestyle{plain}\mtcleardoublepage}}
+
+
+%opening
+\title{Hadronic recoil in the W boson production at LHC for a W mass measurement with the CMS experiment}
+\author{Olmo Cerri}
+\affil{\href{https://www.df.unipi.it/}{Dipartimento di Fisica "E. Fermi" - Universit\`a di Pisa}}
+\date{\today}
+
+
+\begin{document}
+
+\begin{table}[!ht]
+\centering
+\caption{Signal MC samples used in the analysis. For more information about the pileup, see section~\ref{subsec:pileup}.}.
+\begin{tabular}{|c|c|c|c|}
+ \hline
+ Decay & Form factor & Gen. Events & Gen. Eff. [$10^{-3}$] \\
+ \hline
+ $B^0\to D^{*-}\mu^{+}\nu$ & ISGW2 & 30G & $4.454 \pm 0.003$ \\
+ \hline
+ $B^0 \to D^{*-}\tau^{+}\nu$ & ISGW2 & 7G & $0.857 \pm 0.002$ \\
+ \hline
+\end{tabular}
+\label{table:SignalsSamplesMC}
+\end{table}
+
+\end{document}
