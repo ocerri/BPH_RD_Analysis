@@ -58,6 +58,7 @@ parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'
 parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial tag.')
 
 parser.add_argument ('--unblinded', default=False, action='store_true', help='Unblind the fit regions.')
+parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
 parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
@@ -322,7 +323,7 @@ def createHistograms(category):
     decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors.pickle', 'rb'))
 
     loc = dataDir+'/calibration/triggerScaleFactors/'
-    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v5.root', 'READ')
+    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v7.root', 'READ')
     hTriggerSF = fTriggerSF.Get('hSF_HLT_' + category.trg)
     def computeTrgSF(ds, selection=None):
         trgSF = np.ones_like(ds['q2'])
@@ -408,6 +409,17 @@ def createHistograms(category):
     def computeB0etaWeights(ds):
         w = np.polyval(p=pWeightsEta, x=ds['B_eta'])
         return np.clip(w, a_min=0.5, a_max=1.5)
+
+    def computeMuonPtWeights(ds, size=0.05, pivFrac=0.3, lamToEnd=3):
+        xPiv = category.min_pt + pivFrac*(min(category.max_pt, 20) - category.min_pt)
+        lamUp = (min(category.max_pt, 20) - xPiv)/lamToEnd
+        lamDw = (xPiv - category.min_pt)/lamToEnd
+        dx = ds['mu_pt'] - xPiv
+        lam = np.where(dx > 0, lamUp, lamDw)
+        sf = 1 - np.exp(-np.abs(dx)/lam)
+        wUp = 1 + sf*size
+        wDw = 1 - sf*size
+        return wUp, wDw
 
     if args.useMVA:
         fname = dataDir+'../plot_scripts/kinObsMVA/clfGBC_tauVall_{}{}.p'.format(args.useMVA, category.name)
@@ -532,7 +544,8 @@ def createHistograms(category):
     #     weights['muonIdSF'], wVar['muonIdSFUp'], wVar['muonIdSFDown'] = computeMuonIDSF(ds)
         weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
-    #     print 'Including muon pT corrections'
+        # print 'Including muon pT corrections'
+        # wVar['muPtUp'], wVar['muPtDown'] = computeMuonPtWeights(ds)
     #     weights['MuPt'], auxVarDic = computePtWeights(ds, 'mu_pt', 'MuPt', cal_pT_mu)
     #     wVar.update(auxVarDic)
 
@@ -775,7 +788,9 @@ def createHistograms(category):
         weights['trg{}SF'.format(category.trg)], wVar['trg{}SFUp'.format(category.trg)], wVar['trg{}SFDown'.format(category.trg)] = computeTrgSF(ds)
         print 'Including muon ID corrections'
         weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
-    #     print 'Including muon pT corrections'
+
+        # print 'Including muon pT corrections'
+        # wVar['muPtUp'], wVar['muPtDown'] = computeMuonPtWeights(ds)
     #     weights['MuPt'], auxVarDic = computePtWeights(ds, 'mu_pt', 'MuPt', cal_pT_mu)
     #     wVar.update(auxVarDic)
 
@@ -1170,8 +1185,12 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             if c == 'AddTk_pm_mHad': continue
             aux = c.startswith('Unrolled')
             aux = aux or c.startswith('AddTk_')
-            if not aux: continue
-            if (not args.unblinded) and (c.endswith('_q2bin2') or c.endswith('_q2bin3')): continue
+            if not aux:
+                continue
+            if (not args.unblinded) and (c.endswith('_q2bin2') or c.endswith('_q2bin3')):
+                continue
+            if args.noLowq2 and (c.endswith('_q2bin0') or c.endswith('_q2bin1')):
+                continue
         categories.append(c)
     nCat = len(categories)
 
@@ -1296,6 +1315,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # aux = ''
     # for p in processes:
     #     aux += ' 1.'
+    # card += 'muPt shape' + aux*nCat + '\n'
     # names = []
     # for k in histo.values()[0].keys():
     #     if k.startswith('mu__MuPt') and k.endswith('Up'):
@@ -1412,9 +1432,9 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         else:
         #     card += 'Est_mu* autoMCStats 0 1 1\n'
         #     card += 'M2_miss* autoMCStats 0 1 1\n'
-
-            card += 'Unrolled_q2bin0 autoMCStats 0 1 1\n'
-            card += 'Unrolled_q2bin1 autoMCStats 0 1 1\n'
+            if not args.noLowq2:
+                card += 'Unrolled_q2bin0 autoMCStats 0 1 1\n'
+                card += 'Unrolled_q2bin1 autoMCStats 0 1 1\n'
             if args.unblinded:
                 card += 'Unrolled_q2bin2 autoMCStats 0 1 1\n'
                 card += 'Unrolled_q2bin3 autoMCStats 0 1 1\n'
@@ -1647,9 +1667,14 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
     cmd += ' --saveShapes --saveWithUncertainties --saveNormalizations  --saveWorkspace'
     cmd += ' --trackParameters rgx{.*}'
     cmd += ' --plots'
-    cmd += ' --verbose 0'
+    cmd += ' --verbose 1'
     print cmd
     status, output = commands.getstatusoutput(cmd)
+    if rt.gROOT.IsBatch():
+        print 50*'#'
+        print 20*'#' + ' Fit Diag ' + 20*'#'
+        print 50*'#'
+        print output
     if status or 'There was a crash.' in output:
         print output
         raise
@@ -2041,7 +2066,7 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
     cmdToys = cmdToys.replace('-t 0 -s 100', '-t 20 -s -1')
     print cmdToys
 
-    Nrep = 20
+    Nrep = 10
     p = Pool(min(20,Nrep))
     outputs = p.map(runCommand, Nrep*[cmdToys])
     for s,o in outputs:
@@ -2247,6 +2272,9 @@ if __name__ == "__main__":
 
     if not args.unblinded:
         globalChannelMasking += ['Unrolled_q2bin2', 'Unrolled_q2bin3']
+
+    if args.noLowq2:
+        globalChannelMasking += ['Unrolled_q2bin0', 'Unrolled_q2bin1']
 
     if args.category == 'comb':
         aux = []
