@@ -63,6 +63,7 @@ parser.add_argument ('--asimov', default=False, action='store_true', help='Use A
 parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
+parser.add_argument ('--CalB0pT', default='ratio', choices=['ratio', 'poly'], help='Form factor scheme to use.')
 
 
 availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
@@ -375,10 +376,15 @@ def createHistograms(category):
     #     raise
         return muonSF, up, down
 
+    if args.CalB0pT == 'ratio':
+        print 'Using ratio B0 pT calibration'
+        calFile = 'pwWeights_{}_v9.txt'.format(category.name)
+    elif args.CalB0pT == 'poly':
+        print 'Using polinomial B0 pT calibration'
+        calFile = 'polyCoeffWeights_{}_v9.pkl'.format(category.name)
+    cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/'+calFile)
 
-    cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/pwWeights_{}.txt'.format(category.name))
-    # cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/polyCoeffWeights_{}.pkl'.format(category.name))
-    cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/pwWeights_{}.txt'.format(category.name))
+    cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/pwWeights_{}_v9.txt'.format(category.name))
     # cal_pT_mu = pTCalReader(calibration_file=dataDir+'/calibration/MuonPtSpectrum/polyCoeffWeights_{}.pkl'.format(category.name))
     def computePtWeights(ds, var, tag, cal_pT):
         if cal_pT.kind == 'poly':
