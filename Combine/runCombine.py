@@ -63,7 +63,7 @@ parser.add_argument ('--asimov', default=False, action='store_true', help='Use A
 parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
-parser.add_argument ('--CalB0pT', default='ratio', choices=['ratio', 'poly'], help='Form factor scheme to use.')
+parser.add_argument ('--CalB0pT', default='poly', choices=['ratio', 'poly'], help='Form factor scheme to use.')
 
 
 availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
@@ -278,25 +278,38 @@ def computeBrVarWeights(ds, selItems={}, relScale=0.2, keepNorm=False):
         down = (float(down.shape[0])/np.sum(down)) * down
     return w, up, down
 
-def computeWidthVarWeights(ds, selItems=[], relScale=0.1): #Gamma modification factor
+def computeWidthVarWeights(ds, selItems=[], newGamma=None, relScale=0.1, keepNorm=True): #Gamma modification factor
     # selItems=[ [pdgId, mass, Gamma] ]
+    w = np.ones_like(ds['mu_pt'])
     up = np.ones_like(ds['mu_pt'])
     down = np.ones_like(ds['mu_pt'])
-    for pdgId, mass, gamma in selItems:
+    for i, (pdgId, mass, gamma) in enumerate(selItems):
         # print pdgId, mass, gamma
-        gUp = gamma*(1+relScale)
-        gDown = gamma*(1-relScale)
-
         dx2 = np.clip(np.square(ds['MC_MassCharmedBDaughter'] - mass), 0, 9*(gamma**2))
+
+        if not (newGamma is None) and not (newGamma[i] is None):
+                gNew = newGamma[i]
+                wCentral = ((dx2 + gamma**2)*gNew)/(gamma*(dx2 + gNew**2))
+                gUp = gNew*(1+relScale)
+                gDown = gNew*(1-relScale)
+        else:
+            wCentral = np.ones_like(dx2)
+            gUp = gamma*(1+relScale)
+            gDown = gamma*(1-relScale)
+
         wUp = ((dx2 + gamma**2)*gUp)/(gamma*(dx2 + gUp**2))
         wDown = ((dx2 + gamma**2)*gDown)/(gamma*(dx2 + gDown**2))
 
         sel = np.abs(ds['MC_DstMotherPdgId'].astype(np.int)) == np.abs(pdgId)
+        w = np.where(sel, wCentral, w)
         up = np.where(sel, wUp, up)
         down = np.where(sel, wDown, down)
 
-    w = np.ones_like(sel)
-    return w, up, down
+    if keepNorm:
+        w = w * (w.shape[0]/np.sum(w))
+        up = up * (w.shape[0]/np.sum(up))
+        down = down * (w.shape[0]/np.sum(down))
+    return w, up/w, down/w
 
 def computeTksPVweights(ds, relScale=0.05, centralVal=0.39/0.10):
     selPdgID0 = np.logical_and(np.abs(ds['MC_tkMotherPdgId_0']) < 6, ds['MC_tkMotherPdgId_0'] != 0)
@@ -587,7 +600,7 @@ def createHistograms(category):
         if n == 'DstPipPim' or n == 'DstPi0Pi0':
             print 'Including D**->D*PiPi width variations'
             widthMods = [[100413, 2.640, 0.200]]
-            _, wVar['DstPiPiWidthUp'], wVar['DstPiPiWidthDown'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.1)
+            weights['DstPiPiWidth'], wVar['DstPiPiWidthUp'], wVar['DstPiPiWidthDown'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.2, newGamma=[0.35])
         #Hc mix variations
         if n == 'DstmD0':
             _, wVar['BrB02DstD0KpUp'], wVar['BrB02DstD0KpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 421, 'MC_DstSisterPdgId_light': 321}, 0.21/2.47) #Gamma 169 pdg 2020
@@ -829,7 +842,8 @@ def createHistograms(category):
         if n == 'DstPipPim' or n == 'DstPi0Pi0':
             print 'Including D**->D*PiPi width variations'
             widthMods = [[100413, 2.640, 0.200]]
-            _, wVar['DstPiPiWidthUp'], wVar['DstPiPiWidthDown'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.1)
+            weights['DstPiPiWidth'], wVar['DstPiPiWidthUp'], wVar['DstPiPiWidthDown'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.2, newGamma=[0.35])
+
         #Hc mix variations
         if n == 'DstmD0':
             _, wVar['BrB02DstD0KpUp'], wVar['BrB02DstD0KpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 421, 'MC_DstSisterPdgId_light': 321}, 0.21/2.47) #Gamma 169 pdg 2020
