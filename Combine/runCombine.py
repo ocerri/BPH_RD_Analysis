@@ -59,6 +59,7 @@ parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial 
 
 parser.add_argument ('--unblinded', default=False, action='store_true', help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
+parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
 parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
@@ -337,27 +338,28 @@ def createHistograms(category):
     decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors.pickle', 'rb'))
 
     loc = dataDir+'/calibration/triggerScaleFactors/'
-    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v7.root', 'READ')
+    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v8base.root', 'READ')
     hTriggerSF = fTriggerSF.Get('hSF_HLT_' + category.trg)
-    def computeTrgSF(ds, selection=None):
+    def computeTrgSF(ds, hSF, selection=None):
         trgSF = np.ones_like(ds['q2'])
         trgSFUnc = np.zeros_like(ds['q2'])
-        ptmax = hTriggerSF.GetXaxis().GetXmax() - 0.01
-        ipmax = hTriggerSF.GetYaxis().GetXmax() - 0.01
-        etamax = hTriggerSF.GetZaxis().GetXmax() - 0.01
+        ptmax = hSF.GetXaxis().GetXmax() - 0.01
+        ipmax = hSF.GetYaxis().GetXmax() - 0.01
+        etamax = hSF.GetZaxis().GetXmax() - 0.01
         x = np.column_stack((ds['mu_pt'], ds['mu_eta'], ds['mu_sigdxy']))
         if not selection is None:
             x = x[selection]
         for i, (pt, eta, ip) in enumerate(x):
-            ix = hTriggerSF.GetXaxis().FindBin(min(ptmax, pt))
-            iy = hTriggerSF.GetYaxis().FindBin(min(ipmax, ip))
-            iz = hTriggerSF.GetZaxis().FindBin(min(etamax, np.abs(eta)))
-            trgSF[i] = hTriggerSF.GetBinContent(ix, iy, iz)
-            ib = hTriggerSF.GetBin(ix, iy, iz)
-            trgSFUnc[i] = hTriggerSF.GetBinError(ib)
+            ix = hSF.GetXaxis().FindBin(min(ptmax, pt))
+            iy = hSF.GetYaxis().FindBin(min(ipmax, ip))
+            iz = hSF.GetZaxis().FindBin(min(etamax, np.abs(eta)))
+            trgSF[i] = hSF.GetBinContent(ix, iy, iz)
+            ib = hSF.GetBin(ix, iy, iz)
+            trgSFUnc[i] = hSF.GetBinError(ib)
             if trgSF[i] == 0:
                 print pt, ip, np.abs(eta)
                 raise
+
         # Divide them for the weight so later you can simply multiply back to get the value
         up = 1 + trgSFUnc/trgSF
         down = 1 - trgSFUnc/trgSF
@@ -556,8 +558,35 @@ def createHistograms(category):
         weights['pileup'] = puReweighter.weightsPileupMC[ds['N_vtx'].astype(np.int)]
 
         print 'Including trigger corrections'
-        weights['trg{}SF'.format(category.trg)], wVar['trg{}SFUp'.format(category.trg)], wVar['trg{}SFDown'.format(category.trg)] = computeTrgSF(ds)
-    #     weights['trg{}SF'.format(category.trg)], _, _ = computeTrgSF(ds)
+        nameSF = 'trg{}SF'.format(category.trg)
+        weights[nameSF], wSfUp, wSfDw = computeTrgSF(ds, hTriggerSF)
+        auxOnes = np.ones_like(wSfUp)
+        # for i_eta in range(1, hTriggerSF.GetNbinsZ()+1):
+        #     c_eta = hTriggerSF.GetZaxis().GetBinCenter(i_eta)
+        #     w_eta = hTriggerSF.GetZaxis().GetBinWidth(i_eta)
+        # for i_ip in range(1, hTriggerSF.GetNbinsY()+1):
+        #     c_ip = hTriggerSF.GetYaxis().GetBinCenter(i_ip)
+        #     w_ip = hTriggerSF.GetYaxis().GetBinWidth(i_ip)
+        #     if c_ip + 0.5*w_ip <= category.minIP:
+        #         continue
+        for i_pt in range(1, hTriggerSF.GetNbinsX()+2):
+            if i_pt > hTriggerSF.GetNbinsX() and category.name == 'High':
+                sel = ds['mu_pt'] > hTriggerSF.GetXaxis().GetXmax()
+            else:
+                c_pt = hTriggerSF.GetXaxis().GetBinCenter(i_pt)
+                w_pt = hTriggerSF.GetXaxis().GetBinWidth(i_pt)
+                if (c_pt + 0.5*w_pt <= category.min_pt) or (c_pt - 0.5*w_pt >= category.max_pt):
+                    continue
+
+                sel = np.abs(ds['mu_pt'] - c_pt) < w_pt
+            # sel = np.logical_and(sel, np.abs(ds['mu_sigdxy'] - c_ip) < w_ip)
+            # sel = np.logical_and(sel, np.abs(ds['mu_eta'] - c_eta) < w_eta)
+            # binName = '_pt{}ip{}eta{}'.format(i_pt, i_ip, i_eta)
+            # print 'Trg SF', i_pt, i_ip, i_eta, '-> selected {}'.format(np.sum(sel))
+            # binName = '_pt{}ip{}'.format(i_pt, i_ip)
+            binName = '_pt{}'.format(i_pt)
+            wVar[nameSF+binName+'Up'] = np.where(sel, wSfUp, auxOnes)
+            wVar[nameSF+binName+'Down'] = np.where(sel, wSfDw, auxOnes)
 
         print 'Including muon ID corrections'
     #     weights['muonIdSF'], wVar['muonIdSFUp'], wVar['muonIdSFDown'] = computeMuonIDSF(ds)
@@ -788,7 +817,7 @@ def createHistograms(category):
     sideVar['AddTk_pp_mHad'] = 'massHadTks'
     binning['AddTk_pp_mHad'] = [15, 2.25, 3.75]
 
-    # Fill control regions histrograms
+    print '---------> Fill control regions histograms'
     for k in sideSelecton.keys():
         histo[k] = {}
 
@@ -803,8 +832,38 @@ def createHistograms(category):
 
         print 'Including pileup reweighting'
         weights['pileup'] = puReweighter.weightsPileupMC[ds['N_vtx'].astype(np.int)]
+
         print 'Including trigger corrections'
-        weights['trg{}SF'.format(category.trg)], wVar['trg{}SFUp'.format(category.trg)], wVar['trg{}SFDown'.format(category.trg)] = computeTrgSF(ds)
+        nameSF = 'trg{}SF'.format(category.trg)
+        weights[nameSF], wSfUp, wSfDw = computeTrgSF(ds, hTriggerSF)
+        auxOnes = np.ones_like(wSfUp)
+        # for i_eta in range(1, hTriggerSF.GetNbinsZ()+1):
+        #     c_eta = hTriggerSF.GetZaxis().GetBinCenter(i_eta)
+        #     w_eta = hTriggerSF.GetZaxis().GetBinWidth(i_eta)
+        # for i_ip in range(1, hTriggerSF.GetNbinsY()+1):
+        #     c_ip = hTriggerSF.GetYaxis().GetBinCenter(i_ip)
+        #     w_ip = hTriggerSF.GetYaxis().GetBinWidth(i_ip)
+        #     if c_ip + 0.5*w_ip <= category.minIP:
+        #         continue
+        for i_pt in range(1, hTriggerSF.GetNbinsX()+2):
+            if i_pt > hTriggerSF.GetNbinsX() and category.name == 'High':
+                sel = ds['mu_pt'] > hTriggerSF.GetXaxis().GetXmax()
+            else:
+                c_pt = hTriggerSF.GetXaxis().GetBinCenter(i_pt)
+                w_pt = hTriggerSF.GetXaxis().GetBinWidth(i_pt)
+                if (c_pt + 0.5*w_pt <= category.min_pt) or (c_pt - 0.5*w_pt >= category.max_pt):
+                    continue
+
+                sel = np.abs(ds['mu_pt'] - c_pt) < w_pt
+            # sel = np.logical_and(sel, np.abs(ds['mu_sigdxy'] - c_ip) < w_ip)
+            # sel = np.logical_and(sel, np.abs(ds['mu_eta'] - c_eta) < w_eta)
+            # binName = '_pt{}ip{}eta{}'.format(i_pt, i_ip, i_eta)
+            # print 'Trg SF', i_pt, i_ip, i_eta, '-> selected {}'.format(np.sum(sel))
+            # binName = '_pt{}ip{}'.format(i_pt, i_ip)
+            binName = '_pt{}'.format(i_pt)
+            wVar[nameSF+binName+'Up'] = np.where(sel, wSfUp, auxOnes)
+            wVar[nameSF+binName+'Down'] = np.where(sel, wSfDw, auxOnes)
+
         print 'Including muon ID corrections'
         weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
@@ -1142,6 +1201,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux.SaveAs(webFolder+'/M2Miss_vs_EstMu_q2bin{}_{}_TotMC.png'.format(i_q2, tag))
         outCanvas.append(cAux)
 
+    hMuPt_all = None
     for i_q2 in range(len(binning['q2'])-1):
         q2_l = binning['q2'][i_q2]
         q2_h = binning['q2'][i_q2 + 1]
@@ -1162,6 +1222,32 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                    )
         cAux.SaveAs(outdir+'/fig/muPt_q2bin'+str(i_q2)+'_'+tag+'.png')
         cAux.SaveAs(webFolder+'/muPt_q2bin'+str(i_q2)+'_'+tag+'.png')
+        outCanvas.append(cAux)
+        if i_q2 == 0:
+            hMuPt_all = {}
+            for n in hDic[name].keys():
+                hMuPt_all[n] = hDic[name][n].Clone()
+        else:
+            for n in hMuPt_all.keys():
+                hMuPt_all[n].Add(hDic[name][n])
+    if 'prefit' in tag:
+        print 'Creating mu_pt_all'
+        hMuPt_all['data'].GetYaxis().SetTitle('Normalized events')
+        cAux = plot_SingleCategory(CMS_lumi, hMuPt_all, scale_dic=scale_dic,
+                                   draw_pulls=True, pullsRatio=True,
+                                   addText='Cat. '+catName,
+                                   logy=False, legBkg=True,
+                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                                   min_y=0,
+                                   max_y='data',
+                                   pulls_ylim=[0.85, 1.15],
+                                   density=True,
+                                   tag=tag+'mu_pt_all',
+                                   legLoc=[0.7, 0.3, 0.9, 0.55],
+                                   maskData = (not args.unblinded) and (False if i_q2 < 2 else True)
+                                   )
+        cAux.SaveAs(outdir+'/fig/muPt_allNorm_'+tag+'.png')
+        cAux.SaveAs(webFolder+'/muPt_allNorm_'+tag+'.png')
         outCanvas.append(cAux)
 
     for i_q2 in range(len(binning['q2'])-1):
@@ -1203,7 +1289,10 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         if c.startswith('h2'): continue
         if fitRegionsOnly:
             if c == 'AddTk_pm_mHad': continue
-            aux = c.startswith('Unrolled')
+            if args.signalRegProj1D:
+                aux = c.startswith(args.signalRegProj1D)
+            else:
+                aux = c.startswith('Unrolled')
             aux = aux or c.startswith('AddTk_')
             if not aux:
                 continue
@@ -1321,7 +1410,14 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ########## Shape systematics uncertainties
     ######################################################
 
-    # card += 'trg{}SF shape'.format(category.trg) + ' 1.'*nProc*nCat + '\n'
+    nameSF = 'trg{}SF'.format(category.trg)
+    counter = 0
+    for k in histo.values()[0].keys():
+        if k.startswith(SamplesB0[0]+'__'+nameSF + '_pt') and k.endswith('Up'):
+            n = k[k.find('__')+2:-2]
+            card += n+' shape' + ' 1.'*nProc*nCat + '\n'
+            counter += 1
+    print 'SF unc', counter
     # card += 'muonIdSF shape' + ' 1.'*nProc*nCat + '\n'
 
     aux = ''
@@ -1450,14 +1546,20 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         if args.useMVA:
             card += 'MVA autoMCStats 2 1 1\n'
         else:
-        #     card += 'Est_mu* autoMCStats 0 1 1\n'
-        #     card += 'M2_miss* autoMCStats 0 1 1\n'
-            if not args.noLowq2:
-                card += 'Unrolled_q2bin0 autoMCStats 0 1 1\n'
-                card += 'Unrolled_q2bin1 autoMCStats 0 1 1\n'
-            if args.unblinded:
-                card += 'Unrolled_q2bin2 autoMCStats 0 1 1\n'
-                card += 'Unrolled_q2bin3 autoMCStats 0 1 1\n'
+            if args.signalRegProj1D:
+                if not args.noLowq2:
+                    card += args.signalRegProj1D+'_q2bin0 autoMCStats 0 1 1\n'
+                    card += args.signalRegProj1D+'_q2bin1 autoMCStats 0 1 1\n'
+                if args.unblinded:
+                    card += args.signalRegProj1D+'_q2bin2 autoMCStats 0 1 1\n'
+                    card += args.signalRegProj1D+'_q2bin3 autoMCStats 0 1 1\n'
+            else:
+                if not args.noLowq2:
+                    card += 'Unrolled_q2bin0 autoMCStats 0 1 1\n'
+                    card += 'Unrolled_q2bin1 autoMCStats 0 1 1\n'
+                if args.unblinded:
+                    card += 'Unrolled_q2bin2 autoMCStats 0 1 1\n'
+                    card += 'Unrolled_q2bin3 autoMCStats 0 1 1\n'
 
         card += 60*'-'+'\n'
 
@@ -2255,10 +2357,10 @@ if __name__ == "__main__":
         cl = card_location.replace('.txt', '_fitRegionsOnly.txt')
         cmd = 'cd ' + os.path.dirname(cl) + '; '
         cmd += 'ValidateDatacards.py ' + os.path.basename(cl) + ' -p 3 -c 0.2'
-        print cmd
-        status, output = commands.getstatusoutput(cmd)
-        if ('ERROR' in output) or ('There were  ' in output):
-            print output
+        # print cmd
+        # status, output = commands.getstatusoutput(cmd)
+        # if ('ERROR' in output) or ('There were  ' in output):
+        #     print output
 
         print '\n'
         args.step.remove('card')
@@ -2286,15 +2388,27 @@ if __name__ == "__main__":
     fit_RDst = SM_RDst
 
     globalChannelMasking = ['AddTk_pm_mHad', 'B_pt', 'B_eta']
-    for n in ['Est_mu', 'M2_miss', 'mu_pt', 'Dst_pt']:
+    mAux = ['mu_pt', 'Dst_pt']
+    if args.signalRegProj1D:
+        mAux += ['Unrolled']
+        if args.signalRegProj1D == 'Est_mu': mAux += ['M2_miss']
+        elif args.signalRegProj1D == 'M2_miss': mAux += ['Est_mu']
+    else:
+        mAux += ['M2_miss', 'Est_mu']
+    for n in mAux:
         for i in range(len(binning['q2'])-1):
             globalChannelMasking.append(n+'_q2bin'+str(i))
 
-    if not args.unblinded:
-        globalChannelMasking += ['Unrolled_q2bin2', 'Unrolled_q2bin3']
-
-    if args.noLowq2:
-        globalChannelMasking += ['Unrolled_q2bin0', 'Unrolled_q2bin1']
+    if args.signalRegProj1D:
+        if not args.unblinded:
+            globalChannelMasking += [args.signalRegProj1D+'_q2bin2', args.signalRegProj1D+'_q2bin3']
+        if args.noLowq2:
+            globalChannelMasking += [args.signalRegProj1D+'_q2bin0', args.signalRegProj1D+'_q2bin1']
+    else:
+        if not args.unblinded:
+            globalChannelMasking += ['Unrolled_q2bin2', 'Unrolled_q2bin3']
+        if args.noLowq2:
+            globalChannelMasking += ['Unrolled_q2bin0', 'Unrolled_q2bin1']
 
     if args.category == 'comb':
         aux = []

@@ -450,6 +450,8 @@ def plot_SingleCategory(CMS_lumi,
 
     if max_y is None:
         max_y = np.max([hhh.GetMaximum() for hhh in h_list])*1.3
+    elif max_y == 'data':
+        max_y = 1.3*h_list[0].GetMaximum()
     h_list[0].GetYaxis().SetRangeUser(min_y, max_y)
 
     h_list[0].Draw('E1')
