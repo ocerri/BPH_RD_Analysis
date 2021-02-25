@@ -117,10 +117,10 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
             pad_master = canvas.cd(i_pad)
 
             if not draw_pulls or i_q2 in iq2_maskData:
-                pad = rt.TPad('pmain_'+cat_name, 'pmain_'+cat_name, 0, 0, 1, 1)
+                pad = rt.TPad('pmain_'+cat_name+'_'+cNameTag, 'pmain_'+cat_name, 0, 0, 1, 1)
                 pad.SetBottomMargin(0.2)
             else:
-                pad = rt.TPad('pmain_'+cat_name, 'pmain_'+cat_name, 0, 0.25, 1, 1)
+                pad = rt.TPad('pmain_'+cat_name+'_'+cNameTag, 'pmain_'+cat_name, 0, 0.25, 1, 1)
                 pad.SetBottomMargin(0.)
             pad.SetTopMargin(0.07)
             pad.SetRightMargin(0.05)

@@ -57,7 +57,7 @@ parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], hel
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
 parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial tag.')
 
-parser.add_argument ('--unblinded', default=False, action='store_true', help='Unblind the fit regions.')
+parser.add_argument ('--unblinded', default=True, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
@@ -69,8 +69,11 @@ parser.add_argument ('--CalB0pT', default='poly', choices=['ratio', 'poly'], hel
 
 availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
 defaultPipeline = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'GoF']
+# histos preFitPlots card workspace scan fitDiag postFitPlots uncBreakdown GoF
 parser.add_argument ('--step', '-s', type=str, default=defaultPipeline, choices=availableSteps, help='Analysis steps to run.', nargs='+')
 parser.add_argument ('--submit', default=False, action='store_true', help='Submit a job instead of running the call interactively.')
+
+parser.add_argument ('--validateCard', default=False, action='store_true', help='Run combine card validation.')
 
 parser.add_argument ('--forceRDst', default=False, action='store_true', help='Perform fit fixing R(D*) to 0.295')
 # parser.add_argument ('--fitRegionsOnly', default=False, action='store_true', help='Include only regions used for fitting')
@@ -412,8 +415,8 @@ def createHistograms(category):
 
             varDic = {}
             for iShape in range(1, cal_pT.nVar+1):
-                varDic[tag+'_lam{}Down'.format(iShape)] = cal_pT.getWeights(ds[var], shape=-iShape)/w
-                varDic[tag+'_lam{}Up'.format(iShape)] = cal_pT.getWeights(ds[var], shape=+iShape)/w
+                varDic[tag+'_lam{}Down'.format(iShape)] = cal_pT.getWeights(ds[var], shape=-iShape, scale=1.)/w
+                varDic[tag+'_lam{}Up'.format(iShape)] = cal_pT.getWeights(ds[var], shape=+iShape, scale=1.)/w
             return w, varDic
         elif cal_pT.kind == 'ratio':
             w = cal_pT.f['C'](ds[var])
@@ -507,7 +510,7 @@ def createHistograms(category):
     #         array('d', [-2.5] + list(np.arange(-1.8, 3.0, 0.4)) + [8] ),
             array('d', [0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.0, 0.2)) + [8] ),
 
-            array('d', [0.3] + list(np.arange(0.7, 2.2, 0.3)) + [2.2] )
+            array('d', [0.3] + list(np.arange(0.7, 2.2, 0.3)) )
         ],
         [
     #         array('d', [-2.5] + list(np.arange(-1.8, 5.6, 0.4)) + [8] ),
@@ -1098,6 +1101,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
     outCanvas = []
     CMS_lumi.integrated_lumi = expectedLumi[catName]
 
+    # Draw unrolled histograms
     for i_q2 in range(len(binning['q2'])-1):
         q2_l = binning['q2'][i_q2]
         q2_h = binning['q2'][i_q2 + 1]
@@ -1177,6 +1181,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux.SaveAs(webFolder+'/B_eta_'+tag+'.png')
         outCanvas.append(cAux)
 
+    # Draw control regions
     for k in np.sort([k for k in hDic.keys() if 'AddTk' in k]):
         print 'Creating', k
         legLoc = [0.67, 0.3, 0.93, 0.72]
@@ -1212,6 +1217,60 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux.SaveAs(outdir+'/fig/M2Miss_vs_EstMu_q2bin{}_{}_TotMC.png'.format(i_q2, tag))
         cAux.SaveAs(webFolder+'/M2Miss_vs_EstMu_q2bin{}_{}_TotMC.png'.format(i_q2, tag))
         outCanvas.append(cAux)
+
+    #Re-rolling histos
+    unrolledBins = None
+    if args.category == 'comb':
+        unrolledBins = pickle.load(open(outdir.replace('comb', catName.lower())+'/unrolledBinsMap.pkl', 'rb'))
+    else:
+        unrolledBins = pickle.load(open(outdir+'/unrolledBinsMap.pkl', 'rb'))
+    hDic_reRollProj = {}
+    for i_q2 in range(len(binning['q2'])-1):
+        name2D = 'h2D_q2bin'+str(i_q2)
+        nameU = 'Unrolled_q2bin'+str(i_q2)
+        name2Dr = 'h2Dr_q2bin'+str(i_q2)
+        hDic[name2Dr] = {}
+        hDic_reRollProj['Est_mu_q2bin'+str(i_q2)] = {}
+        hDic_reRollProj['M2_miss_q2bin'+str(i_q2)] = {}
+        for n in hDic[nameU]:
+            hDic[name2Dr][n] = hDic[name2D][n].Clone()
+            hDic[name2Dr][n].Reset()
+            for idx, (ix, iy) in enumerate(unrolledBins[i_q2]):
+                hDic[name2Dr][n].SetBinContent(ix, iy, hDic[nameU][n].GetBinContent(idx+1))
+                hDic[name2Dr][n].SetBinError(ix, iy, hDic[nameU][n].GetBinError(idx+1))
+            # Re-rolled projections
+            auxN = 'Est_mu_q2bin'+str(i_q2)
+            hDic_reRollProj[auxN][n] = hDic[name2Dr][n].ProjectionY('hre_'+n+auxN, 1, -1, 'e')
+            auxN = 'M2_miss_q2bin'+str(i_q2)
+            hDic_reRollProj[auxN][n] = hDic[name2Dr][n].ProjectionX('hre_'+n+auxN, 1, -1, 'e')
+
+    # Re-rolled 2D plot
+    for i_q2 in range(len(binning['q2'])-1):
+        name2D = 'h2Dr_q2bin'+str(i_q2)
+        print 'Creating re-rolled histo', name2D
+        hSum = hDic[name2D]['total']
+        hSum.GetXaxis().SetTitle('m^{2}_{miss} [GeV^{2}]')
+        hSum.GetYaxis().SetTitle('E_{#mu}* [GeV]')
+        hSum.GetZaxis().SetTitle('Events')
+        cAux = drawOnCMSCanvas(CMS_lumi, [hSum], ['colz'], tag=str(i_q2), mR=0.17)
+        l = rt.TLatex()
+        l.SetTextAlign(11)
+        l.SetTextSize(0.05)
+        l.SetTextFont(42)
+        l.DrawLatexNDC(0.17, 0.8, 'Cat. '+catName)
+        cAux.SetLogz()
+        cAux.SaveAs(outdir+'/fig/reRolled_M2Miss_vs_EstMu_q2bin{}_{}_TotMC.png'.format(i_q2, tag))
+        cAux.SaveAs(webFolder+'/reRolled_M2Miss_vs_EstMu_q2bin{}_{}_TotMC.png'.format(i_q2, tag))
+        outCanvas.append(cAux)
+    print 'Creating re-rolled signal region grid'
+    cAux = plot_gridVarQ2(CMS_lumi, binning, hDic_reRollProj, draw_pulls=True,
+                          pullsRatio=False, pulls_ylim=[0.9, 1.1],
+                          scale_dic=scale_dic,
+                          categoryText=catName, cNameTag=tag+'_reRolled',
+                          iq2_maskData=[] if args.unblinded else [2, 3])
+    cAux.SaveAs(outdir+'/fig/reRolled_signalRegion_'+tag+'.png')
+    cAux.SaveAs(webFolder+'/reRolled_signalRegion_'+tag+'.png')
+    outCanvas.append(cAux)
 
     hMuPt_all = None
     for i_q2 in range(len(binning['q2'])-1):
@@ -1778,7 +1837,8 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=5
     cmd += ' --verbose -1'
     print cmd
     status, output = commands.getstatusoutput(cmd)
-    if status:
+    flags = 'WARNING: MultiDimFit failed' in output
+    if status or flags:
         print output
         raise
 
@@ -1894,6 +1954,16 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
                         h_post.SetBinError(i, h_fit.GetBinError(i))
 
                     histo_postfit[c][regName][n] = h_post
+
+            for k in histo_prefit[c].keys():
+                if not k.startswith('h2D_q2bin'):
+                    continue
+                if k in histo_postfit[c].keys():
+                    break
+                histo_postfit[c][k] = {}
+                for n in histo_prefit[c][k].keys():
+                    histo_postfit[c][k][n] = histo_prefit[c][k][n].Clone()
+                    histo_postfit[c][k][n].Reset()
     else:
         for regName in [k.GetTitle() for k in fd.GetListOfKeys()]:
             histo_postfit[regName] = {}
@@ -1914,6 +1984,13 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
                         h_post.SetBinError(i, h_fit.GetBinError(i))
 
                     histo_postfit[regName][n] = h_post
+
+        for k in histo_prefit.keys():
+            if not k.startswith('h2D_q2bin'): continue
+            histo_postfit[k] = {}
+            for n in histo_prefit[k].keys():
+                histo_postfit[k][n] = histo_prefit[k][n].Clone()
+                histo_postfit[k][n].Reset()
 
     h2 = fFitDiagnostics.Get('covariance_fit_' + ('b' if forceRDst else 's'))
     h2.Scale(100.)
@@ -2049,7 +2126,7 @@ def runUncertaintyBreakDown(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7]
         print output
         raise
     cmd = 'cp {}scanBreakdown.png {}/'.format(out, webFolder)
-    cmd = 'cp {}scanBreakdown.pdf {}/'.format(out, webFolder)
+    cmd += '; cp {}scanBreakdown.pdf {}/'.format(out, webFolder)
     status, output = commands.getstatusoutput(cmd)
     if status:
         print output
@@ -2404,13 +2481,14 @@ if __name__ == "__main__":
                 print output
                 raise
 
-        cl = card_location.replace('.txt', '_fitRegionsOnly.txt')
-        cmd = 'cd ' + os.path.dirname(cl) + '; '
-        cmd += 'ValidateDatacards.py ' + os.path.basename(cl) + ' -p 3 -c 0.2'
-        # print cmd
-        # status, output = commands.getstatusoutput(cmd)
-        # if ('ERROR' in output) or ('There were  ' in output):
-        #     print output
+        if args.validateCard:
+            cl = card_location.replace('.txt', '_fitRegionsOnly.txt')
+            cmd = 'cd ' + os.path.dirname(cl) + '; '
+            cmd += 'ValidateDatacards.py ' + os.path.basename(cl) + ' -p 3 -c 0.2'
+            print cmd
+            status, output = commands.getstatusoutput(cmd)
+            if ('ERROR' in output) or ('There were  ' in output):
+                print output
 
         print '\n'
         args.step.remove('card')

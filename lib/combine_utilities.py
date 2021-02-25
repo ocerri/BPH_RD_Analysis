@@ -22,9 +22,8 @@ def loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=False, ver
     histo = {}
     for fname in glob(histo_file_dir+'{}_*.root'.format(card_name)):
         regionName = os.path.basename(fname)[len(card_name)+1:-5]
-        if not regionName[:2] in ['B_', 'mu', 'Ds', 'Ad', 'Un', 'M2', 'Es']:
-            continue
         if verbose:
+            print regionName
             print 'Loading histos from:', fname
         tfReg = rt.TFile.Open(fname, 'READ')
         histo[regionName] = {}

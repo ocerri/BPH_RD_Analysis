@@ -43,7 +43,7 @@ class pTCalReader:
                                    kind='cubic'
                                                     )
 
-    def getWeights(self, B_pt, shape=0, clipLimits=[0.5,2]):
+    def getWeights(self, B_pt, shape=0, scale=1., clipLimits=[0.7,1.7]):
         if self.kind == 'ratio':
             # Not implemented
             pass
@@ -52,6 +52,6 @@ class pTCalReader:
         if np.abs(shape) > 0:
             sign = np.sign(shape)
             idx = np.abs(shape) - 1
-            p += sign*self.betaVar[idx]
+            p += sign*scale*self.betaVar[idx]
         w = np.polyval(p, B_pt)
         return np.clip(w, clipLimits[0], clipLimits[1])
