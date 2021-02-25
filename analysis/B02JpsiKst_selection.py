@@ -43,14 +43,17 @@ def category_selection(j, ev, evEx, cat, saveTrgMu=False):
             evEx.trgMu_pt = evEx.mup_pt
             evEx.trgMu_eta = evEx.mup_eta
             evEx.trgMu_sigdxy = ev.trgMu_sigdxy[int(ev.mup_isTrg[j])]
+            evEx.otherMu_pt = evEx.mum_pt
         elif passed[1]:
             evEx.trgMu_pt = evEx.mum_pt
             evEx.trgMu_eta = evEx.mum_eta
             evEx.trgMu_sigdxy = ev.trgMu_sigdxy[int(ev.mum_isTrg[j])]
+            evEx.otherMu_pt = evEx.mup_pt
         else:
             evEx.trgMu_pt = -1
             evEx.trgMu_eta = -999999999
             evEx.trgMu_sigdxy = -1
+            evEx.otherMu_pt = -1
 
     return np.sum(passed) > 0
 

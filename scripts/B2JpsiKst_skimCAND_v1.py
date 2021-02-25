@@ -168,6 +168,10 @@ def extractEventInfos(j, ev, corr=None):
 
     e.mass_piK = compMass(e.pi_pt, e.K_pt, e.pi_eta, e.K_eta, e.pi_phi, e.K_phi, m_pi, m_K)
     # mass_piK_recomp = compMass(ev.piRefit_pt[j], ev.KRefit_pt[j], ev.piRefit_eta[j], ev.KRefit_eta[j], ev.piRefit_phi[j], ev.KRefit_phi[j], m_pi, m_K)
+    e.Kst_pt = SumPt(e.pi_pt, e.K_pt, e.pi_phi, e.K_phi)
+    e.Kst_eta = ev.KstRefit_eta[j]
+    e.Kst_phi = ev.KstRefit_phi[j]
+
     p4_B = p4_mup + p4_mum + p4_K + p4_pi
     e.mass_mumupiK = p4_B.M()
     e.mass_mumupiK_cJpsi = p4_B.M() - e.mass_mumu + m_jpsi
@@ -250,6 +254,7 @@ def makeSelection(inputs):
             N_acc += 1
 
             aux = (evEx.trgMu_pt, evEx.trgMu_eta, evEx.trgMu_sigdxy,
+                   evEx.otherMu_pt,
                    evEx.mum_pt, evEx.mum_eta, evEx.mum_phi, ev.mum_dxy[j],
                    evEx.mup_pt, evEx.mup_eta, evEx.mup_phi, ev.mup_dxy[j],
                    ev.pval_mumu[j], evEx.mass_mumu,
@@ -257,7 +262,7 @@ def makeSelection(inputs):
                    evEx.K_pt, evEx.K_eta, evEx.K_phi, ev.K_sigdxy_PV[j],
                    evEx.pi_pt, evEx.pi_eta, evEx.pi_phi, ev.pi_sigdxy_PV[j],
                    ev.pval_piK[j], evEx.mass_piK, evEx.mass_Kpi, evEx.mass_KK,
-                   ev.sigdxy_vtxKst_PV[j],
+                   evEx.Kst_pt, evEx.Kst_eta, evEx.Kst_pt, ev.sigdxy_vtxKst_PV[j],
                    ev.pval_mumupiK[j],
                    evEx.mass_mumupiK, evEx.mass_mumupiK_cJpsi, evEx.mass_mumupiK_cJpsi_cKst,
                    evEx.B_pt, evEx.B_eta, evEx.B_phi,
@@ -354,6 +359,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         print n, ': Total number of candidate events =', N_cand_in
 
         leafs_names = [ 'trgMu_pt', 'trgMu_eta', 'trgMu_sigdxy',
+                        'otherMu_pt',
                         'mum_pt', 'mum_eta', 'mum_phi', 'mum_dxy',
                         'mup_pt', 'mup_eta', 'mup_phi', 'mup_dxy',
                         'pval_mumu', 'mass_mumu',
@@ -361,7 +367,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                         'K_pt','K_eta','K_phi', 'K_sigdxy_PV',
                         'pi_pt','pi_eta','pi_phi', 'pi_sigdxy_PV',
                         'pval_piK', 'mass_piK', 'mass_Kpi', 'mass_KK',
-                        'sigdxy_vtxKst_PV',
+                        'Kst_pt', 'Kst_eta', 'Kst_phi', 'sigdxy_vtxKst_PV',
                         'pval_mumupiK', 'mass_mumupiK',
                         'mass_mumupiK_cJpsi', 'mass_mumupiK_cJpsi_cKst',
                         'B_pt', 'B_eta', 'B_phi',

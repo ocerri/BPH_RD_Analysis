@@ -393,14 +393,15 @@ def createHistograms(category):
 
     if args.CalB0pT == 'ratio':
         print 'Using ratio B0 pT calibration'
-        calFile = 'pwWeights_{}_v9.txt'.format(category.name)
+        calFile = 'pwWeights_{}_v10.txt'.format(category.name)
     elif args.CalB0pT == 'poly':
         print 'Using polinomial B0 pT calibration'
-        calFile = 'polyCoeffWeights_{}_v9.pkl'.format(category.name)
-    cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/'+calFile)
+        calFile = 'polyCoeffWeights_{}_v10.pkl'.format(category.name)
 
-    cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/pwWeights_{}_v9.txt'.format(category.name))
-    # cal_pT_mu = pTCalReader(calibration_file=dataDir+'/calibration/MuonPtSpectrum/polyCoeffWeights_{}.pkl'.format(category.name))
+    cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/'+calFile)
+    cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/'+calFile)
+    # cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/pwWeights_{}_v10.txt'.format(category.name))
+
     def computePtWeights(ds, var, tag, cal_pT):
         if cal_pT.kind == 'poly':
             # The denominator (sum of weights) for this weights is not known but it cancel out in the ratio
@@ -602,13 +603,18 @@ def createHistograms(category):
         if n in SamplesB0:
             print 'Including B0 pT corrections'
             if cal_pT_B0.kind == 'ratio':
-                weights['B0pT'], wVar['B0pTUp'], wVar['B0pTDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
+                weights['B0pT'+category.name], wVar['B0pT'+category.name+'Up'], wVar['B0pT'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
             else:
-                weights['B0pT'], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'B0pT', cal_pT_B0)
+                weights['B0pT'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'B0pT'+category.name, cal_pT_B0)
                 wVar.update(auxVarDic)
         if n in SamplesBp:
             print 'Including B +/- pT corrections'
-            weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
+            # weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
+            if cal_pT_B0.kind == 'ratio':
+                weights['BpPt'+category.name], wVar['BpPt'+category.name+'Up'], wVar['BpPt'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
+            else:
+                weights['BpPt'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'BpPt'+category.name, cal_pT_B0)
+                wVar.update(auxVarDic)
         # Hammer corrections to the FF
         if n in ['mu', 'tau'] and schemeFF != 'NoFF':
             print 'Including FF corrections (Hammer)'
@@ -726,10 +732,10 @@ def createHistograms(category):
     eventCountingStr['tot'] = evCountStr
 
     # Do the unrolling
-    nonEmptyIdxs = []
+    unrolledBins = []
     unrollingCutOff = 3
     for i_q2 in range(len(binning['q2'])-1):
-        nonEmptyIdxs.append([])
+        unrolledBins.append([])
         name2D = 'h2D_q2bin'+str(i_q2)
         hSum = None
         nDroppedBins = 0
@@ -745,7 +751,7 @@ def createHistograms(category):
         for ix in range(1, hSum.GetNbinsX()+1):
             for iy in range(1, hSum.GetNbinsY()+1):
                 if hSum.GetBinContent(ix, iy) > unrollingCutOff:
-                    nonEmptyIdxs[i_q2].append([ix, iy])
+                    unrolledBins[i_q2].append([ix, iy])
                 else:
                     nDroppedBins += 1
                     nExpectedDroppedEvents += hSum.GetBinContent(ix, iy)
@@ -754,13 +760,14 @@ def createHistograms(category):
 
         nameU = 'Unrolled_q2bin'+str(i_q2)
         histo[nameU] = {}
-        validBins = nonEmptyIdxs[i_q2]
+        validBins = unrolledBins[i_q2]
         for n, h in histo[name2D].iteritems():
             hUnrolled = rt.TH1D(h.GetName(), h.GetTitle(), len(validBins), 0.5, len(validBins)+0.5)
             for i, (ix, iy) in enumerate(validBins):
                 hUnrolled.SetBinContent(i+1, h.GetBinContent(ix, iy))
                 hUnrolled.SetBinError(i+1, h.GetBinError(ix, iy))
             histo[nameU][n] = hUnrolled
+    pickle.dump(unrolledBins, open(outdir+'/unrolledBinsMap.pkl', 'wb'))
 
 
     ######################################################
@@ -875,13 +882,18 @@ def createHistograms(category):
         if n in SamplesB0:
             print 'Including B0 pT corrections'
             if cal_pT_B0.kind == 'ratio':
-                weights['B0pT'], wVar['B0pTUp'], wVar['B0pTDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
+                weights['B0pT'+category.name], wVar['B0pT'+category.name+'Up'], wVar['B0pT'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
             else:
-                weights['B0pT'], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'B0pT', cal_pT_B0)
+                weights['B0pT'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'B0pT'+category.name, cal_pT_B0)
                 wVar.update(auxVarDic)
         if n in SamplesBp:
             print 'Including B +/- pT corrections'
-            weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
+            # weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
+            if cal_pT_B0.kind == 'ratio':
+                weights['BpPt'+category.name], wVar['BpPt'+category.name+'Up'], wVar['BpPt'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
+            else:
+                weights['BpPt'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'BpPt'+category.name, cal_pT_B0)
+                wVar.update(auxVarDic)
         if n in ['mu', 'tau'] and schemeFF != 'NoFF':
             print 'Including FF corrections (Hammer)'
             weights['B2DstFF'] = ds['wh_'+schemeFF+'Central']*sMC.effCand['rate_den']/sMC.effCand['rate_'+schemeFF+'Central']
@@ -1046,7 +1058,7 @@ def createHistograms(category):
                 histo[cat2D]['data'] = create_TH2D(auxS, name='data_obs', title='Data Obs',
                                                    binning=binning_2D[i_q2])
                 catU = 'Unrolled_q2bin'+str(i_q2)
-                validBins = nonEmptyIdxs[i_q2]
+                validBins = unrolledBins[i_q2]
                 hUnrolled = rt.TH1D('data_obs', 'Data Obs', len(validBins), 0.5, len(validBins)+0.5)
                 for i, (ix, iy) in enumerate(validBins):
                     hUnrolled.SetBinContent(i+1, histo[cat2D]['data'].GetBinContent(ix, iy))
@@ -1142,16 +1154,16 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux.SaveAs(outdir+'/fig/B_pt_'+tag+'.png')
         cAux.SaveAs(webFolder+'/B_pt_'+tag+'.png')
         outCanvas.append(cAux)
-        if 'prefit' in tag:
-            hDic['B_pt']['data'].GetYaxis().SetTitle('Normalized events')
-            cAux = plot_SingleCategory(CMS_lumi, hDic['B_pt'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
-                                       density=True,
-                                       addText='Cat. '+catName, logy=False, legBkg=True,
-                                       procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
-                                       min_y=0, tag=tag+'B_pt', legLoc=[0.65, 0.4, 0.9, 0.75])
-            cAux.SaveAs(outdir+'/fig/B_pt_norm_'+tag+'.png')
-            cAux.SaveAs(webFolder+'/B_pt_norm_'+tag+'.png')
-            outCanvas.append(cAux)
+
+        hDic['B_pt']['data'].GetYaxis().SetTitle('Normalized events')
+        cAux = plot_SingleCategory(CMS_lumi, hDic['B_pt'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
+                                   density=True,
+                                   addText='Cat. '+catName, logy=False, legBkg=True,
+                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                                   min_y=0, tag=tag+'B_pt', legLoc=[0.65, 0.4, 0.9, 0.75])
+        cAux.SaveAs(outdir+'/fig/B_pt_norm_'+tag+'.png')
+        cAux.SaveAs(webFolder+'/B_pt_norm_'+tag+'.png')
+        outCanvas.append(cAux)
 
     if 'B_eta' in hDic.keys():
         print 'Creating B_eta'
@@ -1230,26 +1242,27 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         else:
             for n in hMuPt_all.keys():
                 hMuPt_all[n].Add(hDic[name][n])
-    if 'prefit' in tag:
-        print 'Creating mu_pt_all'
-        hMuPt_all['data'].GetYaxis().SetTitle('Normalized events')
-        cAux = plot_SingleCategory(CMS_lumi, hMuPt_all, scale_dic=scale_dic,
-                                   draw_pulls=True, pullsRatio=True,
-                                   addText='Cat. '+catName,
-                                   logy=False, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
-                                   min_y=0,
-                                   max_y='data',
-                                   pulls_ylim=[0.85, 1.15],
-                                   density=True,
-                                   tag=tag+'mu_pt_all',
-                                   legLoc=[0.7, 0.3, 0.9, 0.55],
-                                   maskData = (not args.unblinded) and (False if i_q2 < 2 else True)
-                                   )
-        cAux.SaveAs(outdir+'/fig/muPt_allNorm_'+tag+'.png')
-        cAux.SaveAs(webFolder+'/muPt_allNorm_'+tag+'.png')
-        outCanvas.append(cAux)
 
+    print 'Creating mu_pt_all'
+    hMuPt_all['data'].GetYaxis().SetTitle('Normalized events')
+    cAux = plot_SingleCategory(CMS_lumi, hMuPt_all, scale_dic=scale_dic,
+                               draw_pulls=True, pullsRatio=True,
+                               addText='Cat. '+catName,
+                               logy=False, legBkg=True,
+                               procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                               min_y=0,
+                               max_y='data',
+                               pulls_ylim=[0.85, 1.15],
+                               density=True,
+                               tag=tag+'mu_pt_all',
+                               legLoc=[0.7, 0.3, 0.9, 0.55],
+                               maskData = False
+                               )
+    cAux.SaveAs(outdir+'/fig/muPt_allNorm_'+tag+'.png')
+    cAux.SaveAs(webFolder+'/muPt_allNorm_'+tag+'.png')
+    outCanvas.append(cAux)
+
+    hDstPt_all = None
     for i_q2 in range(len(binning['q2'])-1):
         q2_l = binning['q2'][i_q2]
         q2_h = binning['q2'][i_q2 + 1]
@@ -1271,6 +1284,31 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux.SaveAs(outdir+'/fig/DstPt_q2bin'+str(i_q2)+'_'+tag+'.png')
         cAux.SaveAs(webFolder+'/DstPt_q2bin'+str(i_q2)+'_'+tag+'.png')
         outCanvas.append(cAux)
+        if i_q2 == 0:
+            hDstPt_all = {}
+            for n in hDic[name].keys():
+                hDstPt_all[n] = hDic[name][n].Clone()
+        else:
+            for n in hDstPt_all.keys():
+                hDstPt_all[n].Add(hDic[name][n])
+    print 'Creating DstPt_all'
+    hDstPt_all['data'].GetYaxis().SetTitle('Normalized events')
+    cAux = plot_SingleCategory(CMS_lumi, hDstPt_all, scale_dic=scale_dic,
+                               draw_pulls=True, pullsRatio=True,
+                               addText='Cat. '+catName,
+                               logy=False, legBkg=True,
+                               procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                               min_y=0,
+                               max_y='data',
+                               pulls_ylim=[0.85, 1.15],
+                               density=True,
+                               tag=tag+'Dst_pt_all',
+                               legLoc=[0.7, 0.3, 0.9, 0.55],
+                               maskData = False
+                               )
+    cAux.SaveAs(outdir+'/fig/DstPt_allNorm_'+tag+'.png')
+    cAux.SaveAs(webFolder+'/DstPt_allNorm_'+tag+'.png')
+    outCanvas.append(cAux)
 
     print 30*'-' + '\n\n'
     return outCanvas
@@ -1448,10 +1486,10 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             aux += ' -'
     names = []
     for k in histo.values()[0].keys():
-        if k.startswith(SamplesB0[0]+'__B0pT') and k.endswith('Up'):
+        if k.startswith(SamplesB0[0]+'__B0pT'+category.name) and k.endswith('Up'):
             names.append(k[4:-2])
-    if len(names) == 1 and names[0]=='B0pT':
-        card += 'B0pT shape' + aux*nCat + '\n'
+    if len(names) == 1 and names[0]=='B0pT'+category.name:
+        card += 'B0pT'+category.name+' shape' + aux*nCat + '\n'
     else:
         for n in sorted(names):
             card += n + ' shape' + aux*nCat + '\n'
@@ -1463,7 +1501,15 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             aux += ' 1.'
         else:
             aux += ' -'
-    card += 'BpPt shape' + aux*nCat + '\n'
+    names = []
+    for k in histo.values()[0].keys():
+        if k.startswith(SamplesBp[0]+'__BpPt'+category.name) and k.endswith('Up'):
+            names.append(k[len(SamplesBp[0])+2:-2])
+    if len(names) == 1 and names[0]=='BpPt'+category.name:
+        card += 'BpPt'+category.name+' shape' + aux*nCat + '\n'
+    else:
+        for n in sorted(names):
+            card += n + ' shape' + aux*nCat + '\n'
 
 
     # Form Factors from Hammer
@@ -1536,12 +1582,12 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ######################################################
 
     if not args.noMCstats:
-        card += 'AddTk_p_mHad autoMCStats 2 1 1\n'
-        card += 'AddTk_m_mHad autoMCStats 2 1 1\n'
-        # card += 'AddTk_pm_mHad autoMCStats 2 1 1\n'
-        card += 'AddTk_pm_mVis autoMCStats 2 1 1\n'
-        card += 'AddTk_pp_mHad autoMCStats 2 1 1\n'
-        card += 'AddTk_mm_mHad autoMCStats 2 1 1\n'
+        card += 'AddTk_p_mHad autoMCStats 0 1 1\n'
+        card += 'AddTk_m_mHad autoMCStats 0 1 1\n'
+        # card += 'AddTk_pm_mHad autoMCStats 0 1 1\n'
+        card += 'AddTk_pm_mVis autoMCStats 0 1 1\n'
+        card += 'AddTk_pp_mHad autoMCStats 0 1 1\n'
+        card += 'AddTk_mm_mHad autoMCStats 0 1 1\n'
 
         if args.useMVA:
             card += 'MVA autoMCStats 2 1 1\n'
@@ -1617,7 +1663,7 @@ def createWorkspace(cardLoc):
     print cardLoc
     cmd = 'text2workspace.py ' + cardLoc
     cmd += ' -o ' + cardLoc.replace('.txt', '.root')
-    cmd += ' --no-b-only --verbose 2 --channel-masks'
+    cmd += ' --no-b-only --verbose 1 --channel-masks'
     # cmd += ' --no-wrappers'
     print cmd
     status, output = commands.getstatusoutput(cmd)
@@ -1789,7 +1835,7 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
     cmd += ' --saveShapes --saveWithUncertainties --saveNormalizations  --saveWorkspace'
     cmd += ' --trackParameters rgx{.*}'
     cmd += ' --plots'
-    cmd += ' --verbose 1'
+    cmd += ' --verbose 0'
     print cmd
     status, output = commands.getstatusoutput(cmd)
     if rt.gROOT.IsBatch():
@@ -1987,7 +2033,7 @@ def runUncertaintyBreakDown(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7]
     json.dump({'r': 'R(D*)'}, open(out+'renameDicLikelihoodScan.json', 'w'))
 
     cmd = 'cd ' + out + '; '
-    cmd += 'plot1DScan.py higgsCombineNominal.MultiDimFit.mH120.root'
+    cmd += 'python ../../plot1DScan.py higgsCombineNominal.MultiDimFit.mH120.root'
     cmd += ' --main-label "{} {}'.format('Obs.' if not args.asimov else 'Asimov', catName)
     if not args.unblinded: cmd += ' (blinded)'
     cmd += '"'
@@ -2003,6 +2049,7 @@ def runUncertaintyBreakDown(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7]
         print output
         raise
     cmd = 'cp {}scanBreakdown.png {}/'.format(out, webFolder)
+    cmd = 'cp {}scanBreakdown.pdf {}/'.format(out, webFolder)
     status, output = commands.getstatusoutput(cmd)
     if status:
         print output
@@ -2077,7 +2124,8 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
 
         rename = {
         'r': 'R(D*)',
-        'B0pT': 'B_{0} p_{T} spectrum',
+        'B0pT': 'B^{0} p_{T} spectrum',
+        'BpPt': 'B^{+} p_{T} spectrum',
         'B2DstCLNR0':'R_{0} (CLN B#rightarrow D*l#nu)',
         'B2DstCLNeig1':'#lambda_{1} (CLN B#rightarrow D*l#nu)',
         'B2DstCLNeig2':'#lambda_{2} (CLN B#rightarrow D*l#nu)',
@@ -2093,9 +2141,11 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         'BrB02DstDst0Kstp': 'Branching fraction B^{0}#rightarrow D*^{-}D*^{0}K^{+}',
         'BrB02DstD0Kstp'  : 'Branching fraction B^{0}#rightarrow D*^{-}D^{0}K*^{+}',
         }
-        for i in range(1,5):
-            s = str(i)
-            rename['B0pT_lam'+s] = 'B_{0} p_{T} #lambda_{'+s+'}'
+        for c in ['High', 'Mid', 'Low']:
+            for i in range(1,5):
+                s = str(i)
+                rename['B0pT'+c+'_lam'+s] = 'B^{0} p_{T} '+c+' #lambda_{'+s+'}'
+                rename['BpPt'+c+'_lam'+s] = 'B^{+} p_{T} '+c+' #lambda_{'+s+'}'
 
         procName_dic = {
         'mu'        : 'B^{0}#rightarrow D*#mu#nu',
