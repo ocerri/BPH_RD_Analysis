@@ -112,6 +112,7 @@ def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False, parsToPrint
         sigIn = float(aux[1].replace('!','').replace('*','').split(' +/- ')[1])
         outDipls.append((xIn-xOut)/sigIn)
 
+    outputSigmas = outDipls
     outDipls = np.argsort(np.abs(np.array(outDipls)))
 
     # Print top parameters
@@ -161,6 +162,8 @@ def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False, parsToPrint
             lastVal = outVal[idx].replace('*', '').replace('!', '').split(' +/-')[0]
             if np.abs(float(lastVal)) < 1.6:
                 break
+
+    return name, outVal, np.array(outputSigmas)
 
 
 stringJubCustomizationCaltechT2 = '''
