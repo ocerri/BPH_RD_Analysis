@@ -64,7 +64,7 @@ parser.add_argument ('--asimov', default=False, action='store_true', help='Use A
 parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
-parser.add_argument ('--CalB0pT', default='poly', choices=['ratio', 'poly'], help='Form factor scheme to use.')
+parser.add_argument ('--calBpT', default='poly', choices=['ratio', 'poly', 'none'], help='Form factor scheme to use.')
 
 
 availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
@@ -86,6 +86,7 @@ parser.add_argument ('--nToys', default=10, type=int, help='Number of toys to ru
 parser.add_argument ('--runBiasAnalysis', default=False, action='store_true', help='Only analyze bias scans which have been previously produced.')
 
 # Scan options
+parser.add_argument ('--scanStrategy', default=1, type=int, help='Minimizer strategy for the scan.')
 parser.add_argument ('--maskScan', type=str, default=[], nargs='+', help='Channels to mask during likelyhood scan. If this list is non empty, the full card is used (default is fitregionsOnly).')
 parser.add_argument ('--tagScan', type=str, default='')
 
@@ -100,6 +101,7 @@ parser.add_argument ('--tagGoF', type=str, default='all')
 
 parser.add_argument ('--showPlots', default=False, action='store_true', help='Show plots by setting ROOT batch mode OFF (default ON)')
 parser.add_argument ('--showCard', default=False, action='store_true', help='Dump card on std outoput')
+parser.add_argument ('--verbose', default=0, type=int, help='Run verbosity.')
 
 args = parser.parse_args()
 if args.HELP:
@@ -394,16 +396,19 @@ def createHistograms(category):
     #     raise
         return muonSF, up, down
 
-    if args.CalB0pT == 'ratio':
-        print 'Using ratio B0 pT calibration'
+    if args.calBpT == 'ratio':
+        print 'Using ratio B pT calibration'
         calFile = 'pwWeights_{}_v10.txt'.format(category.name)
-    elif args.CalB0pT == 'poly':
-        print 'Using polinomial B0 pT calibration'
+    elif args.calBpT == 'poly':
+        print 'Using polinomial B pT calibration'
         calFile = 'polyCoeffWeights_{}_v10.pkl'.format(category.name)
 
-    cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/'+calFile)
-    cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/'+calFile)
-    # cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/pwWeights_{}_v10.txt'.format(category.name))
+    if args.calBpT == 'none':
+        print 'Not using any B pT calibration'
+    else:
+        cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/'+calFile)
+        cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/'+calFile)
+        # cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/pwWeights_{}_v10.txt'.format(category.name))
 
     def computePtWeights(ds, var, tag, cal_pT):
         if cal_pT.kind == 'poly':
@@ -603,14 +608,14 @@ def createHistograms(category):
 
         # B phase space corrections
         weights['etaB'] = computeB0etaWeights(ds)
-        if n in SamplesB0:
+        if (not args.calBpT == 'none') and (n in SamplesB0):
             print 'Including B0 pT corrections'
             if cal_pT_B0.kind == 'ratio':
                 weights['B0pT'+category.name], wVar['B0pT'+category.name+'Up'], wVar['B0pT'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
             else:
                 weights['B0pT'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'B0pT'+category.name, cal_pT_B0)
                 wVar.update(auxVarDic)
-        if n in SamplesBp:
+        if (not args.calBpT == 'none') and (n in SamplesBp):
             print 'Including B +/- pT corrections'
             # weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
             if cal_pT_B0.kind == 'ratio':
@@ -882,14 +887,14 @@ def createHistograms(category):
     #     weights['MuPt'], auxVarDic = computePtWeights(ds, 'mu_pt', 'MuPt', cal_pT_mu)
     #     wVar.update(auxVarDic)
 
-        if n in SamplesB0:
+        if (not args.calBpT == 'none') and (n in SamplesB0):
             print 'Including B0 pT corrections'
             if cal_pT_B0.kind == 'ratio':
                 weights['B0pT'+category.name], wVar['B0pT'+category.name+'Up'], wVar['B0pT'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
             else:
                 weights['B0pT'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'B0pT'+category.name, cal_pT_B0)
                 wVar.update(auxVarDic)
-        if n in SamplesBp:
+        if (not args.calBpT == 'none') and (n in SamplesBp):
             print 'Including B +/- pT corrections'
             # weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
             if cal_pT_B0.kind == 'ratio':
@@ -1536,39 +1541,40 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # for n in sorted(names):
     #     card += n + ' shape' + aux*nCat + '\n'
 
-    # B0 pT spectrum
-    aux = ''
-    for p in processes:
-        if p in SamplesB0:
-            aux += ' 1.'
+    if not args.calBpT == 'none':
+        # B0 pT spectrum
+        aux = ''
+        for p in processes:
+            if p in SamplesB0:
+                aux += ' 1.'
+            else:
+                aux += ' -'
+        names = []
+        for k in histo.values()[0].keys():
+            if k.startswith(SamplesB0[0]+'__B0pT'+category.name) and k.endswith('Up'):
+                names.append(k[4:-2])
+        if len(names) == 1 and names[0]=='B0pT'+category.name:
+            card += 'B0pT'+category.name+' shape' + aux*nCat + '\n'
         else:
-            aux += ' -'
-    names = []
-    for k in histo.values()[0].keys():
-        if k.startswith(SamplesB0[0]+'__B0pT'+category.name) and k.endswith('Up'):
-            names.append(k[4:-2])
-    if len(names) == 1 and names[0]=='B0pT'+category.name:
-        card += 'B0pT'+category.name+' shape' + aux*nCat + '\n'
-    else:
-        for n in sorted(names):
-            card += n + ' shape' + aux*nCat + '\n'
+            for n in sorted(names):
+                card += n + ' shape' + aux*nCat + '\n'
 
-    # B +/- pT spectrum
-    aux = ''
-    for p in processes:
-        if p in SamplesBp:
-            aux += ' 1.'
+        # B +/- pT spectrum
+        aux = ''
+        for p in processes:
+            if p in SamplesBp:
+                aux += ' 1.'
+            else:
+                aux += ' -'
+        names = []
+        for k in histo.values()[0].keys():
+            if k.startswith(SamplesBp[0]+'__BpPt'+category.name) and k.endswith('Up'):
+                names.append(k[len(SamplesBp[0])+2:-2])
+        if len(names) == 1 and names[0]=='BpPt'+category.name:
+            card += 'BpPt'+category.name+' shape' + aux*nCat + '\n'
         else:
-            aux += ' -'
-    names = []
-    for k in histo.values()[0].keys():
-        if k.startswith(SamplesBp[0]+'__BpPt'+category.name) and k.endswith('Up'):
-            names.append(k[len(SamplesBp[0])+2:-2])
-    if len(names) == 1 and names[0]=='BpPt'+category.name:
-        card += 'BpPt'+category.name+' shape' + aux*nCat + '\n'
-    else:
-        for n in sorted(names):
-            card += n + ' shape' + aux*nCat + '\n'
+            for n in sorted(names):
+                card += n + ' shape' + aux*nCat + '\n'
 
 
     # Form Factors from Hammer
@@ -1838,9 +1844,10 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=5
     print cmd
     status, output = commands.getstatusoutput(cmd)
     flags = 'WARNING: MultiDimFit failed' in output
-    if status or flags:
+    if status or flags or args.verbose:
         print output
-        raise
+        if status or flags:
+            raise
 
     if draw:
         json.dump({'r': 'R(D*)'}, open(out+'renameDicLikelihoodScan.json', 'w'))
@@ -2071,7 +2078,7 @@ def runUncertaintyBreakDown(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7]
     if not out[-1] == '/': out += '/'
     print '--------> Running uncertainty breakdown <--------------'
     print '--------> Nominal scan'
-    rValOut, rLimitsOut = runScan('Nominal', card, out, catName, rVal, rLimits, nPoints=80, maskStr=maskStr, strategy=1, draw=False)
+    rValOut, rLimitsOut = runScan('Nominal', card, out, catName, rVal, rLimits, nPoints=80, maskStr=maskStr, strategy=args.scanStrategy, draw=False)
     sig = (rLimitsOut[1] - rValOut)/3
     rLimitsTight = [rValOut - 2*sig, rValOut + 2*sig]
 
@@ -2590,12 +2597,12 @@ if __name__ == "__main__":
             fit_RDst, rDst_postFitRegion = runScan(args.cardTag+args.tagScan, card_location, outdir,
                                                    args.category.capitalize(),
                                                    maskStr=maskStr,
-                                                   rLimits=rDst_postFitRegion, strategy=1, draw=True)
+                                                   rLimits=rDst_postFitRegion, strategy=0, draw=True)
         else:
             fit_RDst, rDst_postFitRegion = runScan(args.cardTag+'Base', card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                                    args.category.capitalize(),
                                                    rLimits=[0.08] if args.unblinded else [0.15],
-                                                   strategy=1, draw=True)
+                                                   strategy=0, draw=True)
 
     if 'fitDiag' in args.step:
         print '-----> Running fit diagnostic'
@@ -2606,15 +2613,15 @@ if __name__ == "__main__":
 
     if 'postFitPlots' in args.step:
         print '-----> Getting postfit results'
-        # histo_post, _, _ = getPostfitHistos(args.cardTag, outdir, forceRDst=args.forceRDst, histo_prefit=histo)
-        # if args.category == 'comb':
-        #     cPost = {}
-        #     for c in categoriesToCombine:
-        #         tag = 'postfit'+c.capitalize()+ ('_RDstFixed' if args.forceRDst else '')
-        #         cPost[c] = drawPlots(tag, histo_post[c], c.capitalize())
-        # else:
-        #     tag = 'postfit'+ ('_RDstFixed' if args.forceRDst else '')
-        #     cPost = drawPlots(tag, histo_post, args.category.capitalize())
+        histo_post, _, _ = getPostfitHistos(args.cardTag, outdir, forceRDst=args.forceRDst, histo_prefit=histo)
+        if args.category == 'comb':
+            cPost = {}
+            for c in categoriesToCombine:
+                tag = 'postfit'+c.capitalize()+ ('_RDstFixed' if args.forceRDst else '')
+                cPost[c] = drawPlots(tag, histo_post[c], c.capitalize())
+        else:
+            tag = 'postfit'+ ('_RDstFixed' if args.forceRDst else '')
+            cPost = drawPlots(tag, histo_post, args.category.capitalize())
         nuisancesDiff(args.cardTag, outdir, args.forceRDst)
         print '\n'
 

@@ -44,7 +44,9 @@ parser.add_argument ('--version', '-v', default='test', help='Version name.')
 parser.add_argument ('--dataset', '-d', type=str, default='MC', choices=['RD', 'MC'], help='Dataset to use.')
 parser.add_argument ('--trigger', '-t', type=str, default='Mu7_IP4', choices=['Mu7_IP4', 'Mu9_IP6', 'Mu12_IP6'], help='Trigger to probe.')
 parser.add_argument ('--tagTrigger', type=str, default='', choices=['Mu7_IP4', 'Mu9_IP6', 'Mu12_IP6'], help='Trigger of the tag muon.')
+parser.add_argument ('--method', '-M', type=str, default='count', choices=['count', 'fit'], help='Method used to estimate signal yield.')
 
+parser.add_argument ('--mJpsiWindow', type=float, default=-1, help='Width around J/psi mass to be considered. Default 0.1 (count) or 0.25 (fit).')
 parser.add_argument ('--parallel', '-p', type=int, default=10, help='Number of parallel CPU to use.')
 
 parser.add_argument ('--verbose', default=False, action='store_true', help='Verbose switch.')
@@ -63,15 +65,19 @@ plt.switch_backend('Agg')
 
 
 rt.gErrorIgnoreLevel = rt.kError
-rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
+rt.RooMsgService.instance().setGlobalKillBelow(rf.ERROR)
 webFolder = '/storage/user/ocerri/public_html/BPH_RDst/triggerScaleFactors/'+args.version
-if not os.path.isdir(webFolder):
+if not os.path.exists(webFolder):
     print 'Creating', webFolder
     os.makedirs(webFolder)
     os.system('cp '+webFolder+'/../index.php '+webFolder+'/')
 
 
-
+if args.mJpsiWindow <= 0:
+    if args.method == 'count':
+        args.mJpsiWindow = 0.1
+    elif args.method == 'fit':
+        args.mJpsiWindow = 0.2
 
 cl = rt.TLine()
 cl.SetLineColor(6)
@@ -171,13 +177,159 @@ elif args.dataset == 'MC':
     df['w'] = df['sfMuonID']*df['w'+args.trigger]
     CMS_lumi.extraText = "     Simulation Internal"
 
+def fitJpsi(xMass, passSel, canvasTag='', weights=None, mJpsiWindow=0.25, mBins=100, verbose=False):
+    mJpsi = 3.096916
+    binContent, _ = np.histogram(xMass[passSel], bins=mBins, range=(mJpsi-mJpsiWindow, mJpsi+mJpsiWindow))
+    if np.min(binContent) == 0:
+        mBins = int(mBins*0.5)
+
+    hAll = create_TH1D(xMass, name='hAll',
+                       axis_title=['mass(#mu#mu) [GeV]', 'Events'],
+                       binning=[mBins, mJpsi-mJpsiWindow, mJpsi+mJpsiWindow],
+                       weights=weights
+                       )
+    hAll.Sumw2()
+    nAll = hAll.Integral()
+
+    hPass = create_TH1D(xMass[passSel], name='hPass',
+                        h2clone=hAll,
+                        weights=weights[passSel] if not (weights is None) else None
+                       )
+    hPass.Sumw2()
+    nPass = hPass.Integral()
+    #Fitting variable
+    mass = rt.RooRealVar('mass', 'Mass(#mu#mu)', mJpsi-mJpsiWindow, mJpsi+mJpsiWindow, 'GeV')
+    # J/psi mass shape: shared between all and pass
+    mean = rt.RooRealVar('mean', '#mu', mJpsi, mJpsi-0.01, mJpsi+0.01, 'GeV')
+    sigmaN = rt.RooRealVar('sigmaN', '#sigma_{N}', 0.02, 0.01, 0.05, 'GeV')
+    sigmaW = rt.RooRealVar('sigmaW', '#sigma_{W}', 0.06, 0.01, 0.07, 'GeV')
+    gausN = rt.RooGaussian('gausN','gausN', mass, mean, sigmaN)
+    gausW = rt.RooGaussian('gausW','gausW', mass, mean, sigmaW)
+    fN = rt.RooRealVar('fN', 'f_{N}', 0.5, 0.0, 1.0)
+    pdf_sig = rt.RooAddPdf('dGaus', 'sig pdf', rt.RooArgList(gausN, gausW), rt.RooArgList(fN))
+
+    # Signal pdf: J/psi shape + extension for normalization
+    nSigAll = rt.RooRealVar('nSigAll', 'N_{S}^{all}', 0.8*nAll, 0, 1.5*nAll)
+    pdfSigAll_ext = rt.RooExtendPdf('eSigAll', 'eSigAll', pdf_sig, nSigAll)
+
+    nSigPass = rt.RooRealVar('nSigPass', 'N_{S}^{pass}', 0.8*nPass, 0, 1.5*nPass)
+    pdfSigPass_ext = rt.RooExtendPdf('eSigPass', 'eSigPass', pdf_sig, nSigPass)
 
 
-def analyzeBin(idx, reloadDf=False, verbose=False):
+    # Background model
+    lam = rt.RooRealVar('lam', '#lambda', -5, -100, -0.1, 'GeV^{-1}')
+    pdf_bkg = rt.RooExponential('expo', 'bkg pdf', mass, lam)
+
+    nBkgAll = rt.RooRealVar('nBkgAll', 'N_{B}^{all}', 0.1*nAll, 0, 1.5*nAll)
+    pdfBkgAll_ext = rt.RooExtendPdf('eBkgAll', 'eBkgAll', pdf_bkg, nBkgAll)
+
+    nBkgPass = rt.RooRealVar('nBkgPass', 'N_{B}^{pass}', 0.1*nPass, 0, 1.5*nPass)
+    pdfBkgPass_ext = rt.RooExtendPdf('eBkgPass', 'eBkgPass', pdf_bkg, nBkgPass)
+
+    # Total models
+    pdfTotAll = rt.RooAddPdf('pdfTotAll', 'pdfTotAll', rt.RooArgList(pdfSigAll_ext, pdfBkgAll_ext))
+    pdfTotPass = rt.RooAddPdf('pdfTotPass', 'pdfTotPass', rt.RooArgList(pdfSigPass_ext, pdfBkgPass_ext))
+
+    # Create RooFit data sets
+    data = {}
+    unbinned = {}
+    for n, h in zip(['all', 'pass'], [hAll, hPass]):
+        if True or (h.GetMinimum() == 0 or h.Integral() < 2*h.binning[0]):
+            if verbose:
+                print n + ': using unbinned likelihood ({:.0f} events)'.format(h.Integral())
+
+            xAux = xMass if n=='all' else xMass[passSel]
+            arr = pd.DataFrame(data=np.array(xAux), columns=['mass'])
+            T = rtnp.array2tree(arr.to_records(index=False))
+            data[n] = rt.RooDataSet('data'+n.capitalize(), 'data '+n, T, rt.RooArgSet(mass))
+            unbinned[n] = True
+        else:
+            if verbose:
+                print n+': using binned likeihood'
+            data[n] = rt.RooDataHist('data'+n.capitalize(), 'data '+n, rt.RooArgList(mass), h)
+            unbinned[n] = False
+
+    # Create joint fit
+    cat = rt.RooCategory('cat','cat')
+    cat.defineType('all')
+    cat.defineType('pass')
+
+    jointModel = rt.RooSimultaneous('jointModel','',cat)
+    jointModel.addPdf(pdfTotAll, 'all')
+    jointModel.addPdf(pdfTotPass,'pass')
+
+    jointData = rt.RooDataSet('data','joint data', rt.RooArgSet(mass),
+                               rf.Index(cat),
+                               rf.Import('all', data['all']),
+                               rf.Import('pass', data['pass'])
+                               )
+
+    fr = jointModel.fitTo(jointData, rf.PrintLevel(-1), rf.Save(), rf.Extended(True))
+    pvalJointModel = 1
+
+    def plotOnFrame(data, pdf, tag='All'):
+        frame = mass.frame(rf.Title(''), rf.Bins(hAll.binning[0]))
+        dataPlot = data.plotOn(frame, rf.MarkerStyle(1), rf.DrawOption('E1'),
+                               rf.MarkerColor(1), rf.LineColor(1), rf.MarkerStyle(15))
+
+        pdf.plotOn(frame, rf.LineColor(rt.kBlack), rf.LineWidth(1))
+
+        dof = fr.floatParsFinal().getSize()
+        chi2 = frame.chiSquare(dof)*dof
+        pval = rt.ROOT.Math.chisquared_cdf_c(chi2, dof)
+        if verbose: print 'chi2: {:.1f}/{:.0f} {:.3f}'.format(chi2, dof, pval)
+
+        pdf.plotOn(frame, rf.Components('eBkg'+tag), rf.LineColor(rt.kRed), rf.LineWidth(2), rf.LineStyle(7))
+        pdf.plotOn(frame, rf.Components('eSig'+tag), rf.LineColor(rt.kBlue), rf.LineWidth(2), rf.LineStyle(7))
+
+        x_min = mass.getMin() + (mass.getMax()-mass.getMin())*0.04
+        x_max = mass.getMin() + (mass.getMax()-mass.getMin())*0.36
+        pTxt = rt.TPaveText(x_min, 0.25*dataPlot.GetMaximum(), x_max, 0.9*dataPlot.GetMaximum())
+        pTxt.SetBorderSize(0)
+        pTxt.SetFillStyle(0)
+        pTxt.SetTextAlign(11)
+        pTxt.AddText('#chi^{{2}}: {:.1f}/{:.0f} ({:.2f})'.format(chi2, dof, pval))
+        if tag == 'All':
+            pTxt.AddText('N_{{sig}}^{{All}} = {:.0f} #pm {:.0f}'.format(nSigAll.getVal(), nSigAll.getError()))
+        else:
+            pTxt.AddText('N_{{sig}}^{{Pass}} = {:.0f} #pm {:.0f}'.format(nSigPass.getVal(), nSigPass.getError()))
+
+        pTxt.AddText('#mu = {:.1f} #pm {:.1f} MeV'.format(1e3*mean.getVal(), 1e3*mean.getError()))
+        pTxt.AddText('#sigma_{{N}} = {:.1f} #pm {:.1f} MeV'.format(1e3*sigmaN.getVal(), 1e3*sigmaN.getError()))
+        pTxt.AddText('#sigma_{{W}} = {:.1f} #pm {:.1f} MeV'.format(1e3*sigmaW.getVal(), 1e3*sigmaW.getError()))
+        pTxt.AddText('f_{{N}} = {:.2f} #pm {:.2f}'.format(fN.getVal(), fN.getError()))
+        frame.addObject(pTxt)
+
+        x_min = mass.getMin() + (mass.getMax()-mass.getMin())*0.65
+        x_max = mass.getMin() + (mass.getMax()-mass.getMin())*0.95
+        pTxtR = rt.TPaveText(x_min, 0.5*dataPlot.GetMaximum(), x_max, 0.7*dataPlot.GetMaximum())
+        pTxtR.SetBorderSize(0)
+        pTxtR.SetFillStyle(0)
+        pTxtR.AddText(tag)
+        frame.addObject(pTxtR)
+        frame.dnd = [pTxt, pTxtR]
+        return frame, [chi2, dof, pval]
+
+    frameAll, chi2All = plotOnFrame(data['all'], pdfTotAll, tag='All')
+    framePass, chi2Pass = plotOnFrame(data['pass'], pdfTotPass, tag='Pass')
+
+    c = rt.TCanvas('c'+canvasTag, 'c'+canvasTag, 50, 50, 1200, 600)
+    c.SetTickx(0)
+    c.SetTicky(0)
+    c.Divide(2)
+
+    p = c.cd(1)
+    frameAll.Draw()
+    CMS_lumi.CMS_lumi(p, -1, 33)
+    p = c.cd(2)
+    framePass.Draw()
+    CMS_lumi.CMS_lumi(p, -1, 33)
+    c.dnd = [frameAll, framePass]
+
+    return c, [nSigAll.getVal(), nSigAll.getError()], [nSigPass.getVal(), nSigPass.getError()], pvalJointModel
+
+def analyzeBin(idx, verbose=False):
     print idx, 'started'
-    if reloadDf:
-        raise
-    psCut = []
     lim = {}
     selTot = None
     st = time.time()
@@ -196,7 +348,7 @@ def analyzeBin(idx, reloadDf=False, verbose=False):
     selTot = np.logical_and(selTot, df['mProbe_softID'] > 0.5)
     selTot = np.logical_and(selTot, df['deltaR_tagProbe'] > 0.3)
     selTot = np.logical_and(selTot, df['vtx_isGood'] > 0.5)
-    selTot = np.logical_and(selTot, np.abs(df['massMuMu_refit'] - 3.09691) < 0.1)
+    selTot = np.logical_and(selTot, np.abs(df['massMuMu_refit'] - 3.09691) < args.mJpsiWindow)
     if args.tagTrigger:
         selTot = np.logical_and(selTot, df['mTag_HLT_' + args.tagTrigger] == 1)
 
@@ -204,19 +356,35 @@ def analyzeBin(idx, reloadDf=False, verbose=False):
     if verbose:
         print ' --- Total ---'
     st = time.time()
-    if args.dataset == 'RD':
-        nSigTot = np.sum(selTot)
-    else:
-        nSigTot = np.sum(df['w'][selTot])
-    if verbose:
-        print 'Time: {:.1f} s'.format(time.time()-st)
-        print ' --- Passed ---'
-    st = time.time()
-    selTot = np.logical_and(selTot, df['mProbe_' + probeTrigger] == 1)
-    if args.dataset == 'RD':
-        nSigPass = np.sum(selTot)
-    else:
-        nSigPass = np.sum(df['w'][selTot])
+
+    if args.method == 'count':
+        if args.dataset == 'RD':
+            nSigTot = np.sum(selTot)
+        else:
+            nSigTot = np.sum(df['w'][selTot])
+        if verbose:
+            print 'Time: {:.1f} s'.format(time.time()-st)
+            print ' --- Passed ---'
+        st = time.time()
+        selTot = np.logical_and(selTot, df['mProbe_' + probeTrigger] == 1)
+        if args.dataset == 'RD':
+            nSigPass = np.sum(selTot)
+        else:
+            nSigPass = np.sum(df['w'][selTot])
+    elif args.method == 'fit':
+        canvTag = ''
+        for n, i in idx.iteritems(): canvTag += n+str(i)
+        canvas, nSigTot, nSigPass, pval = fitJpsi(df['massMuMu_refit'][selTot],
+                                              passSel=df['mProbe_' + probeTrigger][selTot] == 1,
+                                              canvasTag=canvTag,
+                                              weights=df['w'][selTot] if args.dataset == 'MC' else None,
+                                              mJpsiWindow=args.mJpsiWindow,
+                                              mBins=100, verbose=verbose)
+        webFolderAux = webFolder + '/fitJpsi_' + args.trigger + '_' + args.dataset + '/'
+        if not os.path.isdir(webFolderAux):
+            os.system('mkdir -p '+webFolderAux)
+            os.system('cp {}/index.php {}/'.format(webFolder, webFolderAux))
+        canvas.SaveAs(webFolderAux+'bin_'+canvTag+'.png')
 
     if verbose:
         print 'Time: {:.1f} s'.format(time.time()-st)
@@ -255,8 +423,7 @@ for var, cat in itertools.product(['N', 'Chi2'], ['tot', 'pass']):
 start = time.time()
 testOutput = analyzeBin({'pt': 2, 'sigdxy':2, 'eta':0}, verbose=True)
 print testOutput
-print 'Total time: {:.1f} mins'.format((time.time() - start)/60.)
-
+print 'Total time: {:.1f} sec'.format((time.time() - start))
 
 
 inputs = []
@@ -287,10 +454,16 @@ for idx, nSigTot, nSigPass in output:
     ip = idx['pt']+1
     ii = idx['sigdxy']+1
     ie = idx['eta']+1
-    h2['Ntot'].SetBinContent(ip, ii, ie, nSigTot)
-    h2['Ntot'].SetBinError(h2['Ntot'].GetBin(ip, ii, ie), np.sqrt(nSigTot))
-    h2['Npass'].SetBinContent(ip, ii, ie, nSigPass)
-    h2['Npass'].SetBinError(h2['Npass'].GetBin(ip, ii, ie), np.sqrt(nSigPass))
+    if args.method == 'count':
+        h2['Ntot'].SetBinContent(ip, ii, ie, nSigTot)
+        h2['Ntot'].SetBinError(h2['Ntot'].GetBin(ip, ii, ie), np.sqrt(nSigTot))
+        h2['Npass'].SetBinContent(ip, ii, ie, nSigPass)
+        h2['Npass'].SetBinError(h2['Npass'].GetBin(ip, ii, ie), np.sqrt(nSigPass))
+    elif args.method =='fit':
+        h2['Ntot'].SetBinContent(ip, ii, ie, nSigTot[0])
+        h2['Ntot'].SetBinError(h2['Ntot'].GetBin(ip, ii, ie), nSigTot[1])
+        h2['Npass'].SetBinContent(ip, ii, ie, nSigPass[0])
+        h2['Npass'].SetBinError(h2['Npass'].GetBin(ip, ii, ie), nSigPass[1])
 
 
 
