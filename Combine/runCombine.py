@@ -22,6 +22,7 @@ from multiprocessing import Pool
 from prettytable import PrettyTable
 import numpy as np
 import pandas as pd
+from scipy.stats import chi2 as scipy_chi2
 import matplotlib.pyplot as plt
 from array import array
 
@@ -67,10 +68,11 @@ parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC inst
 parser.add_argument ('--calBpT', default='poly', choices=['ratio', 'poly', 'none'], help='Form factor scheme to use.')
 
 
-availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
-defaultPipeline = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'GoF']
+availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'catComp', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
+defaultPipelineSingle = ['histos', 'card']
+defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'GoF']
 # histos preFitPlots card workspace scan fitDiag postFitPlots uncBreakdown GoF
-parser.add_argument ('--step', '-s', type=str, default=defaultPipeline, choices=availableSteps, help='Analysis steps to run.', nargs='+')
+parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
 parser.add_argument ('--submit', default=False, action='store_true', help='Submit a job instead of running the call interactively.')
 
 parser.add_argument ('--validateCard', default=False, action='store_true', help='Run combine card validation.')
@@ -107,6 +109,10 @@ args = parser.parse_args()
 if args.HELP:
     parser.print_help()
     exit()
+
+if len(args.step) == 0:
+    if args.category == 'comb': args.step = defaultPipelineComb
+    else: args.step = defaultPipelineSingle
 
 schemeFF = args.schemeFF
 if not args.showPlots:
@@ -1830,6 +1836,7 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=5
     cmd += 'combine -M MultiDimFit'
     cmd += ' --algo grid --points='+str(nPoints)
     cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy='+str(strategy)
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' --X-rtd MINIMIZER_analytic'
     cmd += ' -d ' + card.replace('.txt', '.root')
     if len(rLimits) == 1:
@@ -1877,6 +1884,102 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=5
     if args.showPlots:
         display(Image(filename=out+'/scan'+tag+'.png'))
     return rValOur, rLimitsOut
+
+
+########################### -------- Categories compatibility -------- #########################
+
+def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
+    fLog = open(webFolder + '/categoriesCompatibility.txt', 'w')
+    print '----- Running nominal fit'
+    cmd = 'cd ' + out + '; '
+    cmd += 'combine -M MultiDimFit --algo singles'
+    cmd += ' -d ' + card.replace('.txt', '.root')
+    cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+    cmd += ' -n _catCompNominal'
+    print cmd
+    status, output = commands.getstatusoutput(cmd)
+    print output
+    if status:
+        raise
+    arr = rtnp.root2array(out + '/higgsCombine_catCompNominal.MultiDimFit.mH120.root', treename='limit')
+    rBestFit, rBestFitDown, rBestFitDownUp = arr['r']
+    print 'Using r best fit value {:.4f}'.format(rBestFit)
+    fLog.write('Using r best fit value {:.4f}'.format(rBestFit) + '\n')
+
+    print '----- Creating workspace with independent signal strength'
+    wsLoc = card.replace('.txt', '_rCat.root')
+    if not card.endswith('.txt'):
+        print 'categoriesCompatibility needs txt card input.'
+        print card
+        raise
+    cmd = 'text2workspace.py ' + card
+    cmd += ' -o ' + wsLoc
+    cmd += ' -P HiggsAnalysis.CombinedLimit.PhysicsModel:multiSignalModel'
+    for c in categoriesToCombine:
+        cmd += ' --PO map=\'.*'+c+'.*/tau:r' + c.capitalize() + '[{},{},{}]\''.format(rVal, rLimits[0], rLimits[1])
+    cmd += ' --no-b-only --verbose 1'
+    print cmd
+    status, output = commands.getstatusoutput(cmd)
+    if status:
+        print output
+        raise
+    else:
+        text_file = open(card.replace('.txt', '_rCat_text2workspace.out'), "w")
+        text_file.write(output)
+        text_file.close()
+
+    print '----- Running fit with r uncorrelated in each category'
+    cmd = 'cd ' + out + '; '
+    cmd += 'combine -M MultiDimFit --algo singles'
+    cmd += ' -d ' + wsLoc
+    cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+    cmd += ' -n _catComp_rCatIndep'
+    print cmd
+    status, output = commands.getstatusoutput(cmd)
+    print output
+    if status:
+        raise
+
+    arr = rtnp.root2array(out + '/higgsCombine_catComp_rCatIndep.MultiDimFit.mH120.root', treename='limit')
+    rFit = []
+    for c in categoriesToCombine:
+        x = arr['r'+c.capitalize()]
+        rFit.append( [x[0], 0.5*(np.max(x) - np.min(x))] )
+        fLog.write(c + ': {:.4f} +/- {:.4f}'.format(*rFit[-1]) + '\n')
+    rFit = np.array(rFit)
+    rMean = np.sum(rFit[:,0]/np.square(rFit[:,1])) / np.sum(1./np.square(rFit[:,1]))
+    print 'Average observed r: {:.4f}'.format(rMean)
+    fLog.write('Average observed r: {:.4f}'.format(rMean) + '\n')
+
+    chi2 = np.sum(np.square((rFit[:,0] - rMean)/rFit[:,1]))
+    dof = rFit.shape[0] - 1
+    pval = scipy_chi2.sf(chi2, dof)
+    print 'Chi2 = {:.2f} ({:.1f}%)'.format(chi2, 100*pval)
+    fLog.write('Chi2 = {:.2f} ({:.1f}%)'.format(chi2, 100*pval) + '\n')
+
+    print '----- Running fit with r fixed to bestfit in each category'
+    cmd = 'cd ' + out + '; '
+    cmd += 'combine -M MultiDimFit --algo fixed'
+    cmd += ' --fixedPointPOIs ' + ','.join(['r{}={:.4f}'.format(c.capitalize(), rBestFit) for c in categoriesToCombine])
+    cmd += ' -d ' + wsLoc
+    cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+    cmd += ' -n _catComp_rCatFixed'
+    print cmd
+    status, output = commands.getstatusoutput(cmd)
+    print output
+    if status:
+        raise
+    arr = rtnp.root2array(out + '/higgsCombine_catComp_rCatFixed.MultiDimFit.mH120.root', treename='limit')
+    chi2 = 2*arr['deltaNLL'][1]
+    pval = scipy_chi2.sf(chi2, dof)
+    print 'Wilks Chi2 = {:.2f} ({:.1f}%)'.format(chi2, 100*pval)
+    fLog.write('Wilks Chi2 = {:.2f} ({:.1f}%)'.format(chi2, 100*pval) + '\n')
+    fLog.close()
+
+    return
 
 
 
@@ -2603,6 +2706,16 @@ if __name__ == "__main__":
                                                    args.category.capitalize(),
                                                    rLimits=[0.08] if args.unblinded else [0.15],
                                                    strategy=0, draw=True)
+
+    if 'catComp' in args.step:
+        if not args.category == 'comb':
+            print '[WARNING]: Skipping catComp because not defined for category='+args.category
+        else:
+            print '-----> Running categories compatibility'
+            categoriesCompatibility(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+                                    rVal=SM_RDst, rLimits=[0.1, 0.6]
+                                    )
+
 
     if 'fitDiag' in args.step:
         print '-----> Running fit diagnostic'

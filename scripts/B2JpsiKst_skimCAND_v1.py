@@ -266,7 +266,7 @@ def makeSelection(inputs):
                    ev.pval_mumupiK[j],
                    evEx.mass_mumupiK, evEx.mass_mumupiK_cJpsi, evEx.mass_mumupiK_cJpsi_cKst,
                    evEx.B_pt, evEx.B_eta, evEx.B_phi,
-                   ev.cos_B_PV_mumupiK[j], ev.sigd_vtxB_PV_mumupiK[j],
+                   ev.cos_B_PV_mumupiK[j], ev.sigd_vtxB_PV_mumupiK[j], ev.sigdxy_vtxB_PV[j],
                    evEx.mass_mumuKpi, evEx.mass_mumuKpi_cJpsi, evEx.mass_mumuKpi_cJpsi_cKst,
                    evEx.isAntiB, evEx.mass_candKst, evEx.mass_candB,
                    category_selection(j, ev, evEx, categories['low']),
@@ -278,7 +278,9 @@ def makeSelection(inputs):
                 aux += (ev.MC_B_pt, ev.MC_B_eta,
                         ev.MC_idxCand == j,
                         ev.MC_mup_pt, ev.MC_mup_eta,
-                        ev.MC_mum_pt, ev.MC_mum_eta
+                        ev.MC_mum_pt, ev.MC_mum_eta,
+                        ev.MC_d_vtxB, ev.MC_dxy_vtxB,
+                        ev.d_vtxB_PV_mumupiK[j], ev.dxy_vtxB_PV[j]
                         )
             ev_output.append(aux)
 
@@ -371,7 +373,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                         'pval_mumupiK', 'mass_mumupiK',
                         'mass_mumupiK_cJpsi', 'mass_mumupiK_cJpsi_cKst',
                         'B_pt', 'B_eta', 'B_phi',
-                        'cos_B_PV', 'sigd_vtxB_PV',
+                        'cos_B_PV', 'sigd_vtxB_PV', 'sigdxy_vtxB_PV',
                         'mass_mumuKpi', 'mass_mumuKpi_cJpsi', 'mass_mumuKpi_cJpsi_cKst',
                         'isAntiB', 'mass_candKst', 'mass_candB',
                         'cat_low', 'cat_mid', 'cat_high',
@@ -381,7 +383,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
             leafs_names += ['MC_B_pt', 'MC_B_eta',
                             'MC_idxMatch',
                             'MC_mup_pt', 'MC_mup_eta',
-                            'MC_mum_pt', 'MC_mum_eta'
+                            'MC_mum_pt', 'MC_mum_eta',
+                            'MC_d_vtxB', 'MC_dxy_vtxB',
+                            'd_vtxB_PV', 'dxy_vtxB_PV'
                            ]
 
         applyCorr = None

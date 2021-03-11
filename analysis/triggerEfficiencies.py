@@ -45,6 +45,7 @@ parser.add_argument ('--dataset', '-d', type=str, default='MC', choices=['RD', '
 parser.add_argument ('--trigger', '-t', type=str, default='Mu7_IP4', choices=['Mu7_IP4', 'Mu9_IP6', 'Mu12_IP6'], help='Trigger to probe.')
 parser.add_argument ('--tagTrigger', type=str, default='', choices=['Mu7_IP4', 'Mu9_IP6', 'Mu12_IP6'], help='Trigger of the tag muon.')
 parser.add_argument ('--method', '-M', type=str, default='count', choices=['count', 'fit'], help='Method used to estimate signal yield.')
+parser.add_argument ('--refIP', type=str, default='PV', choices=['BS', 'PV'], help='Reference point for the impact parameter.')
 
 parser.add_argument ('--mJpsiWindow', type=float, default=-1, help='Width around J/psi mass to be considered. Default 0.1 (count) or 0.25 (fit).')
 parser.add_argument ('--parallel', '-p', type=int, default=10, help='Number of parallel CPU to use.')
@@ -90,10 +91,10 @@ colors = [rt.kBlack, rt.kAzure+1, rt.kRed-4, rt.kGreen+1, rt.kViolet-7]
 
 
 
-branchesToLoad = ['mTag_pt', 'mTag_eta', 'mTag_phi', 'mTag_sigdxy',
+branchesToLoad = ['mTag_pt', 'mTag_eta', 'mTag_phi', 'mTag_sigdxy_BS', 'mTag_sigdxy_PV',
                   'mTag_softID', 'mTag_tightID',
                   'mTag_HLT_Mu7_IP4', 'mTag_HLT_Mu9_IP6', 'mTag_HLT_Mu12_IP6',
-                  'mProbe_pt', 'mProbe_eta', 'mProbe_phi', 'mProbe_sigdxy',
+                  'mProbe_pt', 'mProbe_eta', 'mProbe_phi', 'mProbe_sigdxy_BS', 'mProbe_sigdxy_PV',
                   'mProbe_softID', 'mProbe_tightID',
                   'mProbe_HLT_Mu7_IP4', 'mProbe_HLT_Mu9_IP6', 'mProbe_HLT_Mu12_IP6',
                   'deltaR_tagProbe', 'massMuMu', 'vtx_isGood', 'massMuMu_refit',
@@ -162,7 +163,8 @@ if args.dataset == 'RD':
     CMS_lumi.extraText = "     Internal"
 elif args.dataset == 'MC':
     mcDir = '../data/cmsMC_private/BP_Tag-Probe_B0_JpsiKst_Hardbbbar_evtgen_HELAMP_PUc0_10-2-3'
-    MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger_Jpsi/merged/out_CAND.root')
+    # MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger_Jpsi/merged/out_CAND.root')
+    MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger_BS/merged/out_CAND.root')
     df = loadDF(MCdsLoc, branchesToLoad + ['sfMuonID'])
     print 'MC probe muons:', df.shape[0]
 
@@ -398,17 +400,17 @@ probeTrigger = 'HLT_'+args.trigger
 if args.trigger == 'Mu7_IP4':
     binning = {'pt': array('d', [5.5, 6.5, 7, 7.1, 7.2, 7.3, 7.6, 8, 9, 9.2, 10, 12, 14]),
                'eta': array('d', [0, 0.4, 0.8, 1.5]),
-               'sigdxy': array('d', [4, 5, 5.5, 6, 10, 20, 200])
+               'sigdxy_'+args.refIP: array('d', [4, 5, 5.5, 6, 10, 20, 200])
               }
 elif args.trigger == 'Mu9_IP6':
     binning = {'pt': array('d', [8.5, 9, 9.1, 9.2, 9.3, 9.6, 10.2, 11, 12, 12.2, 14]),
                'eta': array('d', [0, 0.4, 0.8, 1.5]),
-               'sigdxy': array('d', [4, 6, 7, 7.5, 8, 10, 20, 200])
+               'sigdxy_'+args.refIP: array('d', [4, 6, 7, 7.5, 8, 10, 20, 200])
               }
 elif args.trigger == 'Mu12_IP6':
     binning = {'pt': array('d', [11, 12, 12.2, 13, 14, 16, 18, 20, 22, 25, 28, 35]),
                'eta': array('d', [0, 0.4, 0.8, 1.5]),
-               'sigdxy': array('d', [4, 6, 7, 8, 10, 20, 200])
+               'sigdxy_'+args.refIP: array('d', [4, 6, 7, 8, 10, 20, 200])
               }
 
 
@@ -416,21 +418,21 @@ h2 = {}
 for var, cat in itertools.product(['N', 'Chi2'], ['tot', 'pass']):
     h2[var+cat] = rt.TH3D('h2'+var+cat, '',
                           len(binning['pt'])-1, binning['pt'],
-                          len(binning['sigdxy'])-1, binning['sigdxy'],
+                          len(binning['sigdxy_'+args.refIP])-1, binning['sigdxy_'+args.refIP],
                           len(binning['eta'])-1, binning['eta'],)
 
 
 start = time.time()
-testOutput = analyzeBin({'pt': 2, 'sigdxy':2, 'eta':0}, verbose=True)
+testOutput = analyzeBin({'pt': 2, 'sigdxy_'+args.refIP:2, 'eta':0}, verbose=True)
 print testOutput
 print 'Total time: {:.1f} sec'.format((time.time() - start))
 
 
 inputs = []
 for ipt in range(len(binning['pt'])-1):
-    for iip in range(len(binning['sigdxy'])-1):
+    for iip in range(len(binning['sigdxy_'+args.refIP])-1):
         for ieta in range(len(binning['eta'])-1):
-            idx = {'pt': ipt, 'sigdxy':iip, 'eta': ieta}
+            idx = {'pt': ipt, 'sigdxy_'+args.refIP:iip, 'eta': ieta}
             inputs.append(idx)
 print 'Total bins:', len(inputs)
 
@@ -452,7 +454,7 @@ else:
 
 for idx, nSigTot, nSigPass in output:
     ip = idx['pt']+1
-    ii = idx['sigdxy']+1
+    ii = idx['sigdxy_'+args.refIP]+1
     ie = idx['eta']+1
     if args.method == 'count':
         h2['Ntot'].SetBinContent(ip, ii, ie, nSigTot)
@@ -508,7 +510,7 @@ for iz in range(1, hRef.GetNbinsZ()+1):
                             )
         gr.SetLineColor(BRY_colors[iy-1])
         gr.SetMarkerColor(BRY_colors[iy-1])
-        leg.AddEntry(gr, '{:.1f} < IP < {:.1f}'.format(binning['sigdxy'][iy-1], binning['sigdxy'][iy]), 'lep')
+        leg.AddEntry(gr, '{:.1f} < IP ({}) < {:.1f}'.format(binning['sigdxy_'+args.refIP][iy-1], args.refIP, binning['sigdxy_'+args.refIP][iy]), 'lep')
         gr2draw.append(gr)
 
     M = 1.2
