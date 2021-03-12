@@ -51,7 +51,7 @@ parser.add_argument ('--mJpsiWindow', type=float, default=-1, help='Width around
 parser.add_argument ('--parallel', '-p', type=int, default=10, help='Number of parallel CPU to use.')
 
 parser.add_argument ('--verbose', default=False, action='store_true', help='Verbose switch.')
-parser.add_argument ('--submit', default=False, action='store_true', help='Submit a job instead of running the call interactively.')
+# parser.add_argument ('--submit', default=False, action='store_true', help='Submit a job instead of running the call interactively.')
 
 
 args = parser.parse_args()
@@ -157,7 +157,8 @@ class Bauble(object):
 
 if args.dataset == 'RD':
     dataDir = '../data/cmsRD'
-    RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210209_CAND.root')
+    # RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210209_CAND.root')
+    RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210309_CAND.root')
     df = loadDF(RDdsLoc, branchesToLoad)
     print 'Data probe muons:', df.shape[0]
     CMS_lumi.extraText = "     Internal"

@@ -69,7 +69,7 @@ parser.add_argument ('--calBpT', default='poly', choices=['ratio', 'poly', 'none
 
 
 availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'catComp', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
-defaultPipelineSingle = ['histos', 'card']
+defaultPipelineSingle = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'GoF']
 defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'GoF']
 # histos preFitPlots card workspace scan fitDiag postFitPlots uncBreakdown GoF
 parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
@@ -457,6 +457,10 @@ def createHistograms(category):
         wDw = 1 - sf*size
         return wUp, wDw
 
+
+    def fSoftTrackEff(x, a=0.6, tau=0.8):
+        return np.where(x<0.1, np.ones_like(x), 1 - a*np.exp(-x/tau))
+
     if args.useMVA:
         fname = dataDir+'../plot_scripts/kinObsMVA/clfGBC_tauVall_{}{}.p'.format(args.useMVA, category.name)
         clfGBC = pickle.load(open(fname, 'rb'))
@@ -510,6 +514,23 @@ def createHistograms(category):
                                    'Mid':  array('d', list(np.arange(4, 40, 1)) ),
                                    'High': array('d', list(np.arange(5, 50, 1)) )
                                   }[category.name]]
+
+    binning['K_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.8, 15, 0.2)) ),
+                                   'Mid':  array('d', list(np.arange(0.8, 20, 0.2)) ),
+                                   'High': array('d', list(np.arange(0.8, 30, 0.2)) )
+                                  }[category.name]]
+
+    binning['pi_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.8, 15, 0.2)) ),
+                                   'Mid':  array('d', list(np.arange(0.8, 20, 0.2)) ),
+                                   'High': array('d', list(np.arange(0.8, 30, 0.2)) )
+                                  }[category.name]]
+
+    binning['pis_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.4, 3.5, 0.05)) ),
+                                   'Mid':  array('d', list(np.arange(0.4, 4, 0.05)) ),
+                                   'High': array('d', list(np.arange(0.4, 5, 0.05)) )
+                                  }[category.name]]
+
+
     binning_2D = [
         [
     #         array('d', [-2.5] + list(np.arange(-1.8, -0.2, 0.4)) + [-0.2, 0., 0.2, 0.6, 8] ),
@@ -539,6 +560,7 @@ def createHistograms(category):
     ]
     binning['B_pt'] = {'Low': array('d', list(np.arange(10, 75, 2)) ), 'Mid': array('d', list(np.arange(14, 90, 2)) ), 'High': array('d', list(np.arange(18, 110, 2)))}[category.name]
     binning['B_eta'] = array('d', list(np.arange(-1.9, 1.91, 0.05)) )
+    binning['specQ2'] = array('d', list(np.arange(0, 11.4, 0.2)))
 
     if args.unblinded:
         binning['MVA'] = array('d', list(np.arange(0., 0.83, 0.02)))
@@ -609,8 +631,13 @@ def createHistograms(category):
 
         # print 'Including muon pT corrections'
         # wVar['muPtUp'], wVar['muPtDown'] = computeMuonPtWeights(ds)
-    #     weights['MuPt'], auxVarDic = computePtWeights(ds, 'mu_pt', 'MuPt', cal_pT_mu)
-    #     wVar.update(auxVarDic)
+        # weights['MuPt'], auxVarDic = computePtWeights(ds, 'mu_pt', 'MuPt', cal_pT_mu)
+        # wVar.update(auxVarDic)
+
+        print 'Including track pT corrections'
+        weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)
+        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)
+        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.6)*fSoftTrackEff(ds['pi_pt'], a=0.6)*fSoftTrackEff(ds['pis_pt'], a=0.6)
 
         # B phase space corrections
         weights['etaB'] = computeB0etaWeights(ds)
@@ -701,7 +728,7 @@ def createHistograms(category):
             name2D = 'h2D_q2bin'+str(i_q2)
             if not name2D in histo.keys():
                     histo[name2D] = {}
-            for var in ['M2_miss', 'Est_mu', 'mu_pt', 'Dst_pt']:
+            for var in ['M2_miss', 'Est_mu', 'mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt']:
                 cat_name = var+'_q2bin'+str(i_q2)
 
                 if not cat_name in histo.keys():
@@ -730,7 +757,7 @@ def createHistograms(category):
                                                           weights=w[sel_q2], scale_histo=scale,
                                                        )
         # Variables in the whole spectrum
-        for var in ['B_pt', 'B_eta']:
+        for var in ['B_pt', 'B_eta', 'specQ2']:
             if not var in histo.keys():
                 histo[var] = {}
             for name_wVar, v_wVar in wVar.iteritems():
@@ -739,7 +766,10 @@ def createHistograms(category):
                     h_name += '__' + name_wVar
                 w = weightsCentral*v_wVar
                 scale = nTotExp/nTotSelected
-                histo[var][h_name] = create_TH1D(ds[var], name=h_name, weights=w, scale_histo=scale,
+                varName = var
+                if var == 'specQ2':
+                    varName = 'q2'
+                histo[var][h_name] = create_TH1D(ds[varName], name=h_name, weights=w, scale_histo=scale,
                                                     binning=binning[var], opt='underflow,overflow')
 
     evCountStr = '{:.1f} ({:.1f})'.format(*totalCounting)
@@ -890,8 +920,15 @@ def createHistograms(category):
 
         # print 'Including muon pT corrections'
         # wVar['muPtUp'], wVar['muPtDown'] = computeMuonPtWeights(ds)
-    #     weights['MuPt'], auxVarDic = computePtWeights(ds, 'mu_pt', 'MuPt', cal_pT_mu)
-    #     wVar.update(auxVarDic)
+        # weights['MuPt'], auxVarDic = computePtWeights(ds, 'mu_pt', 'MuPt', cal_pT_mu)
+        # wVar.update(auxVarDic)
+
+        print 'Including track pT corrections'
+        def fSoftTrackEff(x, a=0.6, tau=0.8):
+            return np.where(x<0.1, np.ones_like(x), 1 - a*np.exp(-x/tau))
+        weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)*fSoftTrackEff(ds['tkPt_0'], a=0.4)*fSoftTrackEff(ds['tkPt_1'], a=0.4)
+        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)*fSoftTrackEff(ds['tkPt_0'], a=0.2)*fSoftTrackEff(ds['tkPt_1'], a=0.2)
+        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.6)*fSoftTrackEff(ds['pi_pt'], a=0.6)*fSoftTrackEff(ds['pis_pt'], a=0.6)*fSoftTrackEff(ds['tkPt_0'], a=0.6)*fSoftTrackEff(ds['tkPt_1'], a=0.6)
 
         if (not args.calBpT == 'none') and (n in SamplesB0):
             print 'Including B0 pT corrections'
@@ -1057,7 +1094,7 @@ def createHistograms(category):
             q2_l = binning['q2'][i_q2]
             q2_h = binning['q2'][i_q2 + 1]
             sel_q2 = np.logical_and(ds['q2'] > q2_l, ds['q2'] < q2_h)
-            for var in ['M2_miss', 'Est_mu', 'mu_pt', 'Dst_pt']:
+            for var in ['M2_miss', 'Est_mu', 'mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt']:
                 cat_name = var+'_q2bin'+str(i_q2)
                 histo[cat_name]['data'] = create_TH1D(
                                                       ds[var][sel_q2],
@@ -1079,8 +1116,11 @@ def createHistograms(category):
                     hUnrolled.SetBinError(i+1, histo[cat2D]['data'].GetBinError(ix, iy))
                 histo[catU]['data'] = hUnrolled
 
-        for var in ['B_pt', 'B_eta']:
-            histo[var]['data'] = create_TH1D(ds[var], name='data_obs', binning=binning[var], opt='underflow,overflow')
+        for var in ['B_pt', 'B_eta', 'specQ2']:
+            varName = var
+            if var == 'specQ2':
+                varName = 'q2'
+            histo[var]['data'] = create_TH1D(ds[varName], name='data_obs', binning=binning[var], opt='underflow,overflow')
 
         ds = dSetTkSide['data']
         for k in sideVar.keys():
@@ -1178,6 +1218,28 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                    min_y=0, tag=tag+'B_pt', legLoc=[0.65, 0.4, 0.9, 0.75])
         cAux.SaveAs(outdir+'/fig/B_pt_norm_'+tag+'.png')
         cAux.SaveAs(webFolder+'/B_pt_norm_'+tag+'.png')
+        outCanvas.append(cAux)
+
+    if 'specQ2' in hDic.keys():
+        print 'Creating q2 spectrum'
+        hDic['specQ2']['data'].GetXaxis().SetTitle('q^{2} [GeV]')
+        hDic['specQ2']['data'].GetYaxis().SetTitle('Events')
+        cAux = plot_SingleCategory(CMS_lumi, hDic['specQ2'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
+                                   addText='Cat. '+catName, logy=False, legBkg=True,
+                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                                   min_y=1, tag=tag+'specQ2', legLoc=[0.75, 0.4, 0.93, 0.75])
+        cAux.SaveAs(outdir+'/fig/q2_'+tag+'.png')
+        cAux.SaveAs(webFolder+'/q2_'+tag+'.png')
+        outCanvas.append(cAux)
+
+        hDic['specQ2']['data'].GetYaxis().SetTitle('Normalized events')
+        cAux = plot_SingleCategory(CMS_lumi, hDic['specQ2'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
+                                   density=True,
+                                   addText='Cat. '+catName, logy=False, legBkg=True,
+                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                                   min_y=0, tag=tag+'specQ2', legLoc=[0.75, 0.4, 0.93, 0.75])
+        cAux.SaveAs(outdir+'/fig/q2_norm_'+tag+'.png')
+        cAux.SaveAs(webFolder+'/q2_norm_'+tag+'.png')
         outCanvas.append(cAux)
 
     if 'B_eta' in hDic.keys():
@@ -1332,53 +1394,56 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
     cAux.SaveAs(webFolder+'/muPt_allNorm_'+tag+'.png')
     outCanvas.append(cAux)
 
-    hDstPt_all = None
-    for i_q2 in range(len(binning['q2'])-1):
-        q2_l = binning['q2'][i_q2]
-        q2_h = binning['q2'][i_q2 + 1]
-        name = 'Dst_pt_q2bin'+str(i_q2)
-        if not name in hDic.keys(): continue
-        print 'Creating', name
-        hDic[name]['data'].GetXaxis().SetTitle('D* p_{T} [GeV]')
-        hDic[name]['data'].GetYaxis().SetTitle('Events')
-        cAux = plot_SingleCategory(CMS_lumi, hDic[name], scale_dic=scale_dic,
+    axName = {'Dst': 'D*', 'K':'K', 'pi':'#pi', 'pis':'#pi_{soft}'}
+    for n in ['Dst', 'K', 'pi', 'pis']:
+        h_all = None
+        for i_q2 in range(len(binning['q2'])-1):
+            q2_l = binning['q2'][i_q2]
+            q2_h = binning['q2'][i_q2 + 1]
+            name = n+'_pt_q2bin'+str(i_q2)
+            if not name in hDic.keys(): continue
+            print 'Creating', name
+            hDic[name]['data'].GetXaxis().SetTitle(axName[n] + ' p_{T} [GeV]')
+            hDic[name]['data'].GetYaxis().SetTitle('Events')
+            cAux = plot_SingleCategory(CMS_lumi, hDic[name], scale_dic=scale_dic,
+                                       draw_pulls=True, pullsRatio=True,
+                                       addText='Cat. '+catName+', {:.1f} <  q^{{2}}  < {:.1f} GeV^{{2}}'.format(q2_l, q2_h),
+                                       logy=False, legBkg=True,
+                                       procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                                       min_y=1,
+                                       tag=tag+n+'_pt_q2bin'+str(i_q2),
+                                       legLoc=[0.7, 0.4, 0.9, 0.75],
+                                       maskData = (not args.unblinded) and (False if i_q2 < 2 else True)
+                                       )
+            cAux.SaveAs(outdir+'/fig/'+n+'Pt_q2bin'+str(i_q2)+'_'+tag+'.png')
+            cAux.SaveAs(webFolder+'/'+n+'Pt_q2bin'+str(i_q2)+'_'+tag+'.png')
+            outCanvas.append(cAux)
+            if i_q2 == 0:
+                h_all = {}
+                for nn in hDic[name].keys():
+                    h_all[nn] = hDic[name][nn].Clone()
+            else:
+                for nn in h_all.keys():
+                    h_all[nn].Add(hDic[name][nn])
+        print 'Creating '+n+'Pt_all'
+        h_all['data'].GetYaxis().SetTitle('Normalized events')
+        cAux = plot_SingleCategory(CMS_lumi, h_all, scale_dic=scale_dic,
                                    draw_pulls=True, pullsRatio=True,
-                                   addText='Cat. '+catName+', {:.1f} <  q^{{2}}  < {:.1f} GeV^{{2}}'.format(q2_l, q2_h),
+                                   addText='Cat. '+catName,
                                    logy=False, legBkg=True,
                                    procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
-                                   min_y=1,
-                                   tag=tag+'Dst_pt_q2bin'+str(i_q2),
-                                   legLoc=[0.7, 0.4, 0.9, 0.75],
-                                   maskData = (not args.unblinded) and (False if i_q2 < 2 else True)
+                                   min_y=0,
+                                   max_y='data',
+                                   pulls_ylim=[0.85, 1.15],
+                                   density=True,
+                                   tag=tag+n+'_pt_all',
+                                   legLoc=[0.7, 0.3, 0.9, 0.55],
+                                   maskData = False
                                    )
-        cAux.SaveAs(outdir+'/fig/DstPt_q2bin'+str(i_q2)+'_'+tag+'.png')
-        cAux.SaveAs(webFolder+'/DstPt_q2bin'+str(i_q2)+'_'+tag+'.png')
+        cAux.SaveAs(outdir+'/fig/'+n+'Pt_allNorm_'+tag+'.png')
+        cAux.SaveAs(webFolder+'/'+n+'Pt_allNorm_'+tag+'.png')
         outCanvas.append(cAux)
-        if i_q2 == 0:
-            hDstPt_all = {}
-            for n in hDic[name].keys():
-                hDstPt_all[n] = hDic[name][n].Clone()
-        else:
-            for n in hDstPt_all.keys():
-                hDstPt_all[n].Add(hDic[name][n])
-    print 'Creating DstPt_all'
-    hDstPt_all['data'].GetYaxis().SetTitle('Normalized events')
-    cAux = plot_SingleCategory(CMS_lumi, hDstPt_all, scale_dic=scale_dic,
-                               draw_pulls=True, pullsRatio=True,
-                               addText='Cat. '+catName,
-                               logy=False, legBkg=True,
-                               procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
-                               min_y=0,
-                               max_y='data',
-                               pulls_ylim=[0.85, 1.15],
-                               density=True,
-                               tag=tag+'Dst_pt_all',
-                               legLoc=[0.7, 0.3, 0.9, 0.55],
-                               maskData = False
-                               )
-    cAux.SaveAs(outdir+'/fig/DstPt_allNorm_'+tag+'.png')
-    cAux.SaveAs(webFolder+'/DstPt_allNorm_'+tag+'.png')
-    outCanvas.append(cAux)
+
 
     print 30*'-' + '\n\n'
     return outCanvas
@@ -1511,6 +1576,17 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += 'TauDstPiBr lnN' + aux*nCat + '\n'
 
 
+    ############ Transfer factor uncertainty of B -> D*D samples from control region to signal region
+    val = ' 1.02'
+    aux = ''
+    for n in processes:
+        if n.startswith('DstmD') or n.endswith('Hc'):
+            aux += val
+        else:
+            aux += ' -'
+    card += 'B2DstHcTransferFactor lnN' + aux*nCat + '\n'
+
+
     card += 60*'-'+'\n'
 
 
@@ -1546,6 +1622,12 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     #         names.append(k[4:-2])
     # for n in sorted(names):
     #     card += n + ' shape' + aux*nCat + '\n'
+
+    # Soft track efficiency
+    aux = ''
+    for p in processes:
+        aux += ' 1.'
+    card += 'softTrkEff shape' + aux*nCat + '\n'
 
     if not args.calBpT == 'none':
         # B0 pT spectrum
@@ -1806,7 +1888,7 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     m = np.mean(r)
     sm = np.std(r)/np.sqrt(r.shape[0])
     x = [0, r.shape[0]+1]
-    plt.fill_between(x, 2*[m-sm], 2*[m+sm], color='#ff7f0e', alpha=0.3)
+    plt.fill_between(x, 2*[m-sm], 2*[m+sm], color='#ff7f0e', alpha=0.4)
     plt.plot(x, 2*[m], color='#d62728', lw=1, label='Toys mean')
     plt.plot(x, [rVal, rVal], 'm--', lw=2, label='Injected value')
     ymin, ymax = plt.ylim()
@@ -1980,7 +2062,6 @@ def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
     fLog.close()
 
     return
-
 
 
 ########################### -------- Fit Diagnostic ------------------ #########################
@@ -2171,8 +2252,6 @@ def nuisancesDiff(tag, out, forceRDst):
     cAux.SaveAs(webFolder+'/nuisanceDifferenceDistribution.png')
 
     return
-
-
 
 
 ########################### -------- Uncertainty breakdown ------------------ #########################
@@ -2648,8 +2727,8 @@ if __name__ == "__main__":
     rDst_postFitRegion = args.RDstLims
     fit_RDst = SM_RDst
 
-    globalChannelMasking = ['AddTk_pm_mHad', 'B_pt', 'B_eta']
-    mAux = ['mu_pt', 'Dst_pt']
+    globalChannelMasking = ['AddTk_pm_mHad', 'B_pt', 'B_eta', 'specQ2']
+    mAux = ['mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt']
     if args.signalRegProj1D:
         mAux += ['Unrolled']
         if args.signalRegProj1D == 'Est_mu': mAux += ['M2_miss']
