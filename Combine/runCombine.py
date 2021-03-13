@@ -525,9 +525,9 @@ def createHistograms(category):
                                    'High': array('d', list(np.arange(0.8, 30, 0.2)) )
                                   }[category.name]]
 
-    binning['pis_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.4, 3.5, 0.05)) ),
-                                   'Mid':  array('d', list(np.arange(0.4, 4, 0.05)) ),
-                                   'High': array('d', list(np.arange(0.4, 5, 0.05)) )
+    binning['pis_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.5, 3.5, 0.05)) ),
+                                   'Mid':  array('d', list(np.arange(0.5, 4, 0.05)) ),
+                                   'High': array('d', list(np.arange(0.5, 5, 0.05)) )
                                   }[category.name]]
 
 
@@ -635,9 +635,9 @@ def createHistograms(category):
         # wVar.update(auxVarDic)
 
         print 'Including track pT corrections'
-        weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)
-        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)
-        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.6)*fSoftTrackEff(ds['pi_pt'], a=0.6)*fSoftTrackEff(ds['pis_pt'], a=0.6)
+        weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.3)*fSoftTrackEff(ds['pi_pt'], a=0.3)*fSoftTrackEff(ds['pis_pt'], a=0.3)
+        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.1)*fSoftTrackEff(ds['pi_pt'], a=0.1)*fSoftTrackEff(ds['pis_pt'], a=0.1)
+        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.5)*fSoftTrackEff(ds['pi_pt'], a=0.5)*fSoftTrackEff(ds['pis_pt'], a=0.5)
 
         # B phase space corrections
         weights['etaB'] = computeB0etaWeights(ds)
@@ -924,11 +924,11 @@ def createHistograms(category):
         # wVar.update(auxVarDic)
 
         print 'Including track pT corrections'
-        def fSoftTrackEff(x, a=0.6, tau=0.8):
+        def fSoftTrackEff(x, a=0.3, tau=0.8):
             return np.where(x<0.1, np.ones_like(x), 1 - a*np.exp(-x/tau))
-        weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)*fSoftTrackEff(ds['tkPt_0'], a=0.4)*fSoftTrackEff(ds['tkPt_1'], a=0.4)
-        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)*fSoftTrackEff(ds['tkPt_0'], a=0.2)*fSoftTrackEff(ds['tkPt_1'], a=0.2)
-        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.6)*fSoftTrackEff(ds['pi_pt'], a=0.6)*fSoftTrackEff(ds['pis_pt'], a=0.6)*fSoftTrackEff(ds['tkPt_0'], a=0.6)*fSoftTrackEff(ds['tkPt_1'], a=0.6)
+        weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.3)*fSoftTrackEff(ds['pi_pt'], a=0.3)*fSoftTrackEff(ds['pis_pt'], a=0.3)*fSoftTrackEff(ds['tkPt_0'], a=0.3)*fSoftTrackEff(ds['tkPt_1'], a=0.3)
+        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.1)*fSoftTrackEff(ds['pi_pt'], a=0.1)*fSoftTrackEff(ds['pis_pt'], a=0.1)*fSoftTrackEff(ds['tkPt_0'], a=0.1)*fSoftTrackEff(ds['tkPt_1'], a=0.1)
+        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.5)*fSoftTrackEff(ds['pi_pt'], a=0.5)*fSoftTrackEff(ds['pis_pt'], a=0.5)*fSoftTrackEff(ds['tkPt_0'], a=0.5)*fSoftTrackEff(ds['tkPt_1'], a=0.5)
 
         if (not args.calBpT == 'none') and (n in SamplesB0):
             print 'Including B0 pT corrections'
@@ -1594,14 +1594,14 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ########## Shape systematics uncertainties
     ######################################################
 
-    nameSF = 'trg{}SF'.format(category.trg)
-    counter = 0
-    for k in histo.values()[0].keys():
-        if k.startswith(SamplesB0[0]+'__'+nameSF + '_pt') and k.endswith('Up'):
-            n = k[k.find('__')+2:-2]
-            card += n+' shape' + ' 1.'*nProc*nCat + '\n'
-            counter += 1
-    print 'SF unc', counter
+    # nameSF = 'trg{}SF'.format(category.trg)
+    # counter = 0
+    # for k in histo.values()[0].keys():
+    #     if k.startswith(SamplesB0[0]+'__'+nameSF + '_pt') and k.endswith('Up'):
+    #         n = k[k.find('__')+2:-2]
+    #         card += n+' shape' + ' 1.'*nProc*nCat + '\n'
+    #         counter += 1
+    # print 'SF unc', counter
     # card += 'muonIdSF shape' + ' 1.'*nProc*nCat + '\n'
 
     aux = ''
@@ -2584,7 +2584,7 @@ jdlTemplate = '\n'.join([
               'on_exit_remove    = (ExitBySignal == False) && (ExitCode == 0)',
               'on_exit_hold      = (ExitBySignal == True) || (ExitCode != 0)',
               'periodic_release  =  (NumJobStarts < 2) && ((CurrentTime - EnteredCurrentStatus) > (60*5))',
-              '+PeriodicRemove   = ((JobStatus =?= 2) && ((MemoryUsage =!= UNDEFINED && MemoryUsage > 2.5*RequestMemory)))',
+              '+PeriodicRemove   = ((JobStatus =?= 2) && ((MemoryUsage =!= UNDEFINED && MemoryUsage > 5*RequestMemory)))',
               'max_retries       = 3',
               'requirements      = Machine =!= LastRemoteHost',
               'universe          = vanilla',
@@ -2752,11 +2752,11 @@ if __name__ == "__main__":
 
     if args.category == 'comb':
         aux = []
-        for c in categoriesToCombine:
-            for cm in globalChannelMasking:
-                aux.append('{}_{}'.format(c, cm))
-        globalChannelMasking = aux
-    globalChannelMaskingStr = ','.join(['mask_{}=1'.format(c) for c in globalChannelMasking])
+        for cm in globalChannelMasking:
+            aux.append('rgx{mask_.*_' + cm + '}')
+        globalChannelMaskingStr = ','.join(['{}=1'.format(c) for c in aux])
+    else:
+        globalChannelMaskingStr = ','.join(['mask_{}=1'.format(c) for c in globalChannelMasking])
 
     #######################################################################
 
