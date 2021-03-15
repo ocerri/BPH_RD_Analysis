@@ -62,23 +62,29 @@ parser.add_argument ('--unblinded', default=True, type=bool, help='Unblind the f
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
+parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
 parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--calBpT', default='poly', choices=['ratio', 'poly', 'none'], help='Form factor scheme to use.')
 
 
-availableSteps = ['clean', 'histos', 'preFitPlots', 'card', 'workspace', 'bias', 'scan', 'catComp', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'impacts', 'GoF']
-defaultPipelineSingle = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'GoF']
-defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'fitDiag', 'postFitPlots', 'uncBreakdown', 'GoF']
-# histos preFitPlots card workspace scan fitDiag postFitPlots uncBreakdown GoF
+availableSteps = ['clean', 'histos', 'preFitPlots',
+                  'card', 'workspace',
+                  'bias', 'scan', 'catComp',
+                  'fitDiag', 'postFitPlots',
+                  'uncBreakdownScan', 'externalize',
+                  'impacts', 'GoF']
+defaultPipelineSingle = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdownScan', 'GoF']
+defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'fitDiag', 'postFitPlots', 'uncBreakdownScan', 'GoF']
+# histos preFitPlots card workspace scan fitDiag postFitPlots uncBreakdownScan GoF
 parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
 parser.add_argument ('--submit', default=False, action='store_true', help='Submit a job instead of running the call interactively.')
 
 parser.add_argument ('--validateCard', default=False, action='store_true', help='Run combine card validation.')
+parser.add_argument ('--decorrelateFFpars', default=False, action='store_true', help='Decorrelte form factors parameters')
 
 parser.add_argument ('--forceRDst', default=False, action='store_true', help='Perform fit fixing R(D*) to 0.295')
-# parser.add_argument ('--fitRegionsOnly', default=False, action='store_true', help='Include only regions used for fitting')
 parser.add_argument ('--seed', default=6741, type=int, help='Seed used by Combine')
 parser.add_argument ('--RDstLims', default=[0.1, 0.5], type=int, help='Initial boundaries for R(D*).', nargs='+')
 
@@ -91,6 +97,11 @@ parser.add_argument ('--runBiasAnalysis', default=False, action='store_true', he
 parser.add_argument ('--scanStrategy', default=1, type=int, help='Minimizer strategy for the scan.')
 parser.add_argument ('--maskScan', type=str, default=[], nargs='+', help='Channels to mask during likelyhood scan. If this list is non empty, the full card is used (default is fitregionsOnly).')
 parser.add_argument ('--tagScan', type=str, default='')
+
+# Externalization options
+parser.add_argument ('--externPars', default=['B2DstCLNeig1', 'B2DstCLNeig2', 'B2DstCLNeig3'], type=str, help='Parameters to externalize.', nargs='+')
+parser.add_argument ('--externSigma', default=1., type=float, help='Externalization sigmas.')
+parser.add_argument ('--externTag', default='FF', type=str, help='Externalization tag.')
 
 # Impacts options
 parser.add_argument ('--collectImpacts', default=False, action='store_true', help='Only collect impact fits which have been previously run')
@@ -111,8 +122,12 @@ if args.HELP:
     exit()
 
 if len(args.step) == 0:
-    if args.category == 'comb': args.step = defaultPipelineComb
+    if args.category == 'comb':
+        args.step = defaultPipelineComb
     else: args.step = defaultPipelineSingle
+
+    if args.cardTag == 'test' and not args.submit:
+        args.step = ['clean'] + args.step
 
 schemeFF = args.schemeFF
 if not args.showPlots:
@@ -133,6 +148,11 @@ binning = {'q2': array('d', [0, 3.5, 6, 9.4, 12])}
 
 SM_RDst = 0.295
 expectedLumi = {'Low':6.4, 'Mid':20.7, 'High':26.4, 'Single':20.7} #fb^-1
+if args.lumiMult != 1.:
+    print 'Multipling the expected luminosity by {:.1f}'.format(args.lumiMult)
+    for n in expectedLumi.keys():
+        expectedLumi[n] *= args.lumiMult
+    print expectedLumi
 
 FreeParFF = {
    'CLN': ['R0', 'eig1', 'eig2', 'eig3'],
@@ -169,10 +189,14 @@ if args.asimov:
 
 def createCardName(a):
     c = a.cardTag + a.category + '_' + a.schemeFF
+    if a.decorrelateFFpars:
+        c += 'decorr'
     if a.useMVA:
         c += '_MVA'+useMVA
     if a.asimov:
         c += '_Asimov'
+        if args.lumiMult != 1.:
+            c += '{:.0f}'.format(args.lumiMult)
     elif a.dataType:
         c += '_onlyB0'
         if a.dataType == 2:
@@ -515,19 +539,19 @@ def createHistograms(category):
                                    'High': array('d', list(np.arange(5, 50, 1)) )
                                   }[category.name]]
 
-    binning['K_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.8, 15, 0.2)) ),
-                                   'Mid':  array('d', list(np.arange(0.8, 20, 0.2)) ),
-                                   'High': array('d', list(np.arange(0.8, 30, 0.2)) )
+    binning['K_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.8, 15, 0.4)) ),
+                                   'Mid':  array('d', list(np.arange(0.8, 20, 0.4)) ),
+                                   'High': array('d', list(np.arange(0.8, 30, 0.4)) )
                                   }[category.name]]
 
-    binning['pi_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.8, 15, 0.2)) ),
-                                   'Mid':  array('d', list(np.arange(0.8, 20, 0.2)) ),
-                                   'High': array('d', list(np.arange(0.8, 30, 0.2)) )
+    binning['pi_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.8, 15, 0.4)) ),
+                                   'Mid':  array('d', list(np.arange(0.8, 20, 0.4)) ),
+                                   'High': array('d', list(np.arange(0.8, 30, 0.4)) )
                                   }[category.name]]
 
-    binning['pis_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.5, 3.5, 0.05)) ),
-                                   'Mid':  array('d', list(np.arange(0.5, 4, 0.05)) ),
-                                   'High': array('d', list(np.arange(0.5, 5, 0.05)) )
+    binning['pis_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.5, 3.5, 0.1)) ),
+                                   'Mid':  array('d', list(np.arange(0.5, 4, 0.1)) ),
+                                   'High': array('d', list(np.arange(0.5, 5, 0.1)) )
                                   }[category.name]]
 
 
@@ -1406,7 +1430,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
             hDic[name]['data'].GetXaxis().SetTitle(axName[n] + ' p_{T} [GeV]')
             hDic[name]['data'].GetYaxis().SetTitle('Events')
             cAux = plot_SingleCategory(CMS_lumi, hDic[name], scale_dic=scale_dic,
-                                       draw_pulls=True, pullsRatio=True,
+                                       draw_pulls=True, pullsRatio=False,
                                        addText='Cat. '+catName+', {:.1f} <  q^{{2}}  < {:.1f} GeV^{{2}}'.format(q2_l, q2_h),
                                        logy=False, legBkg=True,
                                        procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
@@ -1550,7 +1574,11 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
                 aux += val
             else:
                 aux += ' -'
-        card += n + 'Br lnN' + aux*nCat + '\n'
+        if n == 'mu':
+            card += 'muBr rateParam * mu 1. 0.1,10\n'
+            card += 'muBr rateParam * tau 1. 0.1,10\n'
+        else:
+            card += n + 'Br lnN' + aux*nCat + '\n'
 
 
     #### Branching ratio uncertainty with isospin symmetry constraint
@@ -1763,14 +1791,37 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         card += 60*'-'+'\n'
 
     ######################################################
+    ########## Scorrelate systematics
+    ######################################################
+
+    signalChannel = args.signalRegProj1D if args.signalRegProj1D else 'Unrolled'
+
+    # card += 'nuisance edit drop * * B2Dst'+schemeFF +'.* ifexists\n'
+
+    # Relax prior increasing width by a factor 2
+    # card += 'nuisance edit add * * B2Dst'+schemeFF +'.* shape 0.5 overwrite\n'
+
+    if args.decorrelateFFpars:
+        for n in FreeParFF:
+            if n == 'R0':
+                continue
+            parName = 'B2Dst'+schemeFF+n
+            card += 'nuisance edit rename * ' + signalChannel+'_q2bin[01] ' + parName + ' ' + parName+'_ctrlReg'+category.name+'\n'
+            card += 'nuisance edit rename * AddTk.* ' + parName + ' ' + parName+'_ctrlReg'+category.name+'\n'
+            card += 'nuisance edit rename * ' + signalChannel+'_q2bin[23] ' + parName + ' ' + parName+'_sigReg'+category.name+'\n'
+            card += 'nuisance edit drop * * ' + parName +'\n'
+
+    card += 60*'-'+'\n'
+
+    ######################################################
     ########## Defining groups of systematics
     ######################################################
 
     # autoMCStats group = defined by default when using autoMCStats
 
-    if len(FreeParFF):
-        aux_FF = ' '.join(['B2Dst'+schemeFF+n for n in FreeParFF])
-        card += 'B2DstFF group = ' + aux_FF + '\n'
+    # if len(FreeParFF):
+    #     aux_FF = ' '.join(['B2Dst'+schemeFF+n for n in FreeParFF])
+    #     card += 'B2DstFF group = ' + aux_FF + '\n'
 
     # cardParts = card.split(60*'-'+'\n')
     # scaleNuis = []
@@ -1808,6 +1859,34 @@ def createCombinationCard(fitRegionsOnly=False):
         print output
         raise
 
+    # Editing the nuisace renaiming
+    cardStream = open(clFull, 'r')
+    lines = cardStream.readlines()
+    cardStream.close()
+
+    cardStream = open(clFull, 'w')
+    # Copy the whole file w/o the nuisance edit lines
+    for line in lines:
+        if not line.startswith('nuisance edit'):
+            cardStream.write(line)
+    # Re-write them down
+    if args.decorrelateFFpars:
+        signalChannel = args.signalRegProj1D if args.signalRegProj1D else 'Unrolled'
+        for n in FreeParFF:
+            if n == 'R0':
+                continue
+            parName = 'B2Dst'+schemeFF+n
+            for c in categoriesToCombine:
+                chName = c + '_' + signalChannel+'_q2bin[01]'
+                cardStream.write('nuisance edit rename * ' + chName + ' ' + parName + ' ' + parName+'_ctrlReg'+c.capitalize()+'\n')
+                chName = c + '_AddTk.*'
+                cardStream.write('nuisance edit rename * ' + chName + ' ' + parName + ' ' + parName+'_ctrlReg'+c.capitalize()+'\n')
+                chName = c + '_' + signalChannel+'_q2bin[23]'
+                cardStream.write('nuisance edit rename * ' + chName + ' ' + parName + ' ' + parName+'_sigReg'+c.capitalize()+'\n')
+            cardStream.write('nuisance edit drop * * ' + parName +'\n')
+
+    cardStream.close()
+
 
 ########################### -------- Create the workspace ------------------ #########################
 
@@ -1824,7 +1903,11 @@ def createWorkspace(cardLoc):
         print output
         raise
     else:
-        text_file = open(cardLoc.replace('.txt', '_text2workspace.out'), "w")
+        text_file = open(cardLoc.replace('.txt', '_text2workspace.out'), 'w')
+        text_file.write(output)
+        text_file.close()
+
+        text_file = open(webFolder + '/' + os.path.basename(cardLoc).replace('.txt', '_text2workspace.out'), 'w')
         text_file.write(output)
         text_file.close()
 
@@ -1850,7 +1933,8 @@ def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
     print '-----> Running the toys scans'
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit --algo grid --points=70'
-    cmd += ' --robustFit 1 --cminDefaultMinimizerStrategy 0 --X-rtd MINIMIZER_analytic'
+    cmd += ' --robustFit 1 --cminDefaultMinimizerStrategy 1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' --seed ' + str(seed)
     cmd += ' -d ' + card.replace('.txt', '.root')
     cmd += ' --toysFrequentist --toysFile higgsCombineToys.GenerateOnly.mH{:.0f}.{}.root -t {}'.format(1000*rVal, seed, nToys)
@@ -2070,6 +2154,7 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M FitDiagnostics'
     cmd += ' --robustFit 1 --robustHesse 1 --cminDefaultMinimizerStrategy '+str(strategy)+' --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' --seed ' + str(seed)
     cmd += ' -d ' + card.replace('.txt', '.root')
     if forceRDst:
@@ -2256,7 +2341,7 @@ def nuisancesDiff(tag, out, forceRDst):
 
 ########################### -------- Uncertainty breakdown ------------------ #########################
 
-def runUncertaintyBreakDown(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], maskStr=''):
+def runUncertaintyBreakDownScan(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], maskStr=''):
     if not out[-1] == '/': out += '/'
     print '--------> Running uncertainty breakdown <--------------'
     print '--------> Nominal scan'
@@ -2268,6 +2353,7 @@ def runUncertaintyBreakDown(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7]
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit'
     cmd += ' --cminDefaultMinimizerStrategy=1 --robustFit 1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' -d ' + card.replace('.txt', '.root')
     cmd += ' --setParameters r={:.2f}'.format(rValOut)
     if maskStr:
@@ -2285,6 +2371,7 @@ def runUncertaintyBreakDown(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7]
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit --algo grid --points=100'
     cmd += ' --cminDefaultMinimizerStrategy=1 --robustFit 1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' -d higgsCombineBestfit.MultiDimFit.mH120.root'
     cmd += ' --snapshotName MultiDimFit'
     cmd += ' --rMin={:.3f} --rMax={:.3f}'.format(*rLimitsTight)
@@ -2304,6 +2391,7 @@ def runUncertaintyBreakDown(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7]
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit --algo grid --points=100'
     cmd += ' --cminDefaultMinimizerStrategy=1 --robustFit 1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' -d higgsCombineBestfit.MultiDimFit.mH120.root'
     cmd += ' --rMin={:.4f} --rMax={:.4f}'.format(*rLimitsTight)
     cmd += ' -n MCstat'
@@ -2348,6 +2436,133 @@ def runUncertaintyBreakDown(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7]
 
 
 
+def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], maskStr=''):
+    if not out[-1] == '/': out += '/'
+
+    print '--------> Best fit snap'
+    cmd = 'cd ' + out + '; '
+    cmd += 'combine -M MultiDimFit'
+    cmd += ' --cminDefaultMinimizerStrategy=1 --robustFit 1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+    cmd += ' -d ' + card.replace('.txt', '.root')
+    cmd += ' --setParameters r={:.2f}'.format(rValOut)
+    if maskStr:
+        cmd += ','+maskStr
+    cmd += ' --setParameterRanges r={:.3f},{:.3f}'.format(*rLimitsTight)
+    cmd += ' -n Bestfit'
+    cmd += ' --saveWorkspace --verbose -1'
+    print cmd
+    status, output = commands.getstatusoutput(cmd)
+    if status:
+        print output
+        raise
+
+    print '--------> Statistical uncertanty only'
+    cmd = 'cd ' + out + '; '
+    cmd += 'combine -M MultiDimFit --algo grid --points=100'
+    cmd += ' --cminDefaultMinimizerStrategy=1 --robustFit 1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+    cmd += ' -d higgsCombineBestfit.MultiDimFit.mH120.root'
+    cmd += ' --snapshotName MultiDimFit'
+    cmd += ' --rMin={:.3f} --rMax={:.3f}'.format(*rLimitsTight)
+    cmd += ' -n StatOnly'
+    cmd += ' --freezeParameters allConstrainedNuisances'
+    if maskStr: cmd += ' --setParameters ' + maskStr
+    cmd += ' --fastScan' # To be added if there are no free parameters otherwise
+    cmd += ' --verbose -1'
+    print cmd
+    status, output = commands.getstatusoutput(cmd)
+    if status:
+        print output
+        raise
+    getUncertaintyFromLimitTree(out + 'higgsCombineStatOnly.MultiDimFit.mH120.root')
+
+    print '--------> MC stats and Statistical uncertanty only'
+    cmd = 'cd ' + out + '; '
+    cmd += 'combine -M MultiDimFit --algo grid --points=100'
+    cmd += ' --cminDefaultMinimizerStrategy=1 --robustFit 1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+    cmd += ' -d higgsCombineBestfit.MultiDimFit.mH120.root'
+    cmd += ' --rMin={:.4f} --rMax={:.4f}'.format(*rLimitsTight)
+    cmd += ' -n MCstat'
+    cmd += ' --snapshotName MultiDimFit'
+    if maskStr: cmd += ' --setParameters ' + maskStr
+    cmd += ' --freezeNuisanceGroups=autoMCStats'
+    cmd += ' --verbose -1'
+    print cmd
+    status, output = commands.getstatusoutput(cmd)
+    if status:
+        print output
+        raise
+    getUncertaintyFromLimitTree(out + 'higgsCombineMCstat.MultiDimFit.mH120.root')
+
+    return
+
+
+########################### -------- Externalize parameters ------------------ #########################
+
+def externalizeUncertainty(card, out, parameters=['B2DstCLNeig1', 'B2DstCLNeig2', 'B2DstCLNeig3'], sigma=1, tag='FF', rVal=SM_RDst, rLimits=[0.1, 0.7]):
+    print 'Externalizing paramters:', parameters
+    fLog = open(webFolder + '/externalize_'+tag+'.txt', 'w')
+    print '----- Running central fit'
+    cmd = 'cd ' + out + '; '
+    cmd += 'combine -M MultiDimFit --algo singles'
+    cmd += ' -d ' + card.replace('.txt', '.root')
+    cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+    cmd += ' --rMin={:.3f} --rMax={:.3f}'.format(*rLimits)
+    cmd += ' --setParameters r={:.3f},'.format(rVal) + ','.join([n+'=0' for n in parameters])
+    cmd += ' --freezeParameters ' + ','.join(parameters)
+    cmd += ' -n _ext'+tag+'_central'
+    print cmd
+    status, output = commands.getstatusoutput(cmd)
+    if status or 'Warning - No valid' in output:
+        print output
+        raise
+    arr = rtnp.root2array(out + '/higgsCombine_ext'+tag+'_central.MultiDimFit.mH120.root', treename='limit')
+    rCentral, d, u = arr['r']
+    drCentral = (u-d)*0.5
+    s = 'Central value {:.4f} +/- {:.4f}\n'.format(rCentral, drCentral)
+    print s
+    fLog.write(s + '\n')
+
+    deltaR = np.zeros((len(parameters), 2))
+    for ip, p in enumerate(parameters):
+        rMod = []
+        for mod in [sigma, -sigma]:
+            cmdAux = cmd.replace(p+'=0', p+'='+str(mod))
+            cmdAux = cmdAux.replace(tag+'_central', tag+'_variation')
+            print cmdAux
+            status, output = commands.getstatusoutput(cmdAux)
+            flag = 'Warning: Did not find a parameter' in output
+            flag = flag or ('WARNING: cannot freeze nuisance' in output)
+            flag = flag or ('ERROR' in output)
+            if status or flag:
+                print output
+                raise
+            arr = rtnp.root2array(out + '/higgsCombine_ext'+tag+'_variation.MultiDimFit.mH120.root', treename='limit')
+            r, d, u = arr['r']
+            dr = (u-d)*0.5
+            s = '{} {:+.1f}: {:.4f} +/- {:.4f}'.format(p, mod, r, dr)
+            print s
+            fLog.write(s + '\n')
+            rMod.append(r)
+        rMod = np.sort(rMod)
+        s = p+' variation: {:.4f} {:+.4f}/{:+.4f}\n'.format(rCentral, rMod[1]-rCentral, rMod[0]-rCentral)
+        print s
+        fLog.write(s + '\n')
+        deltaR[ip] = rMod
+
+    extUnc = np.sqrt(np.sum(np.square(0.5*(deltaR[:,1] - deltaR[:,0]))))
+    totUnc = np.hypot(drCentral, extUnc)
+
+    s = 'Externalized result: {:.4f} +/- {:+.4f} (prof.) +/- {:+.4f} (ext.) = {:.4f} +/- {:+.4f}'.format(rCentral, drCentral, extUnc, rCentral, totUnc)
+    print s
+    fLog.write(s + '\n')
+    fLog.close()
+    return
+
+
 ########################### -------- Nuisances impact ------------------ #########################
 
 def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True, collect=True):
@@ -2358,28 +2573,35 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
             os.system('rm -rf '+out+'impactPlots')
         os.mkdir(out+'impactPlots')
 
+        print '----- Running initial fit'
         cmd = 'cd {}impactPlots; '.format(out)
         cmd += ' combineTool.py -M Impacts --doInitialFit -m 0'
         cmd += ' --robustFit 1 --X-rtd MINIMIZER_analytic'
+        cmd += ' --cminDefaultMinimizerStrategy=1'
+        cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
         cmd += ' -d ' + card.replace('.txt', '.root')
         cmd += ' --setParameters r={:.2f}'.format(rVal)
         if maskStr:
             cmd += ','+maskStr
         cmd += ' --setParameterRanges r=0.1,0.6'
-        cmd += ' --verbose -1'
+        cmd += ' --verbose 1'
         print cmd
         status, output = commands.getstatusoutput(cmd)
-        if status:
+        flag = 'WARNING: MultiDimFit failed' in output
+        if status or flag:
             print output
             raise
 
 
         # If running on Tier2 condor remmeber to add this line to CombineToolBase.py ln 11
         # ``source /cvmfs/cms.cern.ch/cmsset_default.sh``
+        print '----- RUnning all the fits'
         cmd = 'cd {}impactPlots;'.format(out)
         cmd += ' combineTool.py -M Impacts --doFits -m 0'
         cmd += ' --robustFit 1 --X-rtd MINIMIZER_analytic'
-        cmd += ' --parallel 100 --job-mode condor --task-name combineImpacts_'+catName
+        cmd += ' --cminDefaultMinimizerStrategy=1'
+        cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+        cmd += ' --parallel 100 --job-mode condor --task-name combineImpacts_'+os.path.basename(card).replace('.txt', '')
         cmd += ' --sub-opts "{}"'.format(stringJubCustomizationCaltechT2.replace('"', '\\\"').replace('$', '\$'))
         cmd += ' -d ' + card.replace('.txt', '.root')
         cmd += ' --setParameters r={:.2f}'.format(rVal)
@@ -2394,11 +2616,11 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
 
     if collect:
         status, output = commands.getstatusoutput('condor_q')
-        while 'combineImpacts_'+catName in output:
+        while 'combineImpacts_'+os.path.basename(card).replace('.txt', '') in output:
             time.sleep(30)
             status, output = commands.getstatusoutput('condor_q')
             for l in output.split('\n'):
-                if 'combineImpacts_'+catName in l:
+                if 'combineImpacts_'+os.path.basename(card).replace('.txt', '') in l:
                     print l
                     sys.stdout.flush()
         cmd = 'cd {}impactPlots;'.format(out)
@@ -2504,6 +2726,7 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
     cmd += 'combine -M GoodnessOfFit'
     cmd += ' --algo=saturated  --toysFrequentist' if algo=='Sat' else ' --algo='+algo
     cmd += ' --X-rtd MINIMIZER_analytic  --cminDefaultMinimizerStrategy=1'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' -d ' + card.replace('.txt', '.root')
     if fixRDst:
         cmd += ' --freezeParameters r --setParameters r={:.3f}'.format(rVal)
@@ -2795,6 +3018,14 @@ if __name__ == "__main__":
                                     rVal=SM_RDst, rLimits=[0.1, 0.6]
                                     )
 
+    if 'externalize' in args.step:
+        print '-----> Running externalization'
+        externalizeUncertainty(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+                               parameters=args.externPars,
+                               sigma=args.externSigma,
+                               tag=args.externTag,
+                               rVal=SM_RDst, rLimits=[0.15, 0.45]
+                               )
 
     if 'fitDiag' in args.step:
         print '-----> Running fit diagnostic'
@@ -2817,8 +3048,8 @@ if __name__ == "__main__":
         nuisancesDiff(args.cardTag, outdir, args.forceRDst)
         print '\n'
 
-    if 'uncBreakdown' in args.step:
-        runUncertaintyBreakDown(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+    if 'uncBreakdownScan' in args.step:
+        runUncertaintyBreakDownScan(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                 args.category.capitalize(),
                                 rVal=fit_RDst, rLimits=rDst_postFitRegion)
 
