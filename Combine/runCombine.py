@@ -61,6 +61,7 @@ parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial 
 parser.add_argument ('--unblinded', default=True, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
+parser.add_argument ('--freeMuBr', default=False, action='store_true', help='Make muon branching fraction with a rate parameter (flat prior).')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
 parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
@@ -206,6 +207,8 @@ def createCardName(a):
         c += '_blinded'
     if a.noMCstats:
         c += '_NoMCstats'
+    if a.freeMuBr:
+        c += '_freeMuBr'
     return c
 
 card_name = createCardName(args)
@@ -226,12 +229,24 @@ def runCommandSafe(command, printCommand=True):
     if printCommand:
         print command
     status, output = commands.getstatusoutput(command)
-    flag = 'Warning: Did not find a parameter' in output
-    flag = flag or ('WARNING: cannot freeze nuisance' in output)
-    flag = flag or ('ERROR' in output)
-    flag = flag or ('Error' in output)
-    if status or flag:
-        print output
+
+    def raiseFlag(inputText):
+        flag = 'Warning: Did not find a parameter' in inputText
+        flag = flag or ('WARNING: cannot freeze nuisance' in inputText)
+        flag = flag or ('WARNING: MultiDimFit failed' in inputText)
+        flag = flag or ('ERROR' in inputText)
+        # flag = flag or ('Error' in inputText)
+        return flag
+    flagged = raiseFlag(output)
+    if status or flagged:
+        print output, '\n\n'
+        if status:
+            print '\033[1m\x1b[31mStatus:\x1b[0m', status
+
+        if flagged:
+            for line in output.split('\n'):
+                if raiseFlag(line):
+                    print '\033[1m\x1b[31mFlagged line:\x1b[0m', line
         raise
     return output
 ########################### -------- Clean previous results ------------------ #########################
@@ -462,8 +477,9 @@ def createHistograms(category):
 
             varDic = {}
             for iShape in range(1, cal_pT.nVar+1):
-                varDic[tag+'_lam{}Down'.format(iShape)] = cal_pT.getWeights(ds[var], shape=-iShape, scale=1.)/w
-                varDic[tag+'_lam{}Up'.format(iShape)] = cal_pT.getWeights(ds[var], shape=+iShape, scale=1.)/w
+                varDic[tag+'_lam{}Down'.format(iShape)] = cal_pT.getWeights(ds[var], shape= -iShape, scale=1.)/w
+                varDic[tag+'_lam{}Up'.format(iShape)] = cal_pT.getWeights(ds[var], shape= iShape, scale=1.)/w
+
             return w, varDic
         elif cal_pT.kind == 'ratio':
             w = cal_pT.f['C'](ds[var])
@@ -536,7 +552,7 @@ def createHistograms(category):
             array('d', list(np.arange(0, 7.8, 0.2)) + [8] ),
         ]
     binning['Est_mu'] = [
-            array('d', [0.3] + list(np.arange(0.5, 2.3, 0.05)) + [2.3] ),
+            array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.3] ),
             array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.2] ),
             array('d', [0.3] + list(np.arange(0.5, 2.1, 0.05)) + [2.1] ),
             [24, 0.3, 2.0],
@@ -672,8 +688,10 @@ def createHistograms(category):
 
         print 'Including track pT corrections'
         weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.3)*fSoftTrackEff(ds['pi_pt'], a=0.3)*fSoftTrackEff(ds['pis_pt'], a=0.3)
-        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.1)*fSoftTrackEff(ds['pi_pt'], a=0.1)*fSoftTrackEff(ds['pis_pt'], a=0.1)
-        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.5)*fSoftTrackEff(ds['pi_pt'], a=0.5)*fSoftTrackEff(ds['pis_pt'], a=0.5)
+        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)
+        wVar['softTrkEffUp'] /= weights['softTrkEff']
+        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)
+        wVar['softTrkEffDown'] /= weights['softTrkEff']
 
         # B phase space corrections
         weights['etaB'] = computeB0etaWeights(ds)
@@ -963,8 +981,10 @@ def createHistograms(category):
         def fSoftTrackEff(x, a=0.3, tau=0.8):
             return np.where(x<0.1, np.ones_like(x), 1 - a*np.exp(-x/tau))
         weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.3)*fSoftTrackEff(ds['pi_pt'], a=0.3)*fSoftTrackEff(ds['pis_pt'], a=0.3)*fSoftTrackEff(ds['tkPt_0'], a=0.3)*fSoftTrackEff(ds['tkPt_1'], a=0.3)
-        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.1)*fSoftTrackEff(ds['pi_pt'], a=0.1)*fSoftTrackEff(ds['pis_pt'], a=0.1)*fSoftTrackEff(ds['tkPt_0'], a=0.1)*fSoftTrackEff(ds['tkPt_1'], a=0.1)
-        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.5)*fSoftTrackEff(ds['pi_pt'], a=0.5)*fSoftTrackEff(ds['pis_pt'], a=0.5)*fSoftTrackEff(ds['tkPt_0'], a=0.5)*fSoftTrackEff(ds['tkPt_1'], a=0.5)
+        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)*fSoftTrackEff(ds['tkPt_0'], a=0.2)*fSoftTrackEff(ds['tkPt_1'], a=0.2)
+        wVar['softTrkEffUp'] /= weights['softTrkEff']
+        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)*fSoftTrackEff(ds['tkPt_0'], a=0.4)*fSoftTrackEff(ds['tkPt_1'], a=0.4)
+        wVar['softTrkEffDown'] /= weights['softTrkEff']
 
         if (not args.calBpT == 'none') and (n in SamplesB0):
             print 'Including B0 pT corrections'
@@ -1586,7 +1606,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
                 aux += val
             else:
                 aux += ' -'
-        if n == 'mu':
+        if n == 'mu' and args.freeMuBr:
             card += 'muBr rateParam * mu 1.\n'
             card += 'muBr rateParam * tau 1.\n'
         else:
@@ -1634,14 +1654,14 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ########## Shape systematics uncertainties
     ######################################################
 
-    # nameSF = 'trg{}SF'.format(category.trg)
-    # counter = 0
-    # for k in histo.values()[0].keys():
-    #     if k.startswith(SamplesB0[0]+'__'+nameSF + '_pt') and k.endswith('Up'):
-    #         n = k[k.find('__')+2:-2]
-    #         card += n+' shape' + ' 1.'*nProc*nCat + '\n'
-    #         counter += 1
-    # print 'SF unc', counter
+    nameSF = 'trg{}SF'.format(category.trg)
+    counter = 0
+    for k in histo.values()[0].keys():
+        if k.startswith(SamplesB0[0]+'__'+nameSF + '_pt') and k.endswith('Up'):
+            n = k[k.find('__')+2:-2]
+            card += n+' shape' + ' 1.'*nProc*nCat + '\n'
+            counter += 1
+    print 'SF unc', counter
     # card += 'muonIdSF shape' + ' 1.'*nProc*nCat + '\n'
 
     aux = ''
@@ -2026,13 +2046,9 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=5
         cmd += ','+maskStr
     cmd += ' -n ' + tag
     cmd += ' --verbose -1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    flags = 'WARNING: MultiDimFit failed' in output
-    if status or flags or args.verbose:
+    output = runCommandSafe(cmd)
+    if args.verbose:
         print output
-        if status or flags:
-            raise
 
     if draw:
         json.dump({'r': 'R(D*)'}, open(out+'renameDicLikelihoodScan.json', 'w'))
@@ -2072,18 +2088,17 @@ def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit --algo singles'
     cmd += ' -d ' + card.replace('.txt', '.root')
-    cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --robustFit 1 --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
     cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+    cmd += ' --setParameters r={:.2f}'.format(rVal)
+    cmd += ' --setParameterRanges r={:.4f},{:.4f}'.format(*rLimits)
     cmd += ' -n _catCompNominal'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    print output
-    if status:
-        raise
+    runCommandSafe(cmd)
     arr = rtnp.root2array(out + '/higgsCombine_catCompNominal.MultiDimFit.mH120.root', treename='limit')
-    rBestFit, rBestFitDown, rBestFitDownUp = arr['r']
-    print 'Using r best fit value {:.4f}'.format(rBestFit)
-    fLog.write('Using r best fit value {:.4f}'.format(rBestFit) + '\n')
+    rBestFit, rBestFitDown, rBestFitUp = arr['r']
+    s = 'Using r best fit value {:.4f} +/- {:.4f}'.format(rBestFit, 0.5*(rBestFitUp-rBestFitDown))
+    print s
+    fLog.write(s + '\n')
 
     print '----- Creating workspace with independent signal strength'
     wsLoc = card.replace('.txt', '_rCat.root')
@@ -2097,15 +2112,10 @@ def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
     for c in categoriesToCombine:
         cmd += ' --PO map=\'.*'+c+'.*/tau:r' + c.capitalize() + '[{},{},{}]\''.format(rVal, rLimits[0], rLimits[1])
     cmd += ' --no-b-only --verbose 1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
-    else:
-        text_file = open(card.replace('.txt', '_rCat_text2workspace.out'), "w")
-        text_file.write(output)
-        text_file.close()
+    output = runCommandSafe(cmd)
+    text_file = open(card.replace('.txt', '_rCat_text2workspace.out'), "w")
+    text_file.write(output)
+    text_file.close()
 
     print '----- Running fit with r uncorrelated in each category'
     cmd = 'cd ' + out + '; '
@@ -2114,11 +2124,7 @@ def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
     cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
     cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' -n _catComp_rCatIndep'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    print output
-    if status:
-        raise
+    runCommandSafe(cmd)
 
     arr = rtnp.root2array(out + '/higgsCombine_catComp_rCatIndep.MultiDimFit.mH120.root', treename='limit')
     rFit = []
@@ -2284,28 +2290,39 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
     h2.Scale(100.)
     rt.gStyle.SetPaintTextFormat('.0f')
     N = h2.GetNbinsX()
-    n=36
+    n=60
     h2.LabelsOption("v")
 
     h2.SetMarkerSize(2.0)
-    h2.GetXaxis().SetLabelSize(0.1)
-    h2.GetYaxis().SetLabelSize(0.1)
+    h2.GetXaxis().SetLabelSize(0.07)
+    h2.GetYaxis().SetLabelSize(0.07)
     h2.GetXaxis().SetRange(1, n)
     h2.GetYaxis().SetRangeUser(0, 1)
-    CC1 = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(900, 300), tag='tl1', mL=0.05, mR=0.01, mB=0.8)
+    h2.GetZaxis().SetRangeUser(-100, 100)
+    h2.GetZaxis().SetNdivisions(-304)
+    CC1 = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(1200, 300), tag='tl1', mL=0.03, mR=0.08, mB=0.65, mT=0.1)
     CC1.SaveAs(out+'fig/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.png')
     CC1.SaveAs(webFolder+'/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.png')
+    CC1.SaveAs(webFolder+'/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.pdf')
 
-    h2.SetMarkerSize(.8)
-    h2.GetXaxis().SetLabelSize(0.03)
-    h2.GetYaxis().SetLabelSize(0.03)
+    h2.SetMarkerSize(.5)
+    h2.GetXaxis().SetLabelSize(0.02)
+    h2.GetYaxis().SetLabelSize(0.02)
     h2.GetXaxis().SetRange(1, n)
     h2.GetYaxis().SetRangeUser(N-n, N)
-    CC = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(900, 700), tag='tl', mL=0.2, mR=0.14, mB=0.25)
+    h2.GetZaxis().SetRangeUser(-100, 100)
+    h2.GetZaxis().SetNdivisions(510)
+    CC = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(900, 700), tag='tl', mL=0.12, mR=0.135, mB=0.16)
     CC.SaveAs(out+'fig/covariance_zoom'+ ('_RDstFixed' if forceRDst else '')+'.png')
     CC.SaveAs(webFolder+'/covariance_zoom'+ ('_RDstFixed' if forceRDst else '')+'.png')
+    CC.SaveAs(webFolder+'/covariance_zoom'+ ('_RDstFixed' if forceRDst else '')+'.pdf')
 
     return histo_postfit, CC, fFitDiagnostics
+
+def extactCovarianceBlock(tag, out, parameters=['r', 'B2DstCLNeig1'], forceRDst=False):
+    print 'Foction work in progress! To be compleated!!!!'
+    exit()
+    return
 
 def nuisancesDiff(tag, out, forceRDst):
     runName = tag + ('_RDstFixed' if forceRDst else '')
@@ -2359,7 +2376,7 @@ def runUncertaintyBreakDownScan(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 
     if not out[-1] == '/': out += '/'
     print '--------> Running uncertainty breakdown <--------------'
     print '--------> Nominal scan'
-    rValOut, rLimitsOut = runScan('Nominal', card, out, catName, rVal, rLimits, nPoints=80, maskStr=maskStr, strategy=args.scanStrategy, draw=False)
+    rValOut, rLimitsOut = runScan('Nominal', card, out, catName, rVal, rLimits, nPoints=150, maskStr=maskStr, strategy=args.scanStrategy, draw=False)
     sig = (rLimitsOut[1] - rValOut)/3
     rLimitsTight = [rValOut - 2*sig, rValOut + 2*sig]
 
@@ -2466,7 +2483,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     fLog = open(webFolder + '/uncertaintyBreakDownTable.log', 'w')
     print '----- Running nominal fit'
     cmd = 'cd ' + out + '; '
-    cmd += 'combine -M MultiDimFit --algo singles'
+    cmd += 'combine -M MultiDimFit --algo grid --points=200'
     cmd += ' -d ' + card.replace('.txt', '.root')
     cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
     cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
@@ -2476,8 +2493,8 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     cmd += ' --setParameterRanges r={:.4f},{:.4f}'.format(*rLimits)
     cmd += ' -n _total'
     runCommandSafe(cmd)
-    arr = rtnp.root2array(out + '/higgsCombine_total.MultiDimFit.mH120.root', treename='limit')
-    r, rDown, rUp = arr['r']
+    res = getUncertaintyFromLimitTree(out + 'higgsCombine_total.MultiDimFit.mH120.root', verbose=False, drawPlot=False)
+    r, rDown, rUp = res[0], res[-3], res[-2]
     uncRemaining.append(0.5*(rUp-rDown))
     uncNames.append('total')
     s = 'Nominal fit: {:.4f} +/- {:.4f}'.format(r, uncRemaining[-1])
@@ -2492,7 +2509,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     cmd = cmd.replace(oldRange, newRange)
 
     print '-------- Best fit snap'
-    cmdBestFit = cmd.replace(' --algo singles', '')
+    cmdBestFit = cmd.replace(' --algo grid --points=200', '')
     cmdBestFit = cmdBestFit.replace(' -n _total', ' -n Bestfit')
     cmdBestFit += ' --saveWorkspace --verbose 0'
     runCommandSafe(cmdBestFit)
@@ -2571,12 +2588,12 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
 
     print '\n\n-----------> Creating latex table'
     supplementDic = {'MCstat'       : 'Finite MC sample size',
-                     'stat'         : 'Statistical uncertainty',
+                     'stat'         : 'Statistical',
                      'remainingNuis': 'Others'
                     }
-    fTable = open(webFolder + '/uncertaintyBreakDownTable.tex', 'w')
+    fTable = open(webFolder + '/uncertaintyBreakDownTable_latex.txt', 'w')
     s = r' \hline' + '\n'
-    s += r' Source & Size [10^{-2}] \\' + '\n'
+    s += r' Source & Size [$10^{-2}$] \\' + '\n'
     s += r' \hline' + '\n'
     s += r' \hline' + '\n'
 
@@ -2598,8 +2615,12 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
         else:
             title = '\hspace{3mm} ' + title
 
-        s += title + ' & ' + '{:.2f} '.format(100*uncAss[i-1])
-        s += r'\\' + '\n'
+        s += title + ' & '
+        if uncAss[i-1] > 0.0001:
+            s += '{:.2f}'.format(100*uncAss[i-1])
+        else:
+            s += '< 0.01'
+        s += r' \\' + '\n'
         fTable.write(s)
 
     s = r' \hline' + '\n'
@@ -3127,7 +3148,7 @@ if __name__ == "__main__":
         else:
             print '-----> Running categories compatibility'
             categoriesCompatibility(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
-                                    rVal=SM_RDst, rLimits=[0.1, 0.6]
+                                    rVal=SM_RDst, rLimits=[0.15, 0.45]
                                     )
 
     if 'externalize' in args.step:

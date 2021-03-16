@@ -2,15 +2,15 @@ imax *
 jmax *
 kmax *
 ------------------------------------------------------------
-shapes * AddTk_m_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_m_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * AddTk_mm_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_mm_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * AddTk_p_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_p_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * AddTk_pm_mVis /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_pm_mVis.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * AddTk_pp_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_pp_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Unrolled_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Unrolled_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Unrolled_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Unrolled_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Unrolled_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Unrolled_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Unrolled_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Unrolled_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_m_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLN_freeMuBr_AddTk_m_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_mm_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLN_freeMuBr_AddTk_mm_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_p_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLN_freeMuBr_AddTk_p_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pm_mVis /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLN_freeMuBr_AddTk_pm_mVis.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pp_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLN_freeMuBr_AddTk_pp_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Unrolled_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLN_freeMuBr_Unrolled_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Unrolled_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLN_freeMuBr_Unrolled_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Unrolled_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLN_freeMuBr_Unrolled_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Unrolled_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLN_freeMuBr_Unrolled_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
 ------------------------------------------------------------
 bin AddTk_m_mHad AddTk_mm_mHad AddTk_p_mHad AddTk_pm_mVis AddTk_pp_mHad Unrolled_q2bin0 Unrolled_q2bin1 Unrolled_q2bin2 Unrolled_q2bin3
 observation 13755 716 30967 5997 1430 58167 72046 85475 12030
@@ -22,7 +22,8 @@ rate 685.52 6031.45 310.13 364.92 21.54 375.06 26.48 4.78 3.43 230.04 159.43 81.
 ------------------------------------------------------------
 overallNormMu7_IP4 lnN 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1 1.1
 trkEff lnN 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 1.042441 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-muBr lnN 1.03 1.03 - - - - - - - - - - - - - 1.03 1.03 - - - - - - - - - - - - - 1.03 1.03 - - - - - - - - - - - - - 1.03 1.03 - - - - - - - - - - - - - 1.03 1.03 - - - - - - - - - - - - - 1.03 1.03 - - - - - - - - - - - - - 1.03 1.03 - - - - - - - - - - - - - 1.03 1.03 - - - - - - - - - - - - - 1.03 1.03 - - - - - - - - - - - - -
+muBr rateParam * mu 1.
+muBr rateParam * tau 1.
 DstmDspBr lnN - - - - - - - - - 1.11 - - - - - - - - - - - - - - 1.11 - - - - - - - - - - - - - - 1.11 - - - - - - - - - - - - - - 1.11 - - - - - - - - - - - - - - 1.11 - - - - - - - - - - - - - - 1.11 - - - - - - - - - - - - - - 1.11 - - - - - - - - - - - - - - 1.11 - - - - - - - - - - - - - - 1.11 - - - - -
 DstmD0Br lnN - - - - - - - - - - 1.09 - - - - - - - - - - - - - - 1.09 - - - - - - - - - - - - - - 1.09 - - - - - - - - - - - - - - 1.09 - - - - - - - - - - - - - - 1.09 - - - - - - - - - - - - - - 1.09 - - - - - - - - - - - - - - 1.09 - - - - - - - - - - - - - - 1.09 - - - - - - - - - - - - - - 1.09 - - - -
 DstmDpBr lnN - - - - - - - - - - - 1.18 - - - - - - - - - - - - - - 1.18 - - - - - - - - - - - - - - 1.18 - - - - - - - - - - - - - - 1.18 - - - - - - - - - - - - - - 1.18 - - - - - - - - - - - - - - 1.18 - - - - - - - - - - - - - - 1.18 - - - - - - - - - - - - - - 1.18 - - - - - - - - - - - - - - 1.18 - - -

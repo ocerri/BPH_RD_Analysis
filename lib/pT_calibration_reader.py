@@ -48,10 +48,9 @@ class pTCalReader:
             # Not implemented
             pass
 
-        p = self.beta
-        if np.abs(shape) > 0:
-            sign = np.sign(shape)
-            idx = np.abs(shape) - 1
-            p += sign*scale*self.betaVar[idx]
-        w = np.polyval(p, B_pt)
+        sign = np.sign(shape)
+        idx = np.abs(shape) - 1
+        delta_p = sign*scale*self.betaVar[idx]
+        
+        w = np.polyval(self.beta + delta_p, B_pt)
         return np.clip(w, clipLimits[0], clipLimits[1])

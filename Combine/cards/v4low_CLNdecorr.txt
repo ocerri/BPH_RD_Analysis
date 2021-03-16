@@ -2,47 +2,47 @@ imax *
 jmax *
 kmax *
 ------------------------------------------------------------
-shapes * AddTk_m_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_m_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * AddTk_mm_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_mm_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * AddTk_p_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_p_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * AddTk_pm_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_pm_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * AddTk_pm_mVis /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_pm_mVis.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * AddTk_pp_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_AddTk_pp_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * B_eta /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_B_eta.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * B_pt /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_B_pt.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Dst_pt_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Dst_pt_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Dst_pt_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Dst_pt_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Dst_pt_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Dst_pt_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Dst_pt_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Dst_pt_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Est_mu_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Est_mu_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Est_mu_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Est_mu_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Est_mu_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Est_mu_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Est_mu_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Est_mu_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * K_pt_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_K_pt_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * K_pt_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_K_pt_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * K_pt_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_K_pt_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * K_pt_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_K_pt_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_M2_miss_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_M2_miss_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_M2_miss_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * M2_miss_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_M2_miss_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Unrolled_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Unrolled_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Unrolled_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Unrolled_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Unrolled_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Unrolled_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * Unrolled_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_Unrolled_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * mu_pt_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_mu_pt_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * mu_pt_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_mu_pt_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * mu_pt_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_mu_pt_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * mu_pt_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_mu_pt_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * pi_pt_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_pi_pt_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * pi_pt_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_pi_pt_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * pi_pt_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_pi_pt_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * pi_pt_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_pi_pt_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * pis_pt_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_pis_pt_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * pis_pt_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_pis_pt_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * pis_pt_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_pis_pt_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * pis_pt_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_pis_pt_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
-shapes * specQ2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/testlow_CLN_specQ2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_m_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_AddTk_m_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_mm_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_AddTk_mm_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_p_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_AddTk_p_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pm_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_AddTk_pm_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pm_mVis /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_AddTk_pm_mVis.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * AddTk_pp_mHad /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_AddTk_pp_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * B_eta /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_B_eta.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * B_pt /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_B_pt.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Dst_pt_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Dst_pt_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Dst_pt_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Dst_pt_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Dst_pt_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Dst_pt_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Dst_pt_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Dst_pt_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Est_mu_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Est_mu_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Est_mu_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Est_mu_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Est_mu_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * K_pt_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_K_pt_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * K_pt_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_K_pt_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * K_pt_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_K_pt_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * K_pt_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_K_pt_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_M2_miss_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_M2_miss_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_M2_miss_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * M2_miss_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_M2_miss_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Unrolled_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Unrolled_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Unrolled_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Unrolled_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Unrolled_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Unrolled_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Unrolled_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_Unrolled_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * mu_pt_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_mu_pt_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * mu_pt_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_mu_pt_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * mu_pt_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_mu_pt_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * mu_pt_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_mu_pt_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * pi_pt_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_pi_pt_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * pi_pt_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_pi_pt_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * pi_pt_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_pi_pt_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * pi_pt_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_pi_pt_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * pis_pt_q2bin0 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_pis_pt_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * pis_pt_q2bin1 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_pis_pt_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * pis_pt_q2bin2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_pis_pt_q2bin2.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * pis_pt_q2bin3 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_pis_pt_q2bin3.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * specQ2 /storage/user/ocerri/BPhysics/data/_root/histos4combine/v4low_CLNdecorr_specQ2.root $PROCESS $PROCESS__$SYSTEMATIC
 ------------------------------------------------------------
 bin AddTk_m_mHad AddTk_mm_mHad AddTk_p_mHad AddTk_pm_mHad AddTk_pm_mVis AddTk_pp_mHad B_eta B_pt Dst_pt_q2bin0 Dst_pt_q2bin1 Dst_pt_q2bin2 Dst_pt_q2bin3 Est_mu_q2bin0 Est_mu_q2bin1 Est_mu_q2bin2 Est_mu_q2bin3 K_pt_q2bin0 K_pt_q2bin1 K_pt_q2bin2 K_pt_q2bin3 M2_miss_q2bin0 M2_miss_q2bin1 M2_miss_q2bin2 M2_miss_q2bin3 Unrolled_q2bin0 Unrolled_q2bin1 Unrolled_q2bin2 Unrolled_q2bin3 mu_pt_q2bin0 mu_pt_q2bin1 mu_pt_q2bin2 mu_pt_q2bin3 pi_pt_q2bin0 pi_pt_q2bin1 pi_pt_q2bin2 pi_pt_q2bin3 pis_pt_q2bin0 pis_pt_q2bin1 pis_pt_q2bin2 pis_pt_q2bin3 specQ2
 observation 13755 716 30967 5836 5997 1430 227788 227788 58172 72052 85499 12065 58172 72052 85499 12065 58172 72052 85499 12065 58172 72052 85499 12065 58167 72046 85475 12030 58172 72052 85499 12065 58172 72052 85499 12065 58172 72052 85499 12065 227788
@@ -112,4 +112,16 @@ Unrolled_q2bin1 autoMCStats 0 1 1
 Unrolled_q2bin2 autoMCStats 0 1 1
 Unrolled_q2bin3 autoMCStats 0 1 1
 ------------------------------------------------------------
+nuisance edit rename * Unrolled_q2bin[01] B2DstCLNeig1 B2DstCLNeig1_ctrlRegLow
+nuisance edit rename * AddTk.* B2DstCLNeig1 B2DstCLNeig1_ctrlRegLow
+nuisance edit rename * Unrolled_q2bin[23] B2DstCLNeig1 B2DstCLNeig1_sigRegLow
+nuisance edit drop * * B2DstCLNeig1
+nuisance edit rename * Unrolled_q2bin[01] B2DstCLNeig2 B2DstCLNeig2_ctrlRegLow
+nuisance edit rename * AddTk.* B2DstCLNeig2 B2DstCLNeig2_ctrlRegLow
+nuisance edit rename * Unrolled_q2bin[23] B2DstCLNeig2 B2DstCLNeig2_sigRegLow
+nuisance edit drop * * B2DstCLNeig2
+nuisance edit rename * Unrolled_q2bin[01] B2DstCLNeig3 B2DstCLNeig3_ctrlRegLow
+nuisance edit rename * AddTk.* B2DstCLNeig3 B2DstCLNeig3_ctrlRegLow
+nuisance edit rename * Unrolled_q2bin[23] B2DstCLNeig3 B2DstCLNeig3_sigRegLow
+nuisance edit drop * * B2DstCLNeig3
 ------------------------------------------------------------

@@ -3,6 +3,26 @@
   nuisance:
    - rgx{B2DstCLN.*}
 
+- tag: templateB2DstHc
+  title: $B\to D^* H_c$ template
+  nuisance:
+    - BmDstmHcBr
+    - BpDstmHcBr
+    - antiB0DstmHcBr
+    - rgx{BrB02DstD.*}
+    - rgx{DstmD.*}
+
+- tag: brB2DstMuNu
+  title: $B \to D^{*}\mu\nu$ branching fraction
+  nuisance:
+    - muBr
+
+- tag: control2signalTransfer
+  title: 'Control to signal region transfer factors'
+  nuisance:
+    - B2DstHcTransferFactor
+    - trkEff
+
 - tag: BpTspectrum
   title: B mesons $p_T$
   nuisance:
@@ -15,28 +35,13 @@
     - softTrkEff
     - tkPVfrac
 
-- tag: control2signalTransfer
-  title: 'Control to signal region transfer factor'
-  nuisance:
-    - B2DstHcTransferFactor
-    - trkEff
-
 - tag: overallNorm
   title: 'Overall normalization'
   nuisance:
     - rgx{overallNorm.*}
 
-- tag: templateB2DstHc
-  title: $B\to D^* H_c$ template
-  nuisance:
-    - BmDstmHcBr
-    - BpDstmHcBr
-    - antiB0DstmHcBr
-    - rgx{BrB02DstD.*}
-    - rgx{DstmD.*}
-
 - tag: shapeDstst
-  title: D^{**} resonances shapes
+  title: $D^{**}$ resonances shapes
   nuisance:
    - D2420_10Width
    - D2460_1StWidth
@@ -50,11 +55,10 @@
     - DstPiBr
     - DstPiPiBr
 
-# B -> D**tau:
-#  - TauDstPiBr
-
-# B -> D*munu branching fraction:
-#  - muBr
+# - tag: brB2DststTauNu
+#   title: $B \to D^{**}\tau\nu$ branching fraction
+#   nuisance:
+#     - TauDstPiBr
 
 
 
