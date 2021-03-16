@@ -73,7 +73,8 @@ availableSteps = ['clean', 'histos', 'preFitPlots',
                   'card', 'workspace',
                   'bias', 'scan', 'catComp',
                   'fitDiag', 'postFitPlots',
-                  'uncBreakdownScan', 'externalize',
+                  'uncBreakdownScan', 'uncBreakdownTable',
+                  'externalize',
                   'impacts', 'GoF']
 defaultPipelineSingle = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdownScan', 'GoF']
 defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'fitDiag', 'postFitPlots', 'uncBreakdownScan', 'GoF']
@@ -86,7 +87,7 @@ parser.add_argument ('--decorrelateFFpars', default=False, action='store_true', 
 
 parser.add_argument ('--forceRDst', default=False, action='store_true', help='Perform fit fixing R(D*) to 0.295')
 parser.add_argument ('--seed', default=6741, type=int, help='Seed used by Combine')
-parser.add_argument ('--RDstLims', default=[0.1, 0.5], type=int, help='Initial boundaries for R(D*).', nargs='+')
+parser.add_argument ('--RDstLims', default=[0.15, 0.45], type=int, help='Initial boundaries for R(D*).', nargs='+')
 
 # Bias options
 parser.add_argument ('--runBiasToys', default=False, action='store_true', help='Only generate toys and run scans for bias, do not collect results.')
@@ -221,7 +222,18 @@ if not os.path.isdir(webFolder):
     os.makedirs(webFolder)
     os.system('cp '+webFolder+'/../index.php '+webFolder)
 
-
+def runCommandSafe(command, printCommand=True):
+    if printCommand:
+        print command
+    status, output = commands.getstatusoutput(command)
+    flag = 'Warning: Did not find a parameter' in output
+    flag = flag or ('WARNING: cannot freeze nuisance' in output)
+    flag = flag or ('ERROR' in output)
+    flag = flag or ('Error' in output)
+    if status or flag:
+        print output
+        raise
+    return output
 ########################### -------- Clean previous results ------------------ #########################
 
 def cleanPreviousResults():
@@ -1575,8 +1587,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             else:
                 aux += ' -'
         if n == 'mu':
-            card += 'muBr rateParam * mu 1. 0.1,10\n'
-            card += 'muBr rateParam * tau 1. 0.1,10\n'
+            card += 'muBr rateParam * mu 1.\n'
+            card += 'muBr rateParam * tau 1.\n'
         else:
             card += n + 'Br lnN' + aux*nCat + '\n'
 
@@ -2171,7 +2183,7 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
     cmd += ' --saveShapes --saveWithUncertainties --saveNormalizations  --saveWorkspace'
     cmd += ' --trackParameters rgx{.*}'
     cmd += ' --plots'
-    cmd += ' --verbose 0'
+    cmd += ' --verbose -1'
     print cmd
     status, output = commands.getstatusoutput(cmd)
     if rt.gROOT.IsBatch():
@@ -2308,6 +2320,8 @@ def nuisancesDiff(tag, out, forceRDst):
     if status:
         print output
         raise
+    else:
+        print 'Done'
     nName, nValPost, nSigma = dumpDiffNuisances(output, out, tag='RDstFixed' if forceRDst else '',
                       useBonlyResults=forceRDst, parsToPrint=100)
     cmd = 'cp {}/nuisance_difference{}.txt {}/'.format(out, '_RDstFixed' if forceRDst else '', webFolder)
@@ -2437,64 +2451,162 @@ def runUncertaintyBreakDownScan(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 
 
 
 def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], maskStr=''):
-    if not out[-1] == '/': out += '/'
+    print '--------> Running uncertainty breakdown <--------------'
+    if not out[-1] == '/':
+        out += '/'
+    out += 'uncertaintyBreakDownTable/'
+    if not os.path.isdir(out):
+        os.makedirs(out)
 
-    print '--------> Best fit snap'
+
+    uncRemaining = []
+    uncAss = []
+    uncNames = []
+
+    fLog = open(webFolder + '/uncertaintyBreakDownTable.log', 'w')
+    print '----- Running nominal fit'
     cmd = 'cd ' + out + '; '
-    cmd += 'combine -M MultiDimFit'
-    cmd += ' --cminDefaultMinimizerStrategy=1 --robustFit 1 --X-rtd MINIMIZER_analytic'
-    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+    cmd += 'combine -M MultiDimFit --algo singles'
     cmd += ' -d ' + card.replace('.txt', '.root')
-    cmd += ' --setParameters r={:.2f}'.format(rValOut)
+    cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+    cmd += ' --setParameters r={:.2f}'.format(rVal)
     if maskStr:
         cmd += ','+maskStr
-    cmd += ' --setParameterRanges r={:.3f},{:.3f}'.format(*rLimitsTight)
-    cmd += ' -n Bestfit'
-    cmd += ' --saveWorkspace --verbose -1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
+    cmd += ' --setParameterRanges r={:.4f},{:.4f}'.format(*rLimits)
+    cmd += ' -n _total'
+    runCommandSafe(cmd)
+    arr = rtnp.root2array(out + '/higgsCombine_total.MultiDimFit.mH120.root', treename='limit')
+    r, rDown, rUp = arr['r']
+    uncRemaining.append(0.5*(rUp-rDown))
+    uncNames.append('total')
+    s = 'Nominal fit: {:.4f} +/- {:.4f}'.format(r, uncRemaining[-1])
+    print s
+    fLog.write(s + '\n')
 
-    print '--------> Statistical uncertanty only'
+    rDown = r - 2.1*(r - rDown)
+    rUp = r + 2.1*(rUp - r)
+    idx = cmd.find('--setParameterRanges') + len('--setParameterRanges ')
+    oldRange = cmd[idx: idx + 15]
+    newRange = 'r={:.4f},{:.4f}'.format(rDown, rUp)
+    cmd = cmd.replace(oldRange, newRange)
+
+    print '-------- Best fit snap'
+    cmdBestFit = cmd.replace(' --algo singles', '')
+    cmdBestFit = cmdBestFit.replace(' -n _total', ' -n Bestfit')
+    cmdBestFit += ' --saveWorkspace --verbose 0'
+    runCommandSafe(cmdBestFit)
+
+    print '-------- Breaking the uncertainty'
+    def extractUncertainty(tag, type='scan'):
+        if type=='fit':
+            arr = rtnp.root2array(out + 'higgsCombine_'+tag+'.MultiDimFit.mH120.root', treename='limit')
+            r, rDown, rUp = arr['r']
+        elif type=='scan':
+            res = getUncertaintyFromLimitTree(out + 'higgsCombine_'+tag+'.MultiDimFit.mH120.root', verbose=False, drawPlot=False)
+            r, rDown, rUp = res[0], res[-3], res[-2]
+        else:
+            print 'Type not recognised'
+            raise
+        uncRemaining.append(0.5*(rUp-rDown))
+        uncNames.append(tag)
+        uncAss.append(np.sqrt(uncRemaining[-2]**2 - uncRemaining[-1]**2))
+        s = tag + ': {:.4f} +/- {:.4f} ({:.4f})'.format(r, uncRemaining[-1], uncAss[-1])
+        print s
+        fLog.write(s + '\n')
+        return 0.5*(rUp-rDown), [r - 2.1*(r - rDown), r + 2.1*(rUp - r)]
+
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit --algo grid --points=100'
-    cmd += ' --cminDefaultMinimizerStrategy=1 --robustFit 1 --X-rtd MINIMIZER_analytic'
-    cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' -d higgsCombineBestfit.MultiDimFit.mH120.root'
-    cmd += ' --snapshotName MultiDimFit'
-    cmd += ' --rMin={:.3f} --rMax={:.3f}'.format(*rLimitsTight)
-    cmd += ' -n StatOnly'
-    cmd += ' --freezeParameters allConstrainedNuisances'
-    if maskStr: cmd += ' --setParameters ' + maskStr
-    cmd += ' --fastScan' # To be added if there are no free parameters otherwise
-    cmd += ' --verbose -1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
-    getUncertaintyFromLimitTree(out + 'higgsCombineStatOnly.MultiDimFit.mH120.root')
-
-    print '--------> MC stats and Statistical uncertanty only'
-    cmd = 'cd ' + out + '; '
-    cmd += 'combine -M MultiDimFit --algo grid --points=100'
-    cmd += ' --cminDefaultMinimizerStrategy=1 --robustFit 1 --X-rtd MINIMIZER_analytic'
+    cmd += ' --robustFit 1'
+    cmd += ' --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
     cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
-    cmd += ' -d higgsCombineBestfit.MultiDimFit.mH120.root'
-    cmd += ' --rMin={:.4f} --rMax={:.4f}'.format(*rLimitsTight)
-    cmd += ' -n MCstat'
+    if maskStr:
+        cmd += ' --setParameters '+maskStr
+    cmd += ' --setParameterRanges ' + newRange
     cmd += ' --snapshotName MultiDimFit'
-    if maskStr: cmd += ' --setParameters ' + maskStr
     cmd += ' --freezeNuisanceGroups=autoMCStats'
-    cmd += ' --verbose -1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
-    getUncertaintyFromLimitTree(out + 'higgsCombineMCstat.MultiDimFit.mH120.root')
+
+    # MC statistics uncertanty
+    print '----> Freezing MC stat'
+    cmdAux = cmd + ' -n _MCstat'
+    runCommandSafe(cmdAux)
+    dr, rLims = extractUncertainty('MCstat')
+    idx = cmd.find('--setParameterRanges') + len('--setParameterRanges ')
+    cmd = cmd.replace(cmd[idx: idx + 15], 'r={:.4f},{:.4f}'.format(*rLims))
+    print ' '
+
+    groupsDefFile = '/storage/user/ocerri/BPhysics/Combine/uncertaintyBreakdownTableGroups.yml'
+    groups = yaml.load(open(groupsDefFile, 'r'))
+    frozenNuisance = []
+    for ig, group in enumerate(groups):
+        print '----> Freezing ' + group['tag']
+        frozenNuisance += group['nuisance']
+        cmdAux = cmd + ' -n _' + group['tag']
+        cmdAux += ' --freezeParameters ' + ','.join(frozenNuisance)
+        runCommandSafe(cmdAux)
+        dr, rLims = extractUncertainty(group['tag'])
+        idx = cmd.find('--setParameterRanges') + len('--setParameterRanges ')
+        cmd = cmd.replace(cmd[idx: idx + 15], 'r={:.4f},{:.4f}'.format(*rLims))
+
+        print ' '
+
+    # Remove all of them (statistical)
+    print '----> Freezing all nuisances'
+    cmd = cmd.replace(' --freezeNuisanceGroups=autoMCStats', ' --freezeParameters allConstrainedNuisances')
+    cmd += ' -n _remainingNuis'
+    cmd += ' --fastScan'
+    runCommandSafe(cmd)
+    uncStat, _ = extractUncertainty('remainingNuis', type='scan')
+    uncNames.append('stat')
+    uncAss.append(uncStat)
+    s = 'Statistics: XX +/- {:.4f} ({:.4f})'.format(uncStat, uncStat)
+    print s
+    fLog.write(s + '\n')
+    fLog.close()
+
+    dicDump = {'uncStat': uncStat, 'uncNames': uncNames, 'uncAss': uncAss}
+    pickle.dump(dicDump, open(out+'/results.pkl', 'wb'))
+
+    print '\n\n-----------> Creating latex table'
+    supplementDic = {'MCstat'       : 'Finite MC sample size',
+                     'stat'         : 'Statistical uncertainty',
+                     'remainingNuis': 'Others'
+                    }
+    fTable = open(webFolder + '/uncertaintyBreakDownTable.tex', 'w')
+    s = r' \hline' + '\n'
+    s += r' Source & Size [10^{-2}] \\' + '\n'
+    s += r' \hline' + '\n'
+    s += r' \hline' + '\n'
+
+    uncSys = np.sqrt(uncRemaining[0]**2 - uncRemaining[-1]**2)
+    s += r' Systematics & ' + '{:.2f}'.format(100*uncSys) + r' \\' + '\n'
+    s += r' \hline' + '\n'
+    fTable.write(s)
+
+    for i in range(1, len(uncNames)):
+        n = uncNames[i]
+        s = ' '
+        if n in supplementDic.keys():
+            title = supplementDic[n]
+        else:
+            title = groups[i-2]['title']
+
+        if n in ['stat']:
+            fTable.write(r' \hline' + '\n')
+        else:
+            title = '\hspace{3mm} ' + title
+
+        s += title + ' & ' + '{:.2f} '.format(100*uncAss[i-1])
+        s += r'\\' + '\n'
+        fTable.write(s)
+
+    s = r' \hline' + '\n'
+    s += r' Total & ' + '{:.2f}'.format(100*uncRemaining[0]) + r' \\' + '\n'
+    s += r' \hline' + '\n'
+    fTable.write(s)
+    fTable.close()
 
     return
 
@@ -3050,6 +3162,11 @@ if __name__ == "__main__":
 
     if 'uncBreakdownScan' in args.step:
         runUncertaintyBreakDownScan(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+                                args.category.capitalize(),
+                                rVal=fit_RDst, rLimits=rDst_postFitRegion)
+
+    if 'uncBreakdownTable' in args.step:
+        runUncertaintyBreakDownTable(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                 args.category.capitalize(),
                                 rVal=fit_RDst, rLimits=rDst_postFitRegion)
 

@@ -1,4 +1,4 @@
-import sys, os, pickle, copy
+import sys, os, pickle, copy, re
 from glob import glob
 sys.path.append('../lib')
 import commands
@@ -103,13 +103,21 @@ def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False, parsToPrint
         aux = [i for i in line.split('  ') if i]
         if aux[0] == 'r': continue
         name.append(aux[0])
-        inVal.append(aux[1])
+
+        if ' +/- ' in aux[1]:
+            inVal.append(aux[1])
+            xIn = float(aux[1].replace('!','').replace('*','').split(' +/- ')[0])
+            sigIn = float(aux[1].replace('!','').replace('*','').split(' +/- ')[1])
+        elif '[' in aux[1][:3] and ']' == aux[1][-1]: #is a rate param
+            name[-1] += ' (rate param.)'
+            aux[1] = aux[1].replace('[', '').replace(']', '').split(',')
+            inVal.append('[{:+1.2e}, {:+1.2e}]'.format(float(aux[1][0]), float(aux[1][1])))
+            xIn = 0.5*(float(aux[1][1]) + float(aux[1][0]))
+            sigIn = 1e12
+
         idxOutVal = 2 if useBonlyResults else 3
         outVal.append(aux[idxOutVal])
-
-        xIn = float(aux[1].replace('!','').replace('*','').split(' +/- ')[0])
         xOut = float(aux[idxOutVal].replace('!','').replace('*','').split(' +/- ')[0])
-        sigIn = float(aux[1].replace('!','').replace('*','').split(' +/- ')[1])
         outDipls.append((xIn-xOut)/sigIn)
 
     outputSigmas = outDipls
