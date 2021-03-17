@@ -53,7 +53,8 @@ args = parser.parse_args()
 ####                          Datset declaration                         ####
 #############################################################################
 MCloc = '../data/cmsMC_private/'
-MCend = '/ntuples_B2DstMu/out_CAND_*.root'
+# MCend = '/ntuples_B2DstMu/out_CAND_*.root'
+MCend = '/ntuples_B2DstMu_BS/out_CAND_*.root'
 RDloc = '../data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {

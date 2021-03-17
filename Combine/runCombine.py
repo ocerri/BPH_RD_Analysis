@@ -61,7 +61,7 @@ parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial 
 parser.add_argument ('--unblinded', default=True, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
-parser.add_argument ('--freeMuBr', default=False, action='store_true', help='Make muon branching fraction with a rate parameter (flat prior).')
+parser.add_argument ('--freeMuBr', default=True, help='Make muon branching fraction with a rate parameter (flat prior).')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
 parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
@@ -207,8 +207,8 @@ def createCardName(a):
         c += '_blinded'
     if a.noMCstats:
         c += '_NoMCstats'
-    if a.freeMuBr:
-        c += '_freeMuBr'
+    if not a.freeMuBr:
+        c += '_muBrPDG'
     return c
 
 card_name = createCardName(args)
@@ -234,7 +234,8 @@ def runCommandSafe(command, printCommand=True):
         flag = 'Warning: Did not find a parameter' in inputText
         flag = flag or ('WARNING: cannot freeze nuisance' in inputText)
         flag = flag or ('WARNING: MultiDimFit failed' in inputText)
-        flag = flag or ('ERROR' in inputText)
+        flag = flag or ('ERROR' in inputText and not 'Messages of type ERROR : 0' in inputText)
+        flag = flag or ('There was a crash.' in inputText)
         # flag = flag or ('Error' in inputText)
         return flag
     flagged = raiseFlag(output)
@@ -1885,11 +1886,7 @@ def createCombinationCard(fitRegionsOnly=False):
             nWait += 1
         cmd += ' {}={}'.format(c, cl.replace('comb', c))
     cmd += ' > ' + cl
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
+    runCommandSafe(cms)
 
     # Editing the nuisace renaiming
     cardStream = open(clFull, 'r')
@@ -1929,20 +1926,15 @@ def createWorkspace(cardLoc):
     cmd += ' -o ' + cardLoc.replace('.txt', '.root')
     cmd += ' --no-b-only --verbose 1 --channel-masks'
     # cmd += ' --no-wrappers'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
-    else:
-        text_file = open(cardLoc.replace('.txt', '_text2workspace.out'), 'w')
-        text_file.write(output)
-        text_file.close()
+    output = runCommandSafe(cmd)
 
-        text_file = open(webFolder + '/' + os.path.basename(cardLoc).replace('.txt', '_text2workspace.out'), 'w')
-        text_file.write(output)
-        text_file.close()
+    text_file = open(cardLoc.replace('.txt', '_text2workspace.out'), 'w')
+    text_file.write(output)
+    text_file.close()
 
+    text_file = open(webFolder + '/' + os.path.basename(cardLoc).replace('.txt', '_text2workspace.out'), 'w')
+    text_file.write(output)
+    text_file.close()
 
 ########################### -------- Bias studies ------------------ #########################
 
@@ -1956,15 +1948,11 @@ def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
     cmd += ' --setParameters r={} --freezeParameters r'.format(rVal)
     cmd += ' --toysFrequentist -t {} --saveToys'.format(nToys)
     cmd += ' -n Toys -m {:.0f}'.format(1000*rVal)
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
+    runCommandSafe(cmd)
 
     print '-----> Running the toys scans'
     cmd = 'cd ' + out + '; '
-    cmd += 'combine -M MultiDimFit --algo grid --points=70'
+    cmd += 'combine -M MultiDimFit --algo grid --points=100'
     cmd += ' --robustFit 1 --cminDefaultMinimizerStrategy 1 --X-rtd MINIMIZER_analytic'
     cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' --seed ' + str(seed)
@@ -1973,16 +1961,9 @@ def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
     cmd += ' --setParameters r={:.2f}'.format(rVal)
     if maskStr:
         cmd += ','+maskStr
-    cmd += ' --setParameterRanges r=0.2,0.4'
+    cmd += ' --setParameterRanges r=0.2,0.40'
     cmd += ' -n Scan -m {:.0f}'.format(1000*rVal)
-    cmd += ' --verbose 1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    for line in output.split('\n'):
-        if 'ERROR' in line: print line.replace('ERROR', '\033[1m\x1b[31mError\x1b[0m')
-    if status:
-        print output
-        raise
+    runCommandSafe(cmd)
 
 def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     print '-----> Collectiong bias toys scans'
@@ -1990,6 +1971,11 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     fnames = glob(scansLoc + 'higgsCombineScan.MultiDimFit.mH{:.0f}.*.root'.format(1000*rVal))
     res = None
     for fname in fnames:
+        idx = fname.find('.mH')
+        seed = int(fname[idx+7:-5])
+        if seed > 99 and seed < 199:
+            continue
+        # print seed
         if res is None:
             res = getUncertaintyFromLimitTree(fname, verbose=False)
         else:
@@ -2009,14 +1995,14 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     plt.plot(x, [rVal, rVal], 'm--', lw=2, label='Injected value')
     ymin, ymax = plt.ylim()
     xmin, xmax = plt.ylim()
-    plt.text(xmin + 0.2*(xmax-xmin), ymin + 0.07*(ymax-ymin), 'Estimated bias: $({:.1f} \pm {:.1f})$ %'.format(100*(m-rVal)/rVal, 100*sm/rVal))
+    plt.text(xmin + 0.2*(xmax-xmin), ymin + 0.07*(ymax-ymin), 'Estimated bias: $({:.2f} \pm {:.2f}) \cdot 10^{{-2}}$ '.format(100*(m-rVal), 100*sm))
     plt.legend(loc='upper right', numpoints=1)
     plt.xlabel('Toy number')
     plt.ylabel(r'$R(D^*)$')
     plt.savefig(outdir + '/fig/biasStudy_toysResults.png')
     plt.savefig(webFolder + '/biasStudy_toysResults.png')
 
-    z = 1.6*(r - rVal)/(0.5*(rLoErr + rHiErr))
+    z = (r - rVal)/(0.5*(rLoErr + rHiErr))
     h = create_TH1D(z, name='hZtest', binning=[int(2*np.sqrt(r.shape[0])), -4, 4], axis_title=['#hat{R(D*)} - R(D*) / #sigma', 'Number of toys'])
     h.Sumw2()
     h.Fit('gaus', 'ILQ')
@@ -2059,17 +2045,9 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=5
         if not args.unblinded: cmd += ' (blinded)'
         cmd += '"'
         cmd += ' --translate ' + out+'renameDicLikelihoodScan.json'
-        print cmd
-        status, output = commands.getstatusoutput(cmd)
-        if status:
-            print output
-            raise
+        runCommandSafe(cmd)
         cmd = 'cp {}scan{}.png {}/'.format(out, tag, webFolder)
-        print cmd
-        status, output = commands.getstatusoutput(cmd)
-        if status:
-            print output
-            raise
+        runCommandSafe(cmd)
 
     print 'Extracting new POI boundaries'
     res = getUncertaintyFromLimitTree(out+'higgsCombine{}.MultiDimFit.mH120.root'.format(tag))
@@ -2151,11 +2129,7 @@ def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
     cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
     cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' -n _catComp_rCatFixed'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    print output
-    if status:
-        raise
+    runCommandSafe(cmd)
     arr = rtnp.root2array(out + '/higgsCombine_catComp_rCatFixed.MultiDimFit.mH120.root', treename='limit')
     chi2 = 2*arr['deltaNLL'][1]
     pval = scipy_chi2.sf(chi2, dof)
@@ -2190,16 +2164,12 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
     cmd += ' --trackParameters rgx{.*}'
     cmd += ' --plots'
     cmd += ' --verbose -1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
+    output = runCommandSafe(cmd)
     if rt.gROOT.IsBatch():
         print 50*'#'
         print 20*'#' + ' Fit Diag ' + 20*'#'
         print 50*'#'
         print output
-    if status or 'There was a crash.' in output:
-        print output
-        raise
     for line in output.split('\n'):
             if 'ERROR' in line: print line.replace('ERROR', '\033[1m\x1b[31mERROR\x1b[0m')
             if 'Error' in line: print line.replace('Error', '\033[1m\x1b[31mError\x1b[0m')
@@ -2332,21 +2302,12 @@ def nuisancesDiff(tag, out, forceRDst):
     cmd += ' --all'
     cmd += ' --abs'
     cmd += ' -g {}/nuisance_difference'.format(out) + runName + '.root'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
-    else:
-        print 'Done'
+    output = runCommandSafe(cmd)
+    print 'Done'
     nName, nValPost, nSigma = dumpDiffNuisances(output, out, tag='RDstFixed' if forceRDst else '',
                       useBonlyResults=forceRDst, parsToPrint=100)
-    cmd = 'cp {}/nuisance_difference{}.txt {}/'.format(out, '_RDstFixed' if forceRDst else '', webFolder)
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
+    cmd = 'cp {}/nuisance_difference{}*txt {}/'.format(out, '_RDstFixed' if forceRDst else '', webFolder)
+    runCommandSafe(cmd)
 
     print 'Crating nuisances difference distribution'
     hNuisances = create_TH1D(nSigma, 'hNuisDiff', binning=[41, -4.5, 4.5],
@@ -2392,11 +2353,7 @@ def runUncertaintyBreakDownScan(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 
     cmd += ' --setParameterRanges r={:.3f},{:.3f}'.format(*rLimitsTight)
     cmd += ' -n Bestfit'
     cmd += ' --saveWorkspace --verbose -1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
+    runCommandSafe(cmd)
 
     print '--------> Statistical uncertanty only'
     cmd = 'cd ' + out + '; '
@@ -2411,11 +2368,7 @@ def runUncertaintyBreakDownScan(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 
     if maskStr: cmd += ' --setParameters ' + maskStr
     cmd += ' --fastScan' # To be added if there are no free parameters otherwise
     cmd += ' --verbose -1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
+    runCommandSafe(cmd)
     getUncertaintyFromLimitTree(out + 'higgsCombineStatOnly.MultiDimFit.mH120.root')
 
     print '--------> MC stats and Statistical uncertanty only'
@@ -2430,11 +2383,7 @@ def runUncertaintyBreakDownScan(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 
     if maskStr: cmd += ' --setParameters ' + maskStr
     cmd += ' --freezeNuisanceGroups=autoMCStats'
     cmd += ' --verbose -1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
+    runCommandSafe(cmd)
     getUncertaintyFromLimitTree(out + 'higgsCombineMCstat.MultiDimFit.mH120.root')
 
 
@@ -2451,17 +2400,11 @@ def runUncertaintyBreakDownScan(card, out, catName, rVal=SM_RDst, rLimits=[0.1, 
     cmd += ' --breakdown "MC stat.,syst.,stat."'
     cmd += ' --translate ' + out+'renameDicLikelihoodScan.json'
     cmd += ' -o scanBreakdown'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
+    runCommandSafe(cmd)
     cmd = 'cp {}scanBreakdown.png {}/'.format(out, webFolder)
     cmd += '; cp {}scanBreakdown.pdf {}/'.format(out, webFolder)
     status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
+    runCommandSafe(cmd)
     if args.showPlots:
         display(Image(filename=out+'scanBreakdown.png'))
 
@@ -2480,7 +2423,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     uncAss = []
     uncNames = []
 
-    fLog = open(webFolder + '/uncertaintyBreakDownTable.log', 'w')
+    fLog = open(webFolder + '/uncertaintyBreakDownTable_log.txt', 'w')
     print '----- Running nominal fit'
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit --algo grid --points=200'
@@ -2634,24 +2577,61 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
 
 ########################### -------- Externalize parameters ------------------ #########################
 
-def externalizeUncertainty(card, out, parameters=['B2DstCLNeig1', 'B2DstCLNeig2', 'B2DstCLNeig3'], sigma=1, tag='FF', rVal=SM_RDst, rLimits=[0.1, 0.7]):
-    print 'Externalizing paramters:', parameters
+def externalizeUncertainty(card, out, parameters=['B2DstCLNeig1', 'B2DstCLNeig2', 'B2DstCLNeig3'], center='preFit', sigma=1, tag='FF', rVal=SM_RDst, rLimits=[0.1, 0.7]):
+    tag += '_center' + center
+
+    if not out[-1] == '/':
+        out += '/'
+    out += 'externalization_' + tag
+    if not os.path.isdir(out):
+        os.makedirs(out)
+
     fLog = open(webFolder + '/externalize_'+tag+'.txt', 'w')
+    s = 'Externalizing paramters:' + ' '.join(parameters) + '\nCenter: ' +  center
+    print s
+    fLog.write(s + '\n')
+
+    if center == 'postFit':
+        # Creating bestfit snapshop
+        cmd = 'cd ' + out + '; '
+        cmd += 'combine -M MultiDimFit'
+        cmd += ' -d ' + card.replace('.txt', '.root')
+        cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
+        cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+        cmd += ' --setParameters r={:.2f}'.format(rVal)
+        cmd += ' --setParameterRanges r={:.4f},{:.4f}'.format(*rLimits)
+        cmd += ' -n Bestfit'
+        cmd += ' --saveWorkspace --verbose 0'
+        cmd += ' --trackParameters ' + ','.join(parameters)
+        runCommandSafe(cmd)
+
+        inputSpace = 'higgsCombineBestfit.MultiDimFit.mH120.root'
+        arr = rtnp.root2array(out + '/higgsCombineBestfit.MultiDimFit.mH120.root', treename='limit')
+        centralValue = {}
+        for n in parameters:
+            centralValue[n] = arr['trackedParam_'+n][0]
+    elif center == 'preFit':
+        inputSpace = card.replace('.txt', '.root')
+        centralValue = dict.fromkeys(parameters, 0)
+    else:
+        print 'Center option', center, 'not recognized'
+
+    for n in parameters:
+        s = n + ' central value: {:.2f}'.format(centralValue[n])
+        print s
+        fLog.write(s + '\n')
+
     print '----- Running central fit'
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit --algo singles'
-    cmd += ' -d ' + card.replace('.txt', '.root')
+    cmd += ' -d ' + inputSpace
     cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
     cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' --rMin={:.3f} --rMax={:.3f}'.format(*rLimits)
-    cmd += ' --setParameters r={:.3f},'.format(rVal) + ','.join([n+'=0' for n in parameters])
+    cmd += ' --setParameters r={:.3f},'.format(rVal) + ','.join([n+'={:.2f}'.format(centralValue[n]) for n in parameters])
     cmd += ' --freezeParameters ' + ','.join(parameters)
     cmd += ' -n _ext'+tag+'_central'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status or 'Warning - No valid' in output:
-        print output
-        raise
+    runCommandSafe(cmd)
     arr = rtnp.root2array(out + '/higgsCombine_ext'+tag+'_central.MultiDimFit.mH120.root', treename='limit')
     rCentral, d, u = arr['r']
     drCentral = (u-d)*0.5
@@ -2663,20 +2643,14 @@ def externalizeUncertainty(card, out, parameters=['B2DstCLNeig1', 'B2DstCLNeig2'
     for ip, p in enumerate(parameters):
         rMod = []
         for mod in [sigma, -sigma]:
-            cmdAux = cmd.replace(p+'=0', p+'='+str(mod))
+            newValueStr = p+'={:.2f}'.format(centralValue[p] + mod)
+            cmdAux = cmd.replace(p+'={:.2f}'.format(centralValue[p]), newValueStr)
             cmdAux = cmdAux.replace(tag+'_central', tag+'_variation')
-            print cmdAux
-            status, output = commands.getstatusoutput(cmdAux)
-            flag = 'Warning: Did not find a parameter' in output
-            flag = flag or ('WARNING: cannot freeze nuisance' in output)
-            flag = flag or ('ERROR' in output)
-            if status or flag:
-                print output
-                raise
+            runCommandSafe(cmdAux)
             arr = rtnp.root2array(out + '/higgsCombine_ext'+tag+'_variation.MultiDimFit.mH120.root', treename='limit')
             r, d, u = arr['r']
             dr = (u-d)*0.5
-            s = '{} {:+.1f}: {:.4f} +/- {:.4f}'.format(p, mod, r, dr)
+            s = '{} {:+.1f} ({:+.1f}): {:.4f} +/- {:.4f}'.format(p, mod, centralValue[p] + mod, r, dr)
             print s
             fLog.write(s + '\n')
             rMod.append(r)
@@ -2718,13 +2692,7 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
             cmd += ','+maskStr
         cmd += ' --setParameterRanges r=0.1,0.6'
         cmd += ' --verbose 1'
-        print cmd
-        status, output = commands.getstatusoutput(cmd)
-        flag = 'WARNING: MultiDimFit failed' in output
-        if status or flag:
-            print output
-            raise
-
+        runCommandSafe(cmd)
 
         # If running on Tier2 condor remmeber to add this line to CombineToolBase.py ln 11
         # ``source /cvmfs/cms.cern.ch/cmsset_default.sh``
@@ -2741,11 +2709,7 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         if maskStr:
             cmd += ','+maskStr
         cmd += ' --verbose -1'
-        print cmd
-        status, output = commands.getstatusoutput(cmd)
-        if status:
-            print output
-            raise
+        runCommandSafe(cmd)
 
     if collect:
         status, output = commands.getstatusoutput('condor_q')
@@ -2759,11 +2723,7 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         cmd = 'cd {}impactPlots;'.format(out)
         cmd += ' combineTool.py -M Impacts -o impacts.json -m 0'
         cmd += ' -d ' + card.replace('.txt', '.root')
-        print cmd
-        status, output = commands.getstatusoutput(cmd)
-        if status:
-            print output
-            raise
+        runCommandSafe(cmd)
 
 
         rename = {
@@ -2775,15 +2735,23 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         'B2DstCLNeig2':'#lambda_{2} (CLN B#rightarrow D*l#nu)',
         'B2DstCLNeig3':'#lambda_{3} (CLN B#rightarrow D*l#nu)',
         'trgSF': 'Trigger scale factor',
-        'trkEff': 'Tracking efficiency',
-        # 'tkPVfrac': 'Tracks fraction',
+        'trkEff': 'Tracking efficiency (control to signal region transfer factor)',
+        'B2DstHcTransferFactor': 'Control to signal region transfer factor due to charged D decays',
+        'softTrkEff': 'Soft tracks tracking efficiency',
+        'tkPVfrac': 'Additional tracks origin',
         'overallNorm': 'Overall norm',
         'overallNormMu7_IP4': 'Overall norm (Low)',
         'overallNormMu9_IP6': 'Overall norm (Mid)',
         'overallNormMu12_IP6': 'Overall norm (High)',
+        'fDststWide': 'D^{**} wide resonances fraction',
         'BrB02DstDpK0': 'Branching fraction B^{0}#rightarrow D*^{-}D^{+}K^{0}',
-        'BrB02DstDst0Kstp': 'Branching fraction B^{0}#rightarrow D*^{-}D*^{0}K^{+}',
+        'BrB02DstDpKst0': 'Branching fraction B^{0}#rightarrow D*^{-}D^{+}K^{*0}',
+        'BrB02DstDst0Kp': 'Branching fraction B^{0}#rightarrow D*^{-}D*^{0}K^{+}',
+        'BrB02DstDst0Kstp': 'Branching fraction B^{0}#rightarrow D*^{-}D*^{0}K^{*+}',
         'BrB02DstD0Kstp'  : 'Branching fraction B^{0}#rightarrow D*^{-}D^{0}K*^{+}',
+        'BrB02DstDs0st'  : 'Branching fraction B^{0}#rightarrow D*^{-}D_{s}^{*0}',
+        'BrB02DstDs'  : 'Branching fraction B^{0}#rightarrow D*^{-}D_{s}^{+}',
+        'BrB02DstDsst': 'Branching fraction B^{0}#rightarrow D*^{-}D_{s}^{*+}'
         }
         for c in ['High', 'Mid', 'Low']:
             for i in range(1,5):
@@ -2814,29 +2782,31 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         d = json.load(open(out+'impactPlots/impacts.json', 'r'))
         for par in d['params']:
             name = str(par['name'])
-            if not name.startswith('prop_bin'): continue
-            label = name.replace('prop_bin', 'MC stat. ')
-            label = label.replace('M2_miss_', 'M^{2}_{miss} ')
-            label = label.replace('Est_mu_', 'E*_{#mu} ')
-            label = label.replace('q2bin', '[b_{q^{2}}=')
-            label = label.replace('_bin', '] ')
-            rename[name] = label + 10*' '
+            if name.startswith('prop_bin'):
+                label = name.replace('prop_bin', 'MC stat. ')
+                label = label.replace('M2_miss_', 'M^{2}_{miss} ')
+                label = label.replace('Est_mu_', 'E*_{#mu} ')
+                label = label.replace('q2bin', '[b_{q^{2}}=')
+                label = label.replace('_bin', '] ')
+                rename[name] = label + 10*' '
+            elif re.match(r'trgMu[0-9]+_IP[0-9]+SF_pt[0-9]+', name):
+                label = 'Trigger scale factors ' + re.search(r'Mu[0-9]+_IP[0-9]', name).group(0)
+                idx = name.find('_pt')
+                label += ' bin ' + name[idx+3:]
+                rename[name] = label
         json.dump(rename, open(out+'impactPlots/rename.json', 'w'))
 
         cmd = 'cd {};'.format(out)
         cmd += 'plotImpacts.py -i impactPlots/impacts.json -o impacts -t impactPlots/rename.json --max-pages 1'
-        print cmd
-        status, output = commands.getstatusoutput(cmd)
-        if status:
-            print output
-            raise
-
+        runCommandSafe(cmd)
         cmd = 'cp {}impacts.pdf {}/'.format(out, webFolder)
-        status, output = commands.getstatusoutput(cmd)
-        if status:
-            print output
-            raise
+        runCommandSafe(cmd)
 
+        cmd = 'cd {};'.format(out)
+        cmd += 'plotImpacts.py -i impactPlots/impacts.json -o impacts_full -t impactPlots/rename.json'
+        runCommandSafe(cmd)
+        cmd = 'cp {}impacts_full.pdf {}/'.format(out, webFolder)
+        runCommandSafe(cmd)
 
 ########################### -------- Goodness of Fit ------------------ #########################
 def runCommand(cmd):
@@ -2868,11 +2838,7 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
     cmd += ' -n Obs'+tag
     cmd += ' -t 0 -s 100'
     cmd += ' --verbose -1'
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
+    runCommandSafe(cmd)
     arr = rtnp.root2array(gofOutdir+'/higgsCombineObs'+tag+'.GoodnessOfFit.mH120.100.root', treename='limit')
     s_obs = arr['limit'][0]
     print 'Observed test statistics: {:.1f}'.format(s_obs)
@@ -2966,13 +2932,8 @@ def submitRunToCondor():
 
     cmd = 'cd '+jobDir+'; condor_submit job_'+jN+'.jdl'
     cmd += ' -batch-name ' + card_name + '_jN'+jN
-    print cmd
-    status, output = commands.getstatusoutput(cmd)
-    if status:
-        print output
-        raise
-    else:
-        print 'Jobs submitted'
+    runCommandSafe(cmd)
+    print 'Jobs submitted'
 
 
 ######################################################################################################
@@ -3043,11 +3004,7 @@ if __name__ == "__main__":
                 fc.close()
 
             cmd = 'cp '+cl+' '+webFolder+'/'+os.path.basename(cl)
-            print cmd
-            status, output = commands.getstatusoutput(cmd)
-            if status:
-                print output
-                raise
+            runCommandSafe(cmd)
 
         if args.validateCard:
             cl = card_location.replace('.txt', '_fitRegionsOnly.txt')
@@ -3155,6 +3112,7 @@ if __name__ == "__main__":
         print '-----> Running externalization'
         externalizeUncertainty(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                parameters=args.externPars,
+                               center='postFit',
                                sigma=args.externSigma,
                                tag=args.externTag,
                                rVal=SM_RDst, rLimits=[0.15, 0.45]
