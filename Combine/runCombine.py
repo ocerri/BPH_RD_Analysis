@@ -77,8 +77,8 @@ availableSteps = ['clean', 'histos', 'preFitPlots',
                   'uncBreakdownScan', 'uncBreakdownTable',
                   'externalize',
                   'impacts', 'GoF']
-defaultPipelineSingle = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdownScan', 'GoF']
-defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'fitDiag', 'postFitPlots', 'uncBreakdownScan', 'GoF']
+defaultPipelineSingle = ['histos', 'card', 'workspace', 'scan', 'fitDiag', 'uncBreakdownScan']
+defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'uncBreakdownTable', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
 # histos preFitPlots card workspace scan fitDiag postFitPlots uncBreakdownScan GoF
 parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
 parser.add_argument ('--submit', default=False, action='store_true', help='Submit a job instead of running the call interactively.')
@@ -209,6 +209,8 @@ def createCardName(a):
         c += '_NoMCstats'
     if not a.freeMuBr:
         c += '_muBrPDG'
+    else:
+        c += '_freeMuBr'
     return c
 
 card_name = createCardName(args)
@@ -241,6 +243,9 @@ def runCommandSafe(command, printCommand=True):
     flagged = raiseFlag(output)
     if status or flagged:
         print output, '\n\n'
+        print '==================================================================='
+        print '====================== Breaking the execution ====================='
+        print '==================================================================='
         if status:
             print '\033[1m\x1b[31mStatus:\x1b[0m', status
 
@@ -1638,7 +1643,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
 
 
     ############ Transfer factor uncertainty of B -> D*D samples from control region to signal region
-    val = ' 1.02'
+    val = ' 1.10'
     aux = ''
     for n in processes:
         if n.startswith('DstmD') or n.endswith('Hc'):
@@ -1886,7 +1891,7 @@ def createCombinationCard(fitRegionsOnly=False):
             nWait += 1
         cmd += ' {}={}'.format(c, cl.replace('comb', c))
     cmd += ' > ' + cl
-    runCommandSafe(cms)
+    runCommandSafe(cmd)
 
     # Editing the nuisace renaiming
     cardStream = open(clFull, 'r')
@@ -2515,6 +2520,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     # Remove all of them (statistical)
     print '----> Freezing all nuisances'
     cmd = cmd.replace(' --freezeNuisanceGroups=autoMCStats', ' --freezeParameters allConstrainedNuisances')
+    # cmd = cmd.replace(' --freezeNuisanceGroups=autoMCStats', ' --freezeParameters rgx{.*}')
     cmd += ' -n _remainingNuis'
     cmd += ' --fastScan'
     runCommandSafe(cmd)
@@ -2524,10 +2530,15 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     s = 'Statistics: XX +/- {:.4f} ({:.4f})'.format(uncStat, uncStat)
     print s
     fLog.write(s + '\n')
-    fLog.close()
 
     dicDump = {'uncStat': uncStat, 'uncNames': uncNames, 'uncAss': uncAss}
     pickle.dump(dicDump, open(out+'/results.pkl', 'wb'))
+
+    totExt = np.sqrt(np.sum(np.square(uncAss)))
+    s = '\n\nUncertianty sum check: {:.4f}, Delta = {:1.2e}'.format(totExt, totExt - uncRemaining[0])
+    print s
+    fLog.write(s + '\n')
+    fLog.close()
 
     print '\n\n-----------> Creating latex table'
     supplementDic = {'MCstat'       : 'Finite MC sample size',
@@ -2535,8 +2546,9 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
                      'remainingNuis': 'Others'
                     }
     fTable = open(webFolder + '/uncertaintyBreakDownTable_latex.txt', 'w')
-    s = r' \hline' + '\n'
-    s += r' Source & Size [$10^{-2}$] \\' + '\n'
+    s = r'\begin{tabular}{|lr|}' + '\n'
+    s += r' \hline' + '\n'
+    s += r' Uncertianty Source & Size [$10^{-2}$] \\' + '\n'
     s += r' \hline' + '\n'
     s += r' \hline' + '\n'
 
@@ -2569,6 +2581,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     s = r' \hline' + '\n'
     s += r' Total & ' + '{:.2f}'.format(100*uncRemaining[0]) + r' \\' + '\n'
     s += r' \hline' + '\n'
+    s += r'\end{tabular}' + '\n'
     fTable.write(s)
     fTable.close()
 
@@ -2905,7 +2918,7 @@ jdlTemplate = '\n'.join([
               'x509userproxy     = $ENV(X509_USER_PROXY)',
               'on_exit_remove    = (ExitBySignal == False) && (ExitCode == 0)',
               'on_exit_hold      = (ExitBySignal == True) || (ExitCode != 0)',
-              'periodic_release  =  (NumJobStarts < 2) && ((CurrentTime - EnteredCurrentStatus) > (60*5))',
+              # 'periodic_release  =  (NumJobStarts < 2) && ((CurrentTime - EnteredCurrentStatus) > (60*5))',
               '+PeriodicRemove   = ((JobStatus =?= 2) && ((MemoryUsage =!= UNDEFINED && MemoryUsage > 5*RequestMemory)))',
               'max_retries       = 3',
               'requirements      = Machine =!= LastRemoteHost',
@@ -3108,6 +3121,11 @@ if __name__ == "__main__":
                                     rVal=SM_RDst, rLimits=[0.15, 0.45]
                                     )
 
+    if 'uncBreakdownTable' in args.step:
+        runUncertaintyBreakDownTable(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+                                args.category.capitalize(),
+                                rVal=fit_RDst, rLimits=rDst_postFitRegion)
+
     if 'externalize' in args.step:
         print '-----> Running externalization'
         externalizeUncertainty(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
@@ -3117,6 +3135,25 @@ if __name__ == "__main__":
                                tag=args.externTag,
                                rVal=SM_RDst, rLimits=[0.15, 0.45]
                                )
+
+    if 'GoF' in args.step:
+        print '-----> Goodnees of Fit'
+        maskList = []
+        if args.maskEvalGoF:
+            if len(args.algoGoF) > 1 or args.algoGoF[0] != 'Sat':
+                print 'Only saturated algorith accept masks. Running only algo=Sat'
+                args.algoGoF = ['Sat']
+
+            for n in args.maskEvalGoF:
+                for kn in histo.keys():
+                    if not re.match(n, kn) is None:
+                        print 'Masking', kn
+                        maskList.append('mask_'+kn+'=1')
+        maskStr = ','.join(maskList)
+        for algo in args.algoGoF:
+            runGoodnessOfFit(args.tagGoF, card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+                             algo, fixRDst=args.forceRDst, maskEvalGoF=maskStr)
+            print '-'
 
     if 'fitDiag' in args.step:
         print '-----> Running fit diagnostic'
@@ -3144,11 +3181,6 @@ if __name__ == "__main__":
                                 args.category.capitalize(),
                                 rVal=fit_RDst, rLimits=rDst_postFitRegion)
 
-    if 'uncBreakdownTable' in args.step:
-        runUncertaintyBreakDownTable(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
-                                args.category.capitalize(),
-                                rVal=fit_RDst, rLimits=rDst_postFitRegion)
-
     if 'impacts' in args.step:
         print '-----> Running impact plots'
         submit, collect = True, True
@@ -3159,22 +3191,3 @@ if __name__ == "__main__":
         runNuisanceImpacts(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                            args.category.capitalize(),
                            rVal=fit_RDst, submit=submit, collect=collect)
-
-    if 'GoF' in args.step:
-        print '-----> Goodnees of Fit'
-        maskList = []
-        if args.maskEvalGoF:
-            if len(args.algoGoF) > 1 or args.algoGoF[0] != 'Sat':
-                print 'Only saturated algorith accept masks. Running only algo=Sat'
-                args.algoGoF = ['Sat']
-
-            for n in args.maskEvalGoF:
-                for kn in histo.keys():
-                    if not re.match(n, kn) is None:
-                        print 'Masking', kn
-                        maskList.append('mask_'+kn+'=1')
-        maskStr = ','.join(maskList)
-        for algo in args.algoGoF:
-            runGoodnessOfFit(args.tagGoF, card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
-                             algo, fixRDst=args.forceRDst, maskEvalGoF=maskStr)
-            print '-'

@@ -148,6 +148,10 @@ def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False, parsToPrint
 
     with open(outdir+'/nuisance_difference'+('_'+tag if tag else '')+'_texTable.txt', 'w') as dumpfile:
         cols = 2
+        # s = '\\hline\n'
+        # s += r' & '.join(cols*[r'Parameter & Postfit [$\sigma$]']) + r'\\' + '\n'
+        # s += '\\hline\n'
+        # dumpfile.write(s)
         for i in range(1, outDipls.shape[0]):
             if not i%cols == 1:
                 continue
@@ -168,8 +172,9 @@ def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False, parsToPrint
                     s += ' & '
             dumpfile.write(s + '\n')
             lastVal = outVal[idx].replace('*', '').replace('!', '').split(' +/-')[0]
-            if np.abs(float(lastVal)) < 1.6:
-                break
+            # if np.abs(float(lastVal)) < 1.6:
+            #     break
+        # dumpfile.write('\\hline\n')
 
     return name, outVal, np.array(outputSigmas)
 
