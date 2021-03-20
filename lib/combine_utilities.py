@@ -94,6 +94,45 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
         print '----------------------------------\n'
     return np.array(res) if len(res) > 1 else res[0]
 
+
+def getResultsFromMultiDimFitSingles(name, verbose=True, getTrackedParam=False, getMCstatNuisance=False):
+    if not os.path.isfile(name):
+        print 'File not found:', name
+        raise
+    arr = pd.DataFrame(rtnp.root2array(name, treename='limit'))
+
+    res = []
+    trackedParam = {}
+    for varName in arr.columns:
+        if varName.startswith('trackedParam_'):
+            n = varName[13:]
+            if n.startswith('prop_bin') and not getMCstatNuisance:
+                continue
+            trackedParam[n] = []
+    for iToy in np.unique(arr['iToy']):
+        sel = arr['iToy'] == iToy
+
+        c, l, u = arr['r'][sel]
+
+        for n in trackedParam.keys():
+            trackedParam[n].append(arr['trackedParam_'+n][0])
+
+        if verbose:
+            print '----------------------------------'
+            if iToy:
+                print 'Toy', iToy
+            print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-l, 100*(u-l)*0.5/c)
+            print 'Sigma = {:.3f}'.format((u-l)*0.5)
+        res.append([c, (u-l)*0.5, c-l, u-c, l, u])
+    if verbose:
+        print '----------------------------------\n'
+
+    res = np.array(res) if len(res) > 1 else res[0]
+    if getTrackedParam:
+        return res, trackedParam
+    else:
+        return res
+
 def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False, parsToPrint=15):
     name = []
     inVal = []

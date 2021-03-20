@@ -1,7 +1,7 @@
-- tag: formFactors
-  title: 'Form factors'
+- tag: pythiaProcess
+  title: 'Pythia process'
   nuisance:
-   - rgx{B2DstCLN.*}
+    - rgx{pythiaProcess.*}
 
 - tag: templateB2DstHc
   title: $B\to D^* H_c$ template
@@ -16,6 +16,11 @@
   title: $B \to D^{*}\mu\nu$ branching fraction
   nuisance:
     - muBr
+
+- tag: formFactors
+  title: 'Form factors'
+  nuisance:
+   - rgx{B2DstCLN.*}
 
 - tag: control2signalTransfer
   title: 'Control to signal region transfer factors'
@@ -32,8 +37,8 @@
 - tag: softTracksModeling
   title: Soft tracks modeling
   nuisance:
-    - softTrkEff
-    - tkPVfrac
+    - rgx{softTrk.*}
+    - rgx{tkPVfrac.*}
 
 - tag: overallNorm
   title: 'Overall normalization'
@@ -55,10 +60,10 @@
     - DstPiBr
     - DstPiPiBr
 
-# - tag: brB2DststTauNu
-#   title: $B \to D^{**}\tau\nu$ branching fraction
-#   nuisance:
-#     - TauDstPiBr
+- tag: brB2DststTauNu
+  title: $B \to D^{**}\tau\nu$ branching fraction
+  nuisance:
+    - TauDstPiBr
 
 
 

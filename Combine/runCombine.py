@@ -39,7 +39,7 @@ from pT_calibration_reader import pTCalReader
 from histo_utilities import create_TH1D, create_TH2D, std_color_list
 from gridVarQ2Plot import plot_gridVarQ2, plot_SingleCategory, getControlXtitle, getControlSideText
 from lumi_utilities import getLumiByTrigger
-from combine_utilities import getUncertaintyFromLimitTree, dumpDiffNuisances, stringJubCustomizationCaltechT2, loadHisto4CombineFromRoot
+from combine_utilities import getUncertaintyFromLimitTree, dumpDiffNuisances, stringJubCustomizationCaltechT2, loadHisto4CombineFromRoot, getResultsFromMultiDimFitSingles
 
 import CMS_lumi, tdrstyle
 tdrstyle.setTDRStyle()
@@ -77,7 +77,7 @@ availableSteps = ['clean', 'histos', 'preFitPlots',
                   'uncBreakdownScan', 'uncBreakdownTable',
                   'externalize',
                   'impacts', 'GoF']
-defaultPipelineSingle = ['histos', 'card', 'workspace', 'scan', 'fitDiag', 'uncBreakdownScan']
+defaultPipelineSingle = ['histos', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdownScan', 'GoF']
 defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'uncBreakdownTable', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
 # histos preFitPlots card workspace scan fitDiag postFitPlots uncBreakdownScan GoF
 parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
@@ -93,6 +93,7 @@ parser.add_argument ('--RDstLims', default=[0.15, 0.45], type=int, help='Initial
 # Bias options
 parser.add_argument ('--runBiasToys', default=False, action='store_true', help='Only generate toys and run scans for bias, do not collect results.')
 parser.add_argument ('--nToys', default=10, type=int, help='Number of toys to run')
+parser.add_argument ('--toysRDst', default=0.295, type=float, help='R(D*) value used to generate the toys.')
 parser.add_argument ('--runBiasAnalysis', default=False, action='store_true', help='Only analyze bias scans which have been previously produced.')
 
 # Scan options
@@ -2020,20 +2021,50 @@ def createWorkspace(cardLoc):
 ########################### -------- Bias studies ------------------ #########################
 
 def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
-    print '-----> Generating toys'
+
+    if not args.asimov:
+        inputSpace = 'higgsCombineBestfit.MultiDimFit.mH120.root'
+        if not os.path.isfile(os.path.join(out, inputSpace)):
+            print '-------- Best fit snap'
+            cmd = 'cd ' + out + '; '
+            cmd += 'combine -M MultiDimFit'
+            cmd += ' -d ' + card.replace('.txt', '.root')
+            cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
+            cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
+            cmd += ' --setParameters r={:.2f}'.format(rVal)
+            if maskStr:
+                cmd += ','+maskStr
+            cmd += ' --setParameterRanges r=0.1,0.5'
+            cmd += ' -n Bestfit'
+            cmd += ' --saveWorkspace --verbose 0'
+            runCommandSafe(cmd)
+        arr = rtnp.root2array(os.path.join(out, inputSpace), treename='limit')
+        rVal = arr['r'][0]
+        print 'Using r best fit value {:.4f}'.format(rVal)
+    else:
+        inputSpace = card.replace('.txt', '.root')
+
+
+
+    print '-----> Generating toys (seed: {})'.format(seed)
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M GenerateOnly'
-    cmd += ' -d ' + card.replace('.txt', '.root')
+    cmd += ' -d ' + inputSpace
     cmd += ' --seed ' + str(seed)
     cmd += ' --noMCbonly 1'
-    cmd += ' --setParameters r={} --freezeParameters r'.format(rVal)
+    if args.asimov:
+        cmd += ' --setParameters r={} --freezeParameters r'.format(rVal)
+    else:
+        cmd += ' --snapshotName MultiDimFit'
     cmd += ' --toysFrequentist -t {} --saveToys'.format(nToys)
     cmd += ' -n Toys -m {:.0f}'.format(1000*rVal)
     runCommandSafe(cmd)
 
     print '-----> Running the toys scans'
     cmd = 'cd ' + out + '; '
-    cmd += 'combine -M MultiDimFit --algo grid --points=100'
+    cmd += 'combine -M MultiDimFit'
+    # cmd += ' --algo grid --points=100 -n Scan'
+    cmd += ' --algo singles -n Singles'
     cmd += ' --robustFit 1 --cminDefaultMinimizerStrategy 1 --X-rtd MINIMIZER_analytic'
     cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
     cmd += ' --seed ' + str(seed)
@@ -2042,10 +2073,10 @@ def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
     cmd += ' --setParameters r={:.2f}'.format(rVal)
     if maskStr:
         cmd += ','+maskStr
-    cmd += ' --setParameterRanges r=0.2,0.40'
+    cmd += ' --setParameterRanges r=0.1,0.50'
     cmd += ' --trackParameters rgx{.*}'
-    cmd += ' -n Scan -m {:.0f}'.format(1000*rVal)
-    # cmd +=
+    # cmd += ' --trackErrors rgx{.*}'
+    cmd += ' -m {:.0f}'.format(1000*rVal)
     runCommandSafe(cmd)
 
 def collectBiasToysResults(scansLoc, rVal=SM_RDst):
@@ -2053,19 +2084,47 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     if not scansLoc[-1] == '/': scansLoc += '/'
     fnames = glob(scansLoc + 'higgsCombineScan.MultiDimFit.mH{:.0f}.*.root'.format(1000*rVal))
     res = None
+    # seedsScans = []
+    # for fname in fnames:
+    #     idx = fname.find('.mH')
+    #     seed = int(fname[idx+7:-5])
+    #     seedsScans.append(str(seed))
+    #     if seed > 99 and seed < 199:
+    #         continue
+    #     # print seed
+    #     if res is None:
+    #         res = getUncertaintyFromLimitTree(fname, verbose=False)
+    #     else:
+    #         res = np.concatenate((res, getUncertaintyFromLimitTree(fname, verbose=False)), axis=0)
+    # if not res is None:
+    #     r = res[:,0]
+    #     rLoErr = res[:,1]
+    #     rHiErr = res[:,2]
+    # print 'Scan: ', ' '.join(seedsScans)
+
+    fnames = glob(scansLoc + 'higgsCombineSingles.MultiDimFit.mH{:.0f}.*.root'.format(1000*rVal))
+    seedsSingles = []
+    trackedParam = None
     for fname in fnames:
         idx = fname.find('.mH')
         seed = int(fname[idx+7:-5])
-        if seed > 99 and seed < 199:
+        if seed > 300:
             continue
-        # print seed
+        seedsSingles.append(str(seed))
+
+        auxRes, auxTracked = getResultsFromMultiDimFitSingles(fname, verbose=False, getTrackedParam=True)
         if res is None:
-            res = getUncertaintyFromLimitTree(fname, verbose=False)
+            res = auxRes
+            trackedParam = auxTracked
         else:
-            res = np.concatenate((res, getUncertaintyFromLimitTree(fname, verbose=False)), axis=0)
+            res = np.concatenate((res, auxRes), axis=0)
+            for n in trackedParam.keys():
+                trackedParam[n] += auxTracked[n]
+
     r = res[:,0]
-    rLoErr = res[:,1]
-    rHiErr = res[:,2]
+    rLoErr = res[:,2]
+    rHiErr = res[:,3]
+    print 'Singles: ', ' '.join(seedsSingles)
 
     plt.rcParams.update({'font.size': 18})
     fig = plt.figure(figsize=(8,6))
@@ -2076,14 +2135,19 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     plt.fill_between(x, 2*[m-sm], 2*[m+sm], color='#ff7f0e', alpha=0.4)
     plt.plot(x, 2*[m], color='#d62728', lw=1, label='Toys mean')
     plt.plot(x, [rVal, rVal], 'm--', lw=2, label='Injected value')
-    ymin, ymax = plt.ylim()
-    xmin, xmax = plt.ylim()
+    ymin, ymax = plt.ylim(np.min(r - 2*rLoErr), np.max(r + 2*rHiErr))
+    xmin, xmax = plt.xlim()
     plt.text(xmin + 0.2*(xmax-xmin), ymin + 0.07*(ymax-ymin), 'Estimated bias: $({:.2f} \pm {:.2f}) \cdot 10^{{-2}}$ '.format(100*(m-rVal), 100*sm))
     plt.legend(loc='upper right', numpoints=1)
     plt.xlabel('Toy number')
     plt.ylabel(r'$R(D^*)$')
     plt.savefig(outdir + '/fig/biasStudy_toysResults.png')
-    plt.savefig(webFolder + '/biasStudy_toysResults.png')
+
+    webFolderBias = webFolder + '/biasStudy'
+    if not os.path.isdir(webFolderBias):
+        os.system('mkdir -p '+webFolderBias)
+        os.system('cp {d}/../index.php {d}'.format(d=webFolderBias))
+    plt.savefig(webFolderBias + '/toysResults.png')
 
     z = (r - rVal)/(0.5*(rLoErr + rHiErr))
     h = create_TH1D(z, name='hZtest', binning=[int(2*np.sqrt(r.shape[0])), -4, 4], axis_title=['#hat{R(D*)} - R(D*) / #sigma', 'Number of toys'])
@@ -2092,7 +2156,18 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     rt.gStyle.SetStatY(0.95)
     c = drawOnCMSCanvas(CMS_lumi, [h])
     c.SaveAs(outdir + '/fig/biasStudy_zTest.png')
-    c.SaveAs(webFolder + '/biasStudy_zTest.png')
+    c.SaveAs(webFolderBias + '/zTest.png')
+
+    if not trackedParam is None:
+        for n, x in trackedParam.iteritems():
+            h = create_TH1D(np.array(x), name='h'+n,
+                            binning=[int(2*np.sqrt(r.shape[0])), np.min(x), np.max(x)],
+                            axis_title=[n, 'Number of toys'])
+            h.Sumw2()
+            h.Fit('gaus', 'ILQ')
+            rt.gStyle.SetStatY(0.95)
+            c = drawOnCMSCanvas(CMS_lumi, [h])
+            c.SaveAs(webFolderBias + '/bestFitDistribution_'+n+'.png')
 
 
 ########################### -------- Likelihood scan ------------------ #########################
@@ -2340,17 +2415,32 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
                 histo_postfit[k][n].Reset()
 
     h2 = fFitDiagnostics.Get('covariance_fit_' + ('b' if forceRDst else 's'))
+    n = None
+    for il, labObj in enumerate(h2.GetXaxis().GetLabels()):
+        lab = labObj.GetName()
+        if lab.startswith('prop_bin') and n is None:
+            n = il
+            break
+
+    nR = None
+    for il, labObj in enumerate(reversed(h2.GetYaxis().GetLabels())):
+        lab = labObj.GetName()
+        if lab == 'r':
+            nR = il+1
+            break
+
     h2.Scale(100.)
     rt.gStyle.SetPaintTextFormat('.0f')
     N = h2.GetNbinsX()
-    n=60
+    # n=80
     h2.LabelsOption("v")
 
-    h2.SetMarkerSize(2.0)
-    h2.GetXaxis().SetLabelSize(0.07)
-    h2.GetYaxis().SetLabelSize(0.07)
+    gSF = 70/float(n)
+    h2.SetMarkerSize(2.0*gSF)
+    h2.GetXaxis().SetLabelSize(0.07*gSF)
+    h2.GetYaxis().SetLabelSize(0.07*gSF)
     h2.GetXaxis().SetRange(1, n)
-    h2.GetYaxis().SetRangeUser(0, 1)
+    h2.GetYaxis().SetRangeUser(nR-1, nR)
     h2.GetZaxis().SetRangeUser(-100, 100)
     h2.GetZaxis().SetNdivisions(-304)
     CC1 = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(1200, 300), tag='tl1', mL=0.03, mR=0.08, mB=0.65, mT=0.1)
@@ -2358,9 +2448,9 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
     CC1.SaveAs(webFolder+'/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.png')
     CC1.SaveAs(webFolder+'/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.pdf')
 
-    h2.SetMarkerSize(.5)
-    h2.GetXaxis().SetLabelSize(0.02)
-    h2.GetYaxis().SetLabelSize(0.02)
+    h2.SetMarkerSize(.5*gSF)
+    h2.GetXaxis().SetLabelSize(0.02*gSF)
+    h2.GetYaxis().SetLabelSize(0.02*gSF)
     h2.GetXaxis().SetRange(1, n)
     h2.GetYaxis().SetRangeUser(N-n, N)
     h2.GetZaxis().SetRangeUser(-100, 100)
@@ -2518,7 +2608,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
         cmd += ','+maskStr
     cmd += ' --setParameterRanges r={:.4f},{:.4f}'.format(*rLimits)
     cmd += ' -n _total'
-    runCommandSafe(cmd)
+    # runCommandSafe(cmd)
     res = getUncertaintyFromLimitTree(out + 'higgsCombine_total.MultiDimFit.mH120.root', verbose=False, drawPlot=False)
     r, rDown, rUp = res[0], res[-3], res[-2]
     uncRemaining.append(0.5*(rUp-rDown))
@@ -2539,7 +2629,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     cmdBestFit = cmd.replace(' --algo grid --points=200', '')
     cmdBestFit = cmdBestFit.replace(' -n _total', ' -n Bestfit')
     cmdBestFit += ' --saveWorkspace --verbose 0'
-    runCommandSafe(cmdBestFit)
+    # runCommandSafe(cmdBestFit)
 
     print '-------- Breaking the uncertainty'
     def extractUncertainty(tag, type='scan'):
@@ -2577,7 +2667,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     # MC statistics uncertanty
     print '----> Freezing MC stat'
     cmdAux = cmd + ' -n _MCstat'
-    runCommandSafe(cmdAux)
+    # runCommandSafe(cmdAux)
     dr, rLims = extractUncertainty('MCstat')
     idx = cmd.find('--setParameterRanges') + len('--setParameterRanges ')
     cmd = cmd.replace(cmd[idx: idx + 15], 'r={:.4f},{:.4f}'.format(*rLims))
@@ -2586,12 +2676,15 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     groupsDefFile = '/storage/user/ocerri/BPhysics/Combine/uncertaintyBreakdownTableGroups.yml'
     groups = yaml.load(open(groupsDefFile, 'r'))
     frozenNuisance = []
+    firstToRun = 'softTracksModeling'
     for ig, group in enumerate(groups):
         print '----> Freezing ' + group['tag']
         frozenNuisance += group['nuisance']
         cmdAux = cmd + ' -n _' + group['tag']
         cmdAux += ' --freezeParameters ' + ','.join(frozenNuisance)
-        runCommandSafe(cmdAux)
+        if not firstToRun or firstToRun == group['tag']:
+            runCommandSafe(cmdAux)
+            firstToRun = ''
         dr, rLims = extractUncertainty(group['tag'])
         idx = cmd.find('--setParameterRanges') + len('--setParameterRanges ')
         cmd = cmd.replace(cmd[idx: idx + 15], 'r={:.4f},{:.4f}'.format(*rLims))
@@ -3130,7 +3223,7 @@ if __name__ == "__main__":
         if (not args.runBiasAnalysis) or both:
             biasToysScan(card_location.replace('.txt', '_fitRegionsOnly.txt'), biasOut, args.seed, args.nToys)
         if (not args.runBiasToys) or both:
-            collectBiasToysResults(biasOut)
+            collectBiasToysResults(biasOut, args.toysRDst)
 
     ################### Define combine auxiliary variables ###################
     rDst_postFitRegion = args.RDstLims
