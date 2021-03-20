@@ -1805,7 +1805,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             names.append(k[4:-2])
 
     for n in sorted(names):
-        card += n + ' shape' + uncLine + '\n'
+        card += n + ' shapeU' + uncLine + '\n'
 
 
     # Form Factors from Hammer
@@ -2416,17 +2416,22 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
 
     h2 = fFitDiagnostics.Get('covariance_fit_' + ('b' if forceRDst else 's'))
     n = None
+    nRateParamX = None
     for il, labObj in enumerate(h2.GetXaxis().GetLabels()):
         lab = labObj.GetName()
         if lab.startswith('prop_bin') and n is None:
             n = il
-            break
+        elif not lab.startswith('prop_bin') and not (n is None) and nRateParamX is None:
+            nRateParamX = il + 1
 
     nR = None
+    nRateParamY = None
     for il, labObj in enumerate(reversed(h2.GetYaxis().GetLabels())):
         lab = labObj.GetName()
         if lab == 'r':
             nR = il+1
+        elif lab.startswith('prop_bin'):
+            nRateParamY = il
             break
 
     h2.Scale(100.)
@@ -2459,6 +2464,20 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
     CC.SaveAs(out+'fig/covariance_zoom'+ ('_RDstFixed' if forceRDst else '')+'.png')
     CC.SaveAs(webFolder+'/covariance_zoom'+ ('_RDstFixed' if forceRDst else '')+'.png')
     CC.SaveAs(webFolder+'/covariance_zoom'+ ('_RDstFixed' if forceRDst else '')+'.pdf')
+
+    if nRateParamY>1:
+        gSF = 5/float(nRateParamY)
+        h2.SetMarkerSize(1.2*gSF)
+        h2.GetXaxis().SetLabelSize(0.035*gSF)
+        h2.GetYaxis().SetLabelSize(0.035*gSF)
+        h2.GetXaxis().SetRange(nRateParamX, N)
+        h2.GetYaxis().SetRangeUser(0, nRateParamY)
+        h2.GetZaxis().SetRangeUser(-100, 100)
+        h2.GetZaxis().SetNdivisions(510)
+        CC = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(900, 700), tag='tl', mL=0.2, mR=0.135, mB=0.25)
+        CC.SaveAs(out+'fig/covariance_rateParam_zoom'+ ('_RDstFixed' if forceRDst else '')+'.png')
+        CC.SaveAs(webFolder+'/covariance_rateParam_zoom'+ ('_RDstFixed' if forceRDst else '')+'.png')
+        CC.SaveAs(webFolder+'/covariance_rateParam_zoom'+ ('_RDstFixed' if forceRDst else '')+'.pdf')
 
     return histo_postfit, CC, fFitDiagnostics
 
@@ -3341,6 +3360,7 @@ if __name__ == "__main__":
     if 'postFitPlots' in args.step:
         print '-----> Getting postfit results'
         histo_post, _, _ = getPostfitHistos(args.cardTag, outdir, forceRDst=args.forceRDst, histo_prefit=histo)
+        exit()
         if args.category == 'comb':
             cPost = {}
             for c in categoriesToCombine:
