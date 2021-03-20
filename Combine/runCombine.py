@@ -209,8 +209,6 @@ def createCardName(a):
         c += '_NoMCstats'
     if not a.freeMuBr:
         c += '_muBrPDG'
-    else:
-        c += '_freeMuBr'
     return c
 
 card_name = createCardName(args)
@@ -471,7 +469,6 @@ def createHistograms(category):
     else:
         cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/'+calFile)
         cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/'+calFile)
-        # cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/pwWeights_{}_v10.txt'.format(category.name))
 
     def computePtWeights(ds, var, tag, cal_pT):
         if cal_pT.kind == 'poly':
@@ -504,20 +501,65 @@ def createHistograms(category):
         w = np.polyval(p=pWeightsEta, x=ds['B_eta'])
         return np.clip(w, a_min=0.5, a_max=1.5)
 
-    def computeMuonPtWeights(ds, size=0.05, pivFrac=0.3, lamToEnd=3):
-        xPiv = category.min_pt + pivFrac*(min(category.max_pt, 20) - category.min_pt)
-        lamUp = (min(category.max_pt, 20) - xPiv)/lamToEnd
-        lamDw = (xPiv - category.min_pt)/lamToEnd
-        dx = ds['mu_pt'] - xPiv
-        lam = np.where(dx > 0, lamUp, lamDw)
-        sf = 1 - np.exp(-np.abs(dx)/lam)
-        wUp = 1 + sf*size
-        wDw = 1 - sf*size
-        return wUp, wDw
+    # def fSoftTrackEff(x, a=0.6, tau=0.8):
+    #     return np.where(x<0.1, np.ones_like(x), 1 - a*np.exp(-x/tau))
+
+    parsSoftTracks = {'s':[0.2, 0.15], 'w':[0.9, 0.05]}
+    def betaSoftTrackEff(w=0.9, s=0.2):
+        x = [0, 3.5, 1.5]
+        yLin = x[2]*(1 - w)/x[1] + w
+        y = [w, 1., yLin + s*(1-yLin) ]
+        return np.polyfit(x, y, 2)
+
+    def fSoftTrackEff(x, beta):
+        sel = np.logical_or(x < 0.2, x > 3.5)
+        return np.where(sel, np.ones_like(x), np.polyval(beta, x))
+
+    def weightsSoftTrackEff(ds, ptList, w, s):
+        beta = betaSoftTrackEff(w, s)
+        w = fSoftTrackEff(ds[ptList[0]], beta)
+        for v in ptList[1:]:
+            w *= fSoftTrackEff(ds[v], beta)
+        return w
 
 
-    def fSoftTrackEff(x, a=0.6, tau=0.8):
-        return np.where(x<0.1, np.ones_like(x), 1 - a*np.exp(-x/tau))
+    class pythiaCalOneShotReader:
+        def __init__(self, calibration_file=None):
+            if not calibration_file is None:
+                self.loadCalibration(calibration_file)
+
+        def loadCalibration(self, calibration_file):
+            d = pickle.load(open( calibration_file, 'rb' ))
+            self.beta = d['beta']
+            self.betaVar = d['betaVar']
+            self.nVar = len(d['betaVar'])
+            self.x = None
+
+        def loadInputs(self, ds):
+            x = np.array(ds[['q2','M2_miss', 'Est_mu']])
+            x = np.column_stack((
+                np.ones_like(x[:,0]),
+                x,
+                x[:,0]*x[:,1],
+                x[:,0]*x[:,2],
+                x[:,1]*x[:,2],
+            ))
+
+            self.x = x
+
+        def _computeWeights(self, beta, pMin=1e-2):
+            p = np.clip(np.dot(self.x, beta), pMin, 1-pMin)
+            w = p/(1-p)
+            return w
+
+        def getWeights(self, shape=0, scale=1.):
+
+            sign = np.sign(shape)
+            idx = np.abs(shape) - 1
+            delta_p = sign*scale*self.betaVar[idx]
+
+            return self._computeWeights(self.beta + delta_p)
+    pythiaCalReader = pythiaCalOneShotReader('../data/calibration/pythiaProcessesHardToSoft/polyOneShot'+category.name+'.pkl')
 
     if args.useMVA:
         fname = dataDir+'../plot_scripts/kinObsMVA/clfGBC_tauVall_{}{}.p'.format(args.useMVA, category.name)
@@ -687,17 +729,22 @@ def createHistograms(category):
     #     weights['muonIdSF'], wVar['muonIdSFUp'], wVar['muonIdSFDown'] = computeMuonIDSF(ds)
         weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
-        # print 'Including muon pT corrections'
-        # wVar['muPtUp'], wVar['muPtDown'] = computeMuonPtWeights(ds)
-        # weights['MuPt'], auxVarDic = computePtWeights(ds, 'mu_pt', 'MuPt', cal_pT_mu)
-        # wVar.update(auxVarDic)
+        print 'Including soft track pT corrections'
+        # weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.3)*fSoftTrackEff(ds['pi_pt'], a=0.3)*fSoftTrackEff(ds['pis_pt'], a=0.3)
+        # wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)
+        # wVar['softTrkEffUp'] /= weights['softTrkEff']
+        # wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)
+        # wVar['softTrkEffDown'] /= weights['softTrkEff']
 
-        print 'Including track pT corrections'
-        weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.3)*fSoftTrackEff(ds['pi_pt'], a=0.3)*fSoftTrackEff(ds['pis_pt'], a=0.3)
-        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)
-        wVar['softTrkEffUp'] /= weights['softTrkEff']
-        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)
-        wVar['softTrkEffDown'] /= weights['softTrkEff']
+        l = ['K_pt', 'pi_pt', 'pis_pt']
+        weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
+        for mod in [+1, -1]:
+            varName = 'Up' if mod > 0 else 'Down'
+            w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
+            wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
+            s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
+            wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
+
 
         # B phase space corrections
         weights['etaB'] = computeB0etaWeights(ds)
@@ -716,6 +763,20 @@ def createHistograms(category):
             else:
                 weights['BpPt'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'BpPt'+category.name, cal_pT_B0)
                 wVar.update(auxVarDic)
+
+        if n in ['mu']:
+            print 'Including pythia process corrections'
+            pythiaCalReader.loadInputs(ds)
+            weights['pythiaProcess'] = pythiaCalReader.getWeights()
+            for shapeVar in range(1, len(pythiaCalReader.betaVar)+1):
+                for mod in [+1, -1]:
+                    varName = 'pythiaProcess'+category.name + '_lam'+str(shapeVar)
+                    if mod > 0:
+                        varName += 'Up'
+                    else:
+                        varName += 'Down'
+                    wVar[varName] = pythiaCalReader.getWeights(mod*shapeVar)/weights['pythiaProcess']
+
         # Hammer corrections to the FF
         if n in ['mu', 'tau'] and schemeFF != 'NoFF':
             print 'Including FF corrections (Hammer)'
@@ -978,19 +1039,20 @@ def createHistograms(category):
         print 'Including muon ID corrections'
         weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
-        # print 'Including muon pT corrections'
-        # wVar['muPtUp'], wVar['muPtDown'] = computeMuonPtWeights(ds)
-        # weights['MuPt'], auxVarDic = computePtWeights(ds, 'mu_pt', 'MuPt', cal_pT_mu)
-        # wVar.update(auxVarDic)
-
-        print 'Including track pT corrections'
-        def fSoftTrackEff(x, a=0.3, tau=0.8):
-            return np.where(x<0.1, np.ones_like(x), 1 - a*np.exp(-x/tau))
-        weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.3)*fSoftTrackEff(ds['pi_pt'], a=0.3)*fSoftTrackEff(ds['pis_pt'], a=0.3)*fSoftTrackEff(ds['tkPt_0'], a=0.3)*fSoftTrackEff(ds['tkPt_1'], a=0.3)
-        wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)*fSoftTrackEff(ds['tkPt_0'], a=0.2)*fSoftTrackEff(ds['tkPt_1'], a=0.2)
-        wVar['softTrkEffUp'] /= weights['softTrkEff']
-        wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)*fSoftTrackEff(ds['tkPt_0'], a=0.4)*fSoftTrackEff(ds['tkPt_1'], a=0.4)
-        wVar['softTrkEffDown'] /= weights['softTrkEff']
+        print 'Including soft track pT corrections'
+        # weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.3)*fSoftTrackEff(ds['pi_pt'], a=0.3)*fSoftTrackEff(ds['pis_pt'], a=0.3)*fSoftTrackEff(ds['tkPt_0'], a=0.3)*fSoftTrackEff(ds['tkPt_1'], a=0.3)
+        # wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)*fSoftTrackEff(ds['tkPt_0'], a=0.2)*fSoftTrackEff(ds['tkPt_1'], a=0.2)
+        # wVar['softTrkEffUp'] /= weights['softTrkEff']
+        # wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)*fSoftTrackEff(ds['tkPt_0'], a=0.4)*fSoftTrackEff(ds['tkPt_1'], a=0.4)
+        # wVar['softTrkEffDown'] /= weights['softTrkEff']
+        l = ['K_pt', 'pi_pt', 'pis_pt', 'tkPt_0', 'tkPt_1']
+        weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
+        for mod in [+1, -1]:
+            varName = 'Up' if mod > 0 else 'Down'
+            w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
+            wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
+            s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
+            wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
 
         if (not args.calBpT == 'none') and (n in SamplesB0):
             print 'Including B0 pT corrections'
@@ -1047,7 +1109,7 @@ def createHistograms(category):
             _, wVar['BrB02DstDs0stUp'], wVar['BrB02DstDs0stDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 10431}, .6/1.5) #Gamma 95 pdg 2020
 
         # Correct the amount of random tracks from PV
-        weights['tkPVfrac'], wVar['tkPVfracUp'], wVar['tkPVfracDown'] = computeTksPVweights(ds, relScale=0.1)
+        weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.1)
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -1581,7 +1643,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ########## Scale systematics uncertainties
     ######################################################
     #### pp -> bb cros-section * luminosity
-    card += 'overallNorm'+category.trg+' lnN' + ' 1.1'*nProc*nCat + '\n'
+    # card += 'overallNorm'+category.trg+' lnN' + ' 1.1'*nProc*nCat + '\n'
+    card += 'overallNorm'+category.trg+' rateParam * * 1.\n'
 
     #### Tracking efficiency uncertainty
     card += 'trkEff lnN'
@@ -1675,26 +1738,17 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         if c.startswith('AddTk_'):
             aux += ' 1.'*nProc
         else: aux += ' -'*nProc
-    card += 'tkPVfrac shape' + aux + '\n'
-
-    # Mu pT spectrum
-    # aux = ''
-    # for p in processes:
-    #     aux += ' 1.'
-    # card += 'muPt shape' + aux*nCat + '\n'
-    # names = []
-    # for k in histo.values()[0].keys():
-    #     if k.startswith('mu__MuPt') and k.endswith('Up'):
-    #         names.append(k[4:-2])
-    # for n in sorted(names):
-    #     card += n + ' shape' + aux*nCat + '\n'
+    card += 'tkPVfrac'+category.name+' shape' + aux + '\n'
 
     # Soft track efficiency
     aux = ''
     for p in processes:
         aux += ' 1.'
-    card += 'softTrkEff shape' + aux*nCat + '\n'
+    # card += 'softTrkEff shape' + aux*nCat + '\n'
+    card += 'softTrkEff_w shape' + aux*nCat + '\n'
+    card += 'softTrkEff_s shape' + aux*nCat + '\n'
 
+    # B pT uncertainty
     if not args.calBpT == 'none':
         # B0 pT spectrum
         aux = ''
@@ -1729,6 +1783,28 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         else:
             for n in sorted(names):
                 card += n + ' shape' + aux*nCat + '\n'
+
+    # pythia process uncertainty
+    aux = ''
+    for p in processes:
+        if p == 'mu':
+            aux += ' 1.'
+        else:
+            aux += ' -'
+
+    uncLine = ''
+    for c in categories:
+        if c.startswith('AddTk_'):
+            uncLine += len(processes)*' -'
+        else:
+            uncLine += aux
+    names = []
+    for k in histo.values()[0].keys():
+        if k.startswith('mu__pythiaProcess'+category.name) and k.endswith('Up'):
+            names.append(k[4:-2])
+
+    for n in sorted(names):
+        card += n + ' shape' + uncLine + '\n'
 
 
     # Form Factors from Hammer
@@ -1967,7 +2043,9 @@ def biasToysScan(card, out, seed=1, nToys=10, rVal=SM_RDst, maskStr=''):
     if maskStr:
         cmd += ','+maskStr
     cmd += ' --setParameterRanges r=0.2,0.40'
+    cmd += ' --trackParameters rgx{.*}'
     cmd += ' -n Scan -m {:.0f}'.format(1000*rVal)
+    # cmd +=
     runCommandSafe(cmd)
 
 def collectBiasToysResults(scansLoc, rVal=SM_RDst):
@@ -2448,6 +2526,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     s = 'Nominal fit: {:.4f} +/- {:.4f}'.format(r, uncRemaining[-1])
     print s
     fLog.write(s + '\n')
+    fLog.close()
 
     rDown = r - 2.1*(r - rDown)
     rUp = r + 2.1*(rUp - r)
@@ -2478,7 +2557,9 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
         uncAss.append(np.sqrt(uncRemaining[-2]**2 - uncRemaining[-1]**2))
         s = tag + ': {:.4f} +/- {:.4f} ({:.4f})'.format(r, uncRemaining[-1], uncAss[-1])
         print s
+        fLog = open(webFolder + '/uncertaintyBreakDownTable_log.txt', 'a')
         fLog.write(s + '\n')
+        fLog.close()
         return 0.5*(rUp-rDown), [r - 2.1*(r - rDown), r + 2.1*(rUp - r)]
 
     cmd = 'cd ' + out + '; '
@@ -2529,6 +2610,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     uncAss.append(uncStat)
     s = 'Statistics: XX +/- {:.4f} ({:.4f})'.format(uncStat, uncStat)
     print s
+    fLog = open(webFolder + '/uncertaintyBreakDownTable_log.txt', 'a')
     fLog.write(s + '\n')
 
     dicDump = {'uncStat': uncStat, 'uncNames': uncNames, 'uncAss': uncAss}
@@ -2767,6 +2849,7 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         'BrB02DstDsst': 'Branching fraction B^{0}#rightarrow D*^{-}D_{s}^{*+}'
         }
         for c in ['High', 'Mid', 'Low']:
+            rename['tkPVfrac'+c] = 'Additional tracks origin ({})'.format(c)
             for i in range(1,5):
                 s = str(i)
                 rename['B0pT'+c+'_lam'+s] = 'B^{0} p_{T} '+c+' #lambda_{'+s+'}'

@@ -269,7 +269,11 @@ def rootTH2_to_np(h, cut = None, Norm = False):
             pos[iy, ix] = [x,y]
     return arr, pos
 
-def make_ratio_plot(h_list_in, in_pad = None, title = "", label = "", in_tags = None, ratio_bounds = [0.1, 4], draw_opt = 'E1', leg_pos=[0.7,0.8,0.9,0.95], marginRight=0.04, marginTop=0.05):
+def make_ratio_plot(h_list_in, in_pad = None, title = "", label = "", in_tags = None,
+                    ratio_bounds = [0.1, 4], ratioUncertainty=True,
+                    draw_opt = 'E1',
+                    leg_pos=[0.7,0.8,0.9,0.95],
+                    marginRight=0.04, marginTop=0.05):
     h_list = []
     if in_tags == None:
         tag = []
@@ -358,6 +362,8 @@ def make_ratio_plot(h_list_in, in_pad = None, title = "", label = "", in_tags = 
             h.Draw(draw_opt)
             ymin = h.GetMinimum()
             ymax = h.GetMaximum()
+            if not ratioUncertainty:
+                h.Sumw2(0)
             hratio_list.append(h)
         else:
             h.Divide(h_list[0])

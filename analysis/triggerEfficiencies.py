@@ -350,8 +350,9 @@ def analyzeBin(idx, verbose=False):
     selTot = np.logical_and(selTot, df['prescale'+probeTrigger[4:]] > 0)
     selTot = np.logical_and(selTot, df['mProbe_softID'] > 0.5)
     selTot = np.logical_and(selTot, df['deltaR_tagProbe'] > 0.3)
-    selTot = np.logical_and(selTot, df['vtx_isGood'] > 0.5)
-    selTot = np.logical_and(selTot, np.abs(df['massMuMu_refit'] - 3.09691) < args.mJpsiWindow)
+    selTot = np.logical_and(selTot, np.abs(df['massMuMu'] - 3.09691) < args.mJpsiWindow)
+    # selTot = np.logical_and(selTot, df['vtx_isGood'] > 0.5)
+    # selTot = np.logical_and(selTot, np.abs(df['massMuMu_refit'] - 3.09691) < args.mJpsiWindow)
     if args.tagTrigger:
         selTot = np.logical_and(selTot, df['mTag_HLT_' + args.tagTrigger] == 1)
 
