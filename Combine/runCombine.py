@@ -210,6 +210,8 @@ def createCardName(a):
         c += '_NoMCstats'
     if not a.freeMuBr:
         c += '_muBrPDG'
+    # else:
+    #     c += '_freeMuBr'
     return c
 
 card_name = createCardName(args)
@@ -631,6 +633,7 @@ def createHistograms(category):
                                    'High': array('d', list(np.arange(0.5, 5, 0.1)) )
                                   }[category.name]]
 
+    binning['mass_D0pismu'] = n_q2bins*[[50, 2.1, 5.28]]
 
     binning_2D = [
         [
@@ -765,18 +768,19 @@ def createHistograms(category):
                 weights['BpPt'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'BpPt'+category.name, cal_pT_B0)
                 wVar.update(auxVarDic)
 
-        if n in ['mu']:
-            print 'Including pythia process corrections'
-            pythiaCalReader.loadInputs(ds)
-            weights['pythiaProcess'] = pythiaCalReader.getWeights()
-            for shapeVar in range(1, len(pythiaCalReader.betaVar)+1):
-                for mod in [+1, -1]:
-                    varName = 'pythiaProcess'+category.name + '_lam'+str(shapeVar)
-                    if mod > 0:
-                        varName += 'Up'
-                    else:
-                        varName += 'Down'
-                    wVar[varName] = pythiaCalReader.getWeights(mod*shapeVar)/weights['pythiaProcess']
+        # Soft vs Hard QCD
+        # if n in ['mu']:
+        #     print 'Including pythia process corrections'
+        #     pythiaCalReader.loadInputs(ds)
+        #     weights['pythiaProcess'] = pythiaCalReader.getWeights()
+        #     for shapeVar in range(1, len(pythiaCalReader.betaVar)+1):
+        #         for mod in [+1, -1]:
+        #             varName = 'pythiaProcess'+category.name + '_lam'+str(shapeVar)
+        #             if mod > 0:
+        #                 varName += 'Up'
+        #             else:
+        #                 varName += 'Down'
+        #             wVar[varName] = pythiaCalReader.getWeights(mod*shapeVar)/weights['pythiaProcess']
 
         # Hammer corrections to the FF
         if n in ['mu', 'tau'] and schemeFF != 'NoFF':
@@ -850,7 +854,7 @@ def createHistograms(category):
             name2D = 'h2D_q2bin'+str(i_q2)
             if not name2D in histo.keys():
                     histo[name2D] = {}
-            for var in ['M2_miss', 'Est_mu', 'mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt']:
+            for var in ['M2_miss', 'Est_mu', 'mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt', 'mass_D0pismu']:
                 cat_name = var+'_q2bin'+str(i_q2)
 
                 if not cat_name in histo.keys():
@@ -1219,7 +1223,7 @@ def createHistograms(category):
             q2_l = binning['q2'][i_q2]
             q2_h = binning['q2'][i_q2 + 1]
             sel_q2 = np.logical_and(ds['q2'] > q2_l, ds['q2'] < q2_h)
-            for var in ['M2_miss', 'Est_mu', 'mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt']:
+            for var in ['M2_miss', 'Est_mu', 'mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt', 'mass_D0pismu']:
                 cat_name = var+'_q2bin'+str(i_q2)
                 histo[cat_name]['data'] = create_TH1D(
                                                       ds[var][sel_q2],
@@ -1570,6 +1574,55 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         outCanvas.append(cAux)
 
 
+    h_all = None
+    for i_q2 in range(len(binning['q2'])-1):
+        q2_l = binning['q2'][i_q2]
+        q2_h = binning['q2'][i_q2 + 1]
+        name = 'mass_D0pismu_q2bin'+str(i_q2)
+        if not name in hDic.keys(): continue
+        print 'Creating', name
+        hDic[name]['data'].GetXaxis().SetTitle('mass(D*#mu) [GeV]')
+        hDic[name]['data'].GetYaxis().SetTitle('Events')
+        cAux = plot_SingleCategory(CMS_lumi, hDic[name], scale_dic=scale_dic,
+                                   draw_pulls=True, pullsRatio=False,
+                                   addText='Cat. '+catName+', {:.1f} <  q^{{2}}  < {:.1f} GeV^{{2}}'.format(q2_l, q2_h),
+                                   logy=False, legBkg=True,
+                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                                   min_y=1,
+                                   tag='mass_D0pismu_q2bin'+str(i_q2),
+                                   legLoc=[0.16, 0.45, 0.33, 0.8],
+                                   maskData = (not args.unblinded) and (False if i_q2 < 2 else True)
+                                   )
+        cAux.SaveAs(outdir+'/fig/mass_D0pismu_q2bin'+str(i_q2)+'_'+tag+'.png')
+        cAux.SaveAs(webFolder+'/mass_D0pismu_q2bin'+str(i_q2)+'_'+tag+'.png')
+        outCanvas.append(cAux)
+        if i_q2 == 0:
+            h_all = {}
+            for nn in hDic[name].keys():
+                h_all[nn] = hDic[name][nn].Clone()
+        else:
+            for nn in h_all.keys():
+                h_all[nn].Add(hDic[name][nn])
+    print 'Creating mass_D0pismu_all'
+    h_all['data'].GetYaxis().SetTitle('Normalized events')
+    cAux = plot_SingleCategory(CMS_lumi, h_all, scale_dic=scale_dic,
+                               draw_pulls=True, pullsRatio=True,
+                               addText='Cat. '+catName,
+                               logy=False, legBkg=True,
+                               procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                               min_y=0,
+                               max_y='data',
+                               pulls_ylim=[0.85, 1.15],
+                               density=True,
+                               tag=tag+'mass_D0pismu_all',
+                               legLoc=[0.2, 0.45, 0.4, 0.8],
+                               maskData = False
+                               )
+    cAux.SaveAs(outdir+'/fig/mass_D0pismu_allNorm_'+tag+'.png')
+    cAux.SaveAs(webFolder+'/mass_D0pismu_allNorm_'+tag+'.png')
+    outCanvas.append(cAux)
+
+
     print 30*'-' + '\n\n'
     return outCanvas
 
@@ -1804,8 +1857,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         if k.startswith('mu__pythiaProcess'+category.name) and k.endswith('Up'):
             names.append(k[4:-2])
 
-    for n in sorted(names):
-        card += n + ' shapeU' + uncLine + '\n'
+    # for n in sorted(names):
+    #     card += n + ' shape' + uncLine + '\n'
 
 
     # Form Factors from Hammer
@@ -3249,7 +3302,7 @@ if __name__ == "__main__":
     fit_RDst = SM_RDst
 
     globalChannelMasking = ['AddTk_pm_mHad', 'B_pt', 'B_eta', 'specQ2']
-    mAux = ['mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt']
+    mAux = ['mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt', 'mass_D0pismu']
     if args.signalRegProj1D:
         mAux += ['Unrolled']
         if args.signalRegProj1D == 'Est_mu': mAux += ['M2_miss']
