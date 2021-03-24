@@ -1,7 +1,12 @@
-- tag: pythiaProcess
-  title: 'Pythia process'
+# - tag: pythiaProcess
+#   title: 'Pythia process'
+#   nuisance:
+#     - rgx{pythiaProcess.*}
+
+- tag: formFactors
+  title: 'Form factors'
   nuisance:
-    - rgx{pythiaProcess.*}
+    - rgx{B2DstCLN.*}
 
 - tag: templateB2DstHc
   title: $B\to D^* H_c$ template
@@ -11,22 +16,6 @@
     - antiB0DstmHcBr
     - rgx{BrB02DstD.*}
     - rgx{DstmD.*}
-
-- tag: brB2DstMuNu
-  title: $B \to D^{*}\mu\nu$ branching fraction
-  nuisance:
-    - muBr
-
-- tag: formFactors
-  title: 'Form factors'
-  nuisance:
-   - rgx{B2DstCLN.*}
-
-- tag: control2signalTransfer
-  title: 'Control to signal region transfer factors'
-  nuisance:
-    - B2DstHcTransferFactor
-    - trkEff
 
 - tag: BpTspectrum
   title: B mesons $p_T$
@@ -39,6 +28,17 @@
   nuisance:
     - rgx{softTrk.*}
     - rgx{tkPVfrac.*}
+
+- tag: brB2DstMuNu
+  title: $B \to D^{*}\mu\nu$ branching fraction
+  nuisance:
+    - muBr
+
+- tag: control2signalTransfer
+  title: 'Control to signal region transfer factors'
+  nuisance:
+    - B2DstHcTransferFactor
+    - trkEff
 
 - tag: overallNorm
   title: 'Overall normalization'

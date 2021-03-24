@@ -36,7 +36,7 @@ from progressBar import ProgressBar
 from categoriesDef import categories as categoriesDef
 from analysis_utilities import drawOnCMSCanvas, getEff, DSetLoader
 from pT_calibration_reader import pTCalReader
-from histo_utilities import create_TH1D, create_TH2D, std_color_list
+from histo_utilities import create_TH1D, create_TH2D, std_color_list, make_ratio_plot
 from gridVarQ2Plot import plot_gridVarQ2, plot_SingleCategory, getControlXtitle, getControlSideText
 from lumi_utilities import getLumiByTrigger
 from combine_utilities import getUncertaintyFromLimitTree, dumpDiffNuisances, stringJubCustomizationCaltechT2, loadHisto4CombineFromRoot, getResultsFromMultiDimFitSingles
@@ -56,6 +56,7 @@ parser.add_argument ('--HELP', '-H', default=False, action='store_true', help='P
 parser.add_argument ('--category', '-c', type=str, default='low', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit.')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
+parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
 parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial tag.')
 
 parser.add_argument ('--unblinded', default=True, type=bool, help='Unblind the fit regions.')
@@ -105,6 +106,7 @@ parser.add_argument ('--tagScan', type=str, default='')
 parser.add_argument ('--externPars', default=['B2DstCLNeig1', 'B2DstCLNeig2', 'B2DstCLNeig3'], type=str, help='Parameters to externalize.', nargs='+')
 parser.add_argument ('--externSigma', default=1., type=float, help='Externalization sigmas.')
 parser.add_argument ('--externTag', default='FF', type=str, help='Externalization tag.')
+parser.add_argument ('--externCenter', default='postFit', type=str, choices=['preFit', 'postFit'], help='Externalization tag.')
 
 # Impacts options
 parser.add_argument ('--collectImpacts', default=False, action='store_true', help='Only collect impact fits which have been previously run')
@@ -194,6 +196,8 @@ def createCardName(a):
     c = a.cardTag + a.category + '_' + a.schemeFF
     if a.decorrelateFFpars:
         c += 'decorr'
+    if a.freezeFF:
+        c += 'frozen'
     if a.useMVA:
         c += '_MVA'+useMVA
     if a.asimov:
@@ -1627,6 +1631,59 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
     return outCanvas
 
 
+def drawPrePostFitComparison(histoPre, histoPost, tag=''):
+    print 20*'-', 'Pre/Post fit comaprison', tag, 20*'-'
+    CMS_lumi.integrated_lumi = None
+    outCanvas = []
+
+    for p in processOrder + ['total']:
+        print p
+        auxOutDir = outdir+'/fig/prePostFitComparison/'+p
+        if not os.path.isdir(auxOutDir):
+            os.system('mkdir -p '+auxOutDir)
+        auxWebDir = webFolder+'/prePostFitComparison/'+p
+        if not os.path.isdir(auxWebDir):
+            os.system('mkdir -p '+auxWebDir)
+            os.system('cp {t}/../../index.php {t}/../ '.format(t=auxWebDir))
+            os.system('cp {t}/../../index.php {t}/ '.format(t=auxWebDir))
+
+        for c in histoPost.keys():
+            if '2D' in c:
+                continue
+            if not p in histoPre[c].keys():
+                continue
+            if not p in histoPost[c].keys():
+                continue
+            hPre = histoPre[c][p].Clone()
+            hPre.SetTitle('Prefit')
+            hPre.SetLineColor(rt.kRed-4)
+            hPre.Scale(1./hPre.Integral(), 'width')
+            hPre.Sumw2(0)
+            hPre.GetXaxis().SetTitle(c)
+            hPost = histoPost[c][p].Clone()
+            hPost.SetLineColor(rt.kAzure+1)
+            hPost.Scale(1./hPost.Integral(), 'width')
+            hPost.SetTitle('Postfit')
+            hPost.Sumw2(0)
+
+            for i in range(1, hPre.GetNbinsX()+1):
+                if hPre.GetBinContent(i) == 0:
+                    hPre.SetBinContent(i, 1e-9)
+                    hPost.SetBinContent(i, 1e-9)
+
+            can = make_ratio_plot([hPre, hPost],
+                                 draw_opt='',
+                                 leg_pos=[0.65,0.75,0.8,0.92],
+                                 marginTop=0.062,
+                                 label = c+p+tag,
+                                 ratio_bounds='auto')
+            CMS_lumi.CMS_lumi(can, -1, 33)
+            can.SaveAs(auxOutDir+'/'+c+'_'+tag+'.png')
+            can.SaveAs(auxWebDir+'/'+c+'_'+tag+'.png')
+
+            outCanvas.append(can)
+
+    return outCanvas
 
 ########################### -------- Create the card ------------------ #########################
 
@@ -1862,14 +1919,15 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
 
 
     # Form Factors from Hammer
-    for n_pFF in FreeParFF:
-        aux = ''
-        for p in processes:
-            if p in ['tau', 'mu']:
-                aux += ' 1.'
-            else:
-                aux += ' -'
-        card += 'B2Dst'+schemeFF+'{} shape'.format(n_pFF) + aux*nCat + '\n'
+    if not args.freezeFF:
+        for n_pFF in FreeParFF:
+            aux = ''
+            for p in processes:
+                if p in ['tau', 'mu']:
+                    aux += ' 1.'
+                else:
+                    aux += ' -'
+            card += 'B2Dst'+schemeFF+'{} shape'.format(n_pFF) + aux*nCat + '\n'
 
 
     # Dstst mix composition
@@ -2680,7 +2738,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
         cmd += ','+maskStr
     cmd += ' --setParameterRanges r={:.4f},{:.4f}'.format(*rLimits)
     cmd += ' -n _total'
-    # runCommandSafe(cmd)
+    runCommandSafe(cmd)
     res = getUncertaintyFromLimitTree(out + 'higgsCombine_total.MultiDimFit.mH120.root', verbose=False, drawPlot=False)
     r, rDown, rUp = res[0], res[-3], res[-2]
     uncRemaining.append(0.5*(rUp-rDown))
@@ -2701,7 +2759,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     cmdBestFit = cmd.replace(' --algo grid --points=200', '')
     cmdBestFit = cmdBestFit.replace(' -n _total', ' -n Bestfit')
     cmdBestFit += ' --saveWorkspace --verbose 0'
-    # runCommandSafe(cmdBestFit)
+    runCommandSafe(cmdBestFit)
 
     print '-------- Breaking the uncertainty'
     def extractUncertainty(tag, type='scan'):
@@ -2739,7 +2797,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     # MC statistics uncertanty
     print '----> Freezing MC stat'
     cmdAux = cmd + ' -n _MCstat'
-    # runCommandSafe(cmdAux)
+    runCommandSafe(cmdAux)
     dr, rLims = extractUncertainty('MCstat')
     idx = cmd.find('--setParameterRanges') + len('--setParameterRanges ')
     cmd = cmd.replace(cmd[idx: idx + 15], 'r={:.4f},{:.4f}'.format(*rLims))
@@ -2748,8 +2806,10 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     groupsDefFile = '/storage/user/ocerri/BPhysics/Combine/uncertaintyBreakdownTableGroups.yml'
     groups = yaml.load(open(groupsDefFile, 'r'))
     frozenNuisance = []
-    firstToRun = 'softTracksModeling'
+    firstToRun = ''
     for ig, group in enumerate(groups):
+        if args.freezeFF and group['tag'] == 'formFactors':
+            continue
         print '----> Freezing ' + group['tag']
         frozenNuisance += group['nuisance']
         cmdAux = cmd + ' -n _' + group['tag']
@@ -3378,10 +3438,10 @@ if __name__ == "__main__":
         print '-----> Running externalization'
         externalizeUncertainty(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                parameters=args.externPars,
-                               center='postFit',
+                               center=args.externCenter,
                                sigma=args.externSigma,
                                tag=args.externTag,
-                               rVal=SM_RDst, rLimits=[0.15, 0.45]
+                               rVal=SM_RDst, rLimits=[0.1, 0.45]
                                )
 
     if 'GoF' in args.step:
@@ -3413,15 +3473,17 @@ if __name__ == "__main__":
     if 'postFitPlots' in args.step:
         print '-----> Getting postfit results'
         histo_post, _, _ = getPostfitHistos(args.cardTag, outdir, forceRDst=args.forceRDst, histo_prefit=histo)
-        exit()
         if args.category == 'comb':
             cPost = {}
+            cPrePostComp = {}
             for c in categoriesToCombine:
                 tag = 'postfit'+c.capitalize()+ ('_RDstFixed' if args.forceRDst else '')
                 cPost[c] = drawPlots(tag, histo_post[c], c.capitalize())
+                cPrePostComp[c] = drawPrePostFitComparison(histo[c], histo_post[c], tag=c)
         else:
             tag = 'postfit'+ ('_RDstFixed' if args.forceRDst else '')
             cPost = drawPlots(tag, histo_post, args.category.capitalize())
+            cPrePostComp = drawPrePostFitComparison(histo, histo_post)
         nuisancesDiff(args.cardTag, outdir, args.forceRDst)
         print '\n'
 
