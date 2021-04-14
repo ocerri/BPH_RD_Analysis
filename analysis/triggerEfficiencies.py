@@ -26,6 +26,7 @@ from progressBar import ProgressBar
 
 from analysis_utilities import drawOnCMSCanvas, extarct, extarct_multiple, createSel
 from lumi_utilities import getLumiByTrigger
+from pileup_utilities import pileupReweighter
 
 import CMS_lumi, tdrstyle
 tdrstyle.setTDRStyle()
@@ -45,8 +46,9 @@ parser.add_argument ('--dataset', '-d', type=str, default='MC', choices=['RD', '
 parser.add_argument ('--trigger', '-t', type=str, default='Mu7_IP4', choices=['Mu7_IP4', 'Mu9_IP6', 'Mu12_IP6'], help='Trigger to probe.')
 parser.add_argument ('--tagTrigger', type=str, default='', choices=['Mu7_IP4', 'Mu9_IP6', 'Mu12_IP6'], help='Trigger of the tag muon.')
 parser.add_argument ('--method', '-M', type=str, default='count', choices=['count', 'fit'], help='Method used to estimate signal yield.')
-parser.add_argument ('--refIP', type=str, default='PV', choices=['BS', 'PV'], help='Reference point for the impact parameter.')
+parser.add_argument ('--refIP', type=str, default='BS', choices=['BS', 'PV'], help='Reference point for the impact parameter.')
 
+parser.add_argument ('--dR_TagProbe', type=float, default=0.2, help='Minimum delta R between tag and probe muon.')
 parser.add_argument ('--mJpsiWindow', type=float, default=-1, help='Width around J/psi mass to be considered. Default 0.1 (count) or 0.25 (fit).')
 parser.add_argument ('--parallel', '-p', type=int, default=10, help='Number of parallel CPU to use.')
 
@@ -95,6 +97,7 @@ branchesToLoad = ['mTag_pt', 'mTag_eta', 'mTag_phi', 'mTag_sigdxy_BS', 'mTag_sig
                   'mTag_softID', 'mTag_tightID',
                   'mTag_HLT_Mu7_IP4', 'mTag_HLT_Mu9_IP6', 'mTag_HLT_Mu12_IP6',
                   'mProbe_pt', 'mProbe_eta', 'mProbe_phi', 'mProbe_sigdxy_BS', 'mProbe_sigdxy_PV',
+                  'mProbe_L1_pt', 'mProbe_L1_dR',
                   'mProbe_softID', 'mProbe_tightID',
                   'mProbe_HLT_Mu7_IP4', 'mProbe_HLT_Mu9_IP6', 'mProbe_HLT_Mu12_IP6',
                   'deltaR_tagProbe', 'massMuMu', 'vtx_isGood', 'massMuMu_refit',
@@ -113,76 +116,33 @@ def loadDF(loc, branches):
         return pd.concat(dfL)
 
 
-class pileupReweighter(object):
-    def __init__(self, mcSkimFile, cat, histoName='hAllNvtx', dataDate='200515'):
-        loc = '/storage/user/ocerri/BPhysics/data/cmsRD/ParkingBPH{}/'+'Run2018D-05May2019promptD-v1_RDntuplizer_PrescaleVertices_{}_CAND.root'.format(dataDate)
-        fAuxPileupRD = []
-
-        hPileupTarget = None
-
-        for i in range(1, 6):
-            fAuxPileupRD.append(rt.TFile.Open(loc.format(i), 'READ'))
-            if hPileupTarget is None:
-                hPileupTarget = fAuxPileupRD[-1].Get('nVtx/hNvtxPassed'+cat.trg).Clone()
-            else:
-                hPileupTarget.Add(fAuxPileupRD[-1].Get('nVtx/hNvtxPassed'+cat.trg))
-
-        hPileupTarget.Scale(1./hPileupTarget.Integral())
-
-        fAuxPileupMC = rt.TFile.Open(mcSkimFile, 'READ')
-        hPileupGen = fAuxPileupMC.Get(histoName)
-
-        weights = np.ones(hPileupGen.GetNbinsX())
-        s = 0
-        for i in range(weights.shape[0]):
-            if hPileupGen.GetBinContent(i+1) == 0:
-                continue
-            weights[i] = hPileupTarget.GetBinContent(i+1)/(hPileupGen.GetBinContent(i+1)/hPileupGen.Integral())
-            s += (hPileupGen.GetBinContent(i+1)/hPileupGen.Integral()) * weights[i]
-
-        self.weightsPileupMC = weights/s
-
-        for f in fAuxPileupRD + [fAuxPileupMC]:
-            f.Close()
-
-    def getPileupWeights(self, arrNvtx, selection=None):
-        x = arrNvtx
-        if not selection is None:
-            x = x[selection]
-        return self.weightsPileupMC[x.astype(np.int)]
-
-
-class Bauble(object):
-    pass
 
 if args.dataset == 'RD':
     dataDir = '../data/cmsRD'
     # RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210209_CAND.root')
-    RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210309_CAND.root')
+    # RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210309_CAND.root')
+    RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210410_CAND.root')
     df = loadDF(RDdsLoc, branchesToLoad)
     print 'Data probe muons:', df.shape[0]
     CMS_lumi.extraText = "     Internal"
 elif args.dataset == 'MC':
     mcDir = '../data/cmsMC_private/BP_Tag-Probe_B0_JpsiKst_Hardbbbar_evtgen_HELAMP_PUc0_10-2-3'
     # MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger_Jpsi/merged/out_CAND.root')
-    MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger_BS/merged/out_CAND.root')
-    df = loadDF(MCdsLoc, branchesToLoad + ['sfMuonID'])
+    MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger/merged/out_CAND.root')
+    df = loadDF(MCdsLoc, branchesToLoad + ['sfMuonID', 'nTrueIntMC'])
     print 'MC probe muons:', df.shape[0]
 
-    aux = Bauble()
-    aux.trg = args.trigger
-    puRew = pileupReweighter(MCdsLoc[0], aux, histoName='TnP/hAllNvts')
-    nMax = np.max(df['nVtx'])
-    while nMax > (puRew.weightsPileupMC.shape[0] - 1):
-        puRew.weightsPileupMC = np.append(puRew.weightsPileupMC, puRew.weightsPileupMC[-1])
-        print args.trigger, puRew.weightsPileupMC.shape
-    df['w'+args.trigger] = puRew.weightsPileupMC[df['nVtx'].astype(np.int)]
-    df['w'] = df['sfMuonID']*df['w'+args.trigger]
+    puRew = pileupReweighter(MCdsLoc[0], 'TnP/hAllNTrueIntMC', trg=args.trigger)
+    df['wPileup'] = puRew.getPileupWeights(df['nTrueIntMC'])
+
+    df['w'] = df['sfMuonID']*df['wPileup']
     CMS_lumi.extraText = "     Simulation Internal"
 
 def fitJpsi(xMass, passSel, canvasTag='', weights=None, mJpsiWindow=0.25, mBins=100, verbose=False):
     mJpsi = 3.096916
-    binContent, _ = np.histogram(xMass[passSel], bins=mBins, range=(mJpsi-mJpsiWindow, mJpsi+mJpsiWindow))
+
+    aux = np.array(xMass[passSel], dtype=np.float64)
+    binContent, _ = np.histogram(aux, bins=mBins, range=(mJpsi-mJpsiWindow, mJpsi+mJpsiWindow))
     if np.min(binContent) == 0:
         mBins = int(mBins*0.5)
 
@@ -349,12 +309,23 @@ def analyzeBin(idx, verbose=False):
             selTot = np.logical_and(sel, selTot)
     selTot = np.logical_and(selTot, df['prescale'+probeTrigger[4:]] > 0)
     selTot = np.logical_and(selTot, df['mProbe_softID'] > 0.5)
-    selTot = np.logical_and(selTot, df['deltaR_tagProbe'] > 0.3)
-    selTot = np.logical_and(selTot, np.abs(df['massMuMu'] - 3.09691) < args.mJpsiWindow)
-    # selTot = np.logical_and(selTot, df['vtx_isGood'] > 0.5)
-    # selTot = np.logical_and(selTot, np.abs(df['massMuMu_refit'] - 3.09691) < args.mJpsiWindow)
+    selTot = np.logical_and(selTot, df['deltaR_tagProbe'] > args.dR_TagProbe)
+    # selTot = np.logical_and(selTot, np.abs(df['massMuMu'] - 3.09691) < args.mJpsiWindow)
+    selTot = np.logical_and(selTot, df['vtx_isGood'] > 0.5)
+    selTot = np.logical_and(selTot, np.abs(df['massMuMu_refit'] - 3.09691) < args.mJpsiWindow)
     if args.tagTrigger:
         selTot = np.logical_and(selTot, df['mTag_HLT_' + args.tagTrigger] == 1)
+
+
+    dptRel = np.abs(df['mProbe_L1_pt']/df['mProbe_pt']) - 1
+    l1Matching = np.logical_and(dptRel < 0.4, df['mProbe_L1_dR'] < 0.2)
+    selPass = np.logical_and(selTot, l1Matching)
+
+    ptThr = float(re.search('Mu[0-9]+_', probeTrigger).group(0)[2:-1])
+    selPass = np.logical_and(selPass, df['mProbe_L1_pt'] > ptThr)
+    selPass = np.logical_and(selPass, df['mProbe_' + probeTrigger] == 1)
+
+    # selPass = np.logical_and(selTot, df['mProbe_' + probeTrigger] == 1)
 
 
     if verbose:
@@ -369,17 +340,16 @@ def analyzeBin(idx, verbose=False):
         if verbose:
             print 'Time: {:.1f} s'.format(time.time()-st)
             print ' --- Passed ---'
-        st = time.time()
-        selTot = np.logical_and(selTot, df['mProbe_' + probeTrigger] == 1)
+
         if args.dataset == 'RD':
-            nSigPass = np.sum(selTot)
+            nSigPass = np.sum(selPass)
         else:
-            nSigPass = np.sum(df['w'][selTot])
+            nSigPass = np.sum(df['w'][selPass])
     elif args.method == 'fit':
         canvTag = ''
         for n, i in idx.iteritems(): canvTag += n+str(i)
         canvas, nSigTot, nSigPass, pval = fitJpsi(df['massMuMu_refit'][selTot],
-                                              passSel=df['mProbe_' + probeTrigger][selTot] == 1,
+                                              passSel=selPass[selTot],
                                               canvasTag=canvTag,
                                               weights=df['w'][selTot] if args.dataset == 'MC' else None,
                                               mJpsiWindow=args.mJpsiWindow,
@@ -392,7 +362,7 @@ def analyzeBin(idx, verbose=False):
 
     if verbose:
         print 'Time: {:.1f} s'.format(time.time()-st)
-    print idx, 'done'
+    print idx, nSigTot, nSigPass, 'done'
     return idx, nSigTot, nSigPass
 
 
