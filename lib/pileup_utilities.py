@@ -7,7 +7,7 @@ class pileupReweighter(object):
             if trg is None:
                 print 'Must specify a trigger to load default data pileup'
                 raise
-            dataPileupFile = '/storage/user/ocerri/BPhysics/data/PileupHistograms/' + trg + '_allParts.root'
+            dataPileupFile = '/storage/af/user/ocerri/BPhysics/data/PileupHistograms/' + trg + '_allParts.root'
 
         hPileupTarget = None
 

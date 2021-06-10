@@ -34,7 +34,7 @@ from B02DstMu_selection import candidate_selection, trigger_selection
 
 import argparse
 parser = argparse.ArgumentParser()
-#Example: python B2DstMu_skimCAND_v1.py -d mu_PUc0 --applyCorr
+#Example: python B2DstMu_skimCAND_v1.py -d mu --applyCorr
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
@@ -53,62 +53,64 @@ args = parser.parse_args()
 ####                          Datset declaration                         ####
 #############################################################################
 MCloc = '../data/cmsMC_private/'
-# MCend = '/ntuples_B2DstMu/out_CAND_*.root'
-MCend = '/ntuples_B2DstMu_BS/out_CAND_*.root'
+MCend = '/ntuples_B2DstMu/out_CAND_*.root'
+# MCend = '/ntuples_B2DstMu_BS/out_CAND_*.root'
 RDloc = '../data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {
-'mu_HQETPU0'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_HQET2_central_PU0_10-2-3'+MCend,
-'mu_PU0'         : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
-'mu_PU20'        : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-'mu_PUc0'        : MCloc+'BP_Tag_B0_MuNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'muSoft_PUc0'    : MCloc+'BP_Tag_B0_MuNuDmst_SoftQCDall_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'mu_PU35'        : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU35_10-2-3'+MCend,
-#
-'tau_PU0'        : MCloc+'B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
-'tau_PU20'       : MCloc+'BPH_Tag-B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-'tau_PUc0'       : MCloc+'BP_Tag_B0_TauNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+'mu'               : MCloc+'CP_BdToDstarMuNu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'+MCend,
+
+# 'mu_HQETPU0'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_HQET2_central_PU0_10-2-3'+MCend,
+# 'mu_PU0'         : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
+# 'mu_PU20'        : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+'old_mu_PUc0'      : MCloc+'BP_Tag_B0_MuNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'muSoft_PUc0'    : MCloc+'BP_Tag_B0_MuNuDmst_SoftQCDall_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'mu_PU35'        : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU35_10-2-3'+MCend,
+# #
+# 'tau_PU0'        : MCloc+'B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
+# 'tau_PU20'       : MCloc+'BPH_Tag-B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+# 'tau_PUc0'       : MCloc+'BP_Tag_B0_TauNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 # 'Hc_PU20'        : MCloc+'BPH_Tag-B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3'+MCend,
 # 'Hc_PUc0'        : MCloc+'BP_Tag_B0_DmstHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'DstmDsp_PUc0'      : MCloc+'BP_Tag_B0_DstmDsp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'DstmDp_PUc0'       : MCloc+'BP_Tag_B0_DstmDp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'DstmD0_PUc0'       : MCloc+'BP_Tag_B0_DstmD0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'DstmDsp_PUc0'      : MCloc+'BP_Tag_B0_DstmDsp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'DstmDp_PUc0'       : MCloc+'BP_Tag_B0_DstmDp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'DstmD0_PUc0'       : MCloc+'BP_Tag_B0_DstmD0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# #
+# 'BpDstmHc_PUc0'     : MCloc+'BP_Tag_Bp_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'BmDstmHc_PUc0'     : MCloc+'BP_Tag_Bm_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'antiB0DstmHc_PUc0' : MCloc+'BP_Tag_antiB0_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'BpDstmHc_PUc0'     : MCloc+'BP_Tag_Bp_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'BmDstmHc_PUc0'     : MCloc+'BP_Tag_Bm_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-'antiB0DstmHc_PUc0' : MCloc+'BP_Tag_antiB0_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'DstPip_PU20'       : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
+# 'DstPip_PUc0'       : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'DstPip_PU20'       : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-'DstPip_PUc0'       : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-#
-'DstPi0_PUc0'       : MCloc+'BP_Tag_B0_MuNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'DstPi0_PUc0'       : MCloc+'BP_Tag_B0_MuNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 # 'DstPi0_nR_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
 #
-'DstPipPi0_PUc0'    : MCloc+'BP_Tag_Bp_MuNuDstst_PipPi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'DstPipPi0_PUc0'    : MCloc+'BP_Tag_Bp_MuNuDstst_PipPi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 # 'DstPipPi0_nR_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPipPi0_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
-'DstPipPim_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_PipPim_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'DstPipPim_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_PipPim_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 # 'DstPipPim_nR_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPipPim_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
-'DstPi0Pi0_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'DstPi0Pi0_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 # 'B0_DstPiPiPi_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 # #
 # 'Bp_DstPiPiPi_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
 #
-'TauDstPip_PUc0'    : MCloc+'BP_Tag_Bp_TauNuDstst_Pip_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'TauDstPip_PUc0'    : MCloc+'BP_Tag_Bp_TauNuDstst_Pip_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
-'TauDstPi0_PUc0'    : MCloc+'BP_Tag_B0_TauNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
+# 'TauDstPi0_PUc0'    : MCloc+'BP_Tag_B0_TauNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
 #
 #
-'data_B0'          : RDloc+'*_RDntuplizer_B2DstMu_201101_CAND.root',
-'data_antiB0'      : RDloc+'*_RDntuplizer_antiB2DstMu_201122_CAND.root',
-'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_201125_CAND.root',
-'data_combDstpMup' : RDloc+'*_RDntuplizer_combDpstMup_201125_CAND.root',
-'data_DstmHadp'    : RDloc+'*_RDntuplizer_B2DstHad_201102_CAND.root',
-'data_DstpHadm'    : RDloc+'*_RDntuplizer_B2DstpHadm_201228_CAND.root'
+# 'data_B0'          : RDloc+'*_RDntuplizer_B2DstMu_201101_CAND.root',
+# 'data_antiB0'      : RDloc+'*_RDntuplizer_antiB2DstMu_201122_CAND.root',
+# 'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_201125_CAND.root',
+# 'data_combDstpMup' : RDloc+'*_RDntuplizer_combDpstMup_201125_CAND.root',
+# 'data_DstmHadp'    : RDloc+'*_RDntuplizer_B2DstHad_201102_CAND.root',
+# 'data_DstpHadm'    : RDloc+'*_RDntuplizer_B2DstpHadm_201228_CAND.root'
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -324,8 +326,7 @@ def extractEventInfos(j, ev, corr=None):
             e.tkPtError.insert(idx, ev.tksAdd_ptError[jj])
             e.tkEta.insert(idx, eta)
             e.tkPhi.insert(idx, phi)
-            auxQ = ev.trgMu_charge[0] if hasattr(ev, 'trgMu_charge') else ev.trgCand_charge[0]
-            e.tkCharge.insert(idx, ev.tksAdd_charge[jj]*auxQ)
+            e.tkCharge.insert(idx, ev.tksAdd_charge[jj]*ev.mu_charge[j])
             e.massVis_wTk.insert(idx, mVis_wTk)
             e.massHad_wTk.insert(idx, (p4_Dst + p4_tk).M())
             e.massMuTk.insert(idx, (p4_mu + p4_tk).M())
@@ -390,7 +391,7 @@ def makeSelection(inputs):
     if serial:
         pb = ProgressBar(maxEntry=idxInt[1]+1)
     else:
-        perc = int((idxInt[1]-idxInt[0])*0.3)
+        perc = int((idxInt[1]-idxInt[0])*0.35)
 
     output = np.zeros((int(1.5*(idxInt[1]-idxInt[0]+1)), len(leafs_names)))
 
@@ -424,7 +425,7 @@ def makeSelection(inputs):
 
             aux = (evEx.q2, evEx.Est_mu, evEx.M2_miss, evEx.U_miss,
                    evEx.q2_coll, evEx.Est_mu_coll, evEx.M2_miss_coll,
-                   evEx.mu_pt, evEx.mu_eta, evEx.mu_phi, ev.trgMu_sigdxy[idxTrg],
+                   ev.mu_charge[j], evEx.mu_pt, evEx.mu_eta, evEx.mu_phi, ev.trgMu_sigdxy_BS[idxTrg],
                    ev.mu_dca_vtxDst[j], ev.mu_sigdca_vtxDst[j],
                    ev.mu_dcaT_vtxDst[j], ev.mu_sigdcaT_vtxDst[j],
                    ev.mu_dca_vtxDstMu[j], ev.mu_sigdca_vtxDstMu[j],
@@ -467,6 +468,13 @@ def makeSelection(inputs):
                    ev.N_vertexes, ev.localVertexDensity[j]
                   )
             if not 'data' in n:
+                muSisPdgId = []
+                for id in ev.MC_muSistersPdgId:
+                    if np.abs(id) == 14: continue #neutrino
+                    muSisPdgId.append(id)
+                while len(muSisPdgId) < 2:
+                    muSisPdgId.append(0)
+
                 aux += (ev.MC_q2, ev.MC_Est_mu, ev.MC_M2_miss,
                         ev.MC_B_pt, ev.MC_B_eta, ev.MC_B_phi, ev.MC_B_ctau,
                         ev.MC_Dst_pt, ev.MC_Dst_eta, ev.MC_Dst_phi,
@@ -476,16 +484,18 @@ def makeSelection(inputs):
                         ev.MC_K_pt, ev.MC_K_eta, ev.MC_K_phi,
                         ev.MC_pis_pt, ev.MC_pis_eta, ev.MC_pis_phi,
                         ev.MC_idxCand == j,
-                        ev.MC_muMotherPdgId, ev.MC_munuSisterPdgId,
+                        ev.MC_muMotherPdgId,
+                        muSisPdgId[0], muSisPdgId[1],
                         ev.MC_MassCharmedBDaugther,
-                        ev.MC_DstMotherPdgId, ev.MC_DstSisPdgId_heavy, ev.MC_DstSisPdgId_light,
+                        ev.MC_DstMotherPdgId, ev.MC_CharmedDstSisPdgId, ev.MC_StrangeDstSisPdgId,
                         evEx.MC_tkFlag[0], evEx.MC_tkFlag[1],
                         evEx.MC_tk_dpt[0], evEx.MC_tk_dpt[1],
                         evEx.MC_tk_deta[0], evEx.MC_tk_deta[1],
                         evEx.MC_tk_dphi[0], evEx.MC_tk_dphi[1],
                         evEx.MC_tkPdgId[0], evEx.MC_tkPdgId[1],
                         evEx.MC_tkMotherPdgId[0], evEx.MC_tkMotherPdgId[1],
-                        evEx.MC_tkMotherMotherPdgId[0], evEx.MC_tkMotherMotherPdgId[1]
+                        evEx.MC_tkMotherMotherPdgId[0], evEx.MC_tkMotherMotherPdgId[1],
+                        ev.nTrueIntMC
                        )
             if 'mu' in n or 'tau' in n:
                 aux += (ev.wh_CLNCentral,
@@ -536,7 +546,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
     print n, catName
     if 'data' in n:
         loc = '../data/cmsRD/skimmed/B2DstMu'+ n.replace('data', '')
-        out = re.search('20[01][1-9][0-3][0-9]', filepath)
+        out = re.search('21[01][1-9][0-3][0-9]', filepath)
         if out is None:
             print filepath
             raise
@@ -547,7 +557,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         if not os.path.isdir(d):
             os.makedirs(d)
         fskimmed_name = d + catName
-        N_evts_per_job = 20000
+        N_evts_per_job = 30000
     if not skipCut == []:
         print 'Skipping cut(s)', skipCut
         if skipCut == 'all':
@@ -557,6 +567,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
     if trkControlRegion:
         print 'Track control region'
         fskimmed_name += '_trkCtrl'
+        N_evts_per_job *= 2
     if applyCorrections:
         print 'Appling corrections'
         fskimmed_name += '_corr'
@@ -570,6 +581,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         tree = rt.TChain('outA/Tevts')
         hAllNvtx = rt.TH1D('hAllNvtx', 'hAllNvtx', 101, -0.5, 100.5)
         hAllVtxZ = rt.TH1D('hAllVtxZ', 'hAllVtxZ', 100, -25, 25)
+        hAllNTrueIntMC = rt.TH1D('hAllNTrueIntMC', 'hAllNTrueIntMC', 101, -0.5, 100.5)
+
         print filepath
         print len(glob(filepath))
         for i,fn in enumerate(glob(filepath)):
@@ -580,6 +593,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 hAllNvtx.Add(hAux)
                 hAux = fAux.Get('trgF/hAllVtxZ')
                 hAllVtxZ.Add(hAux)
+                if not 'data' in n:
+                    hAux = fAux.Get('trgF/hAllNTrueIntMC')
+                    hAllNTrueIntMC.Add(hAux)
                 fAux.Close()
             except:
                 print '[ERROR] Problem with vertexes histograms in', fn
@@ -590,7 +606,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
 
         leafs_names = ['q2', 'Est_mu', 'M2_miss', 'U_miss',
                        'q2_coll', 'Est_mu_coll', 'M2_miss_coll',
-                       'mu_pt', 'mu_eta', 'mu_phi', 'mu_sigdxy',
+                       'mu_charge', 'mu_pt', 'mu_eta', 'mu_phi', 'mu_sigdxy',
                        'mu_dca_vtxDst', 'mu_sigdca_vtxDst',
                        'mu_dcaT_vtxDst', 'mu_sigdcaT_vtxDst',
                        'mu_dca_vtxDstMu', 'mu_sigdca_vtxDstMu',
@@ -638,16 +654,18 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'MC_K_pt', 'MC_K_eta', 'MC_K_phi',
                             'MC_pis_pt', 'MC_pis_eta', 'MC_pis_phi',
                             'MC_idxMatch',
-                            'MC_muMotherPdgId', 'MC_munuSisterPdgId',
+                            'MC_muMotherPdgId',
+                            'MC_munuSisterPdgId_0', 'MC_munuSisterPdgId_1',
                             'MC_MassCharmedBDaughter',
-                            'MC_DstMotherPdgId', 'MC_DstSisterPdgId_heavy', 'MC_DstSisterPdgId_light',
+                            'MC_DstMotherPdgId', 'MC_CharmedDstSisPdgId', 'MC_StrangeDstSisPdgId',
                             'MC_tkFlag_0', 'MC_tkFlag_1',
                             'MC_tk_dpt_0', 'MC_tk_dpt_1',
                             'MC_tk_deta_0', 'MC_tk_deta_1',
                             'MC_tk_dphi_0', 'MC_tk_dphi_1',
                             'MC_tkPdgId_0', 'MC_tkPdgId_1',
                             'MC_tkMotherPdgId_0', 'MC_tkMotherPdgId_1',
-                            'MC_tkMotherMotherPdgId_0', 'MC_tkMotherMotherPdgId_1'
+                            'MC_tkMotherMotherPdgId_0', 'MC_tkMotherMotherPdgId_1',
+                            'MC_nInteractions'
                            ]
         if 'mu' in n or 'tau' in n:
             leafs_names += ['wh_CLNCentral',
@@ -742,6 +760,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         fAux = rt.TFile.Open(fskimmed_name, 'UPDATE')
         hAllNvtx.Write()
         hAllVtxZ.Write()
+        if not 'data' in n:
+            hAllNTrueIntMC.Write()
         fAux.Close()
 
         with open(logfile, 'w') as f:
@@ -762,8 +782,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
 def createSubmissionFile(tmpDir, njobs):
     fjob = open(tmpDir+'/job.sh', 'w')
     fjob.write('#!/bin/bash\n')
-    fjob.write('source /cvmfs/cms.cern.ch/cmsset_default.sh; cd /storage/user/ocerri/CMSSW_10_2_3/; eval `scramv1 runtime -sh`\n')
-    fjob.write('cd /storage/user/ocerri/BPhysics/scripts\n')
+    fjob.write('source /cvmfs/cms.cern.ch/cmsset_default.sh; cd /storage/af/user/ocerri/CMSSW_10_2_3/; eval `scramv1 runtime -sh`\n')
+    fjob.write('cd /storage/af/user/ocerri/BPhysics/scripts\n')
     fjob.write('python B2DstMu_skimCAND_v1.py --function makeSel --tmpDir $1 --jN $2\n')
     os.system('chmod +x {}/job.sh'.format(tmpDir))
 
@@ -804,13 +824,13 @@ def createSubmissionFile(tmpDir, njobs):
     fsub.write('\n')
     fsub.write('on_exit_hold = (ExitBySignal == True) || (ExitCode != 0)')   # Send the job to Held state on failure.
     fsub.write('\n')
-    fsub.write('periodic_release =  (NumJobStarts < 3) && ((CurrentTime - EnteredCurrentStatus) > (60*20))')   # Periodically retry the jobs for 3 times with an interval of 20 minutes.
+    fsub.write('periodic_release =  (NumJobStarts < 2) && ((CurrentTime - EnteredCurrentStatus) > (60*20))')   # Periodically retry the jobs for 2 times with an interval of 20 minutes.
     fsub.write('\n')
     fsub.write('+PeriodicRemove = ((JobStatus =?= 2) && ((MemoryUsage =!= UNDEFINED && MemoryUsage > 2.5*RequestMemory)))')
     fsub.write('\n')
     fsub.write('max_retries    = 3')
     fsub.write('\n')
-    fsub.write('requirements   = Machine =!= LastRemoteHost')
+    fsub.write('requirements   = Machine =!= LastRemoteHost && regexp("blade-.*", TARGET.Machine)')
     fsub.write('\n')
     fsub.write('universe = vanilla')
     fsub.write('\n')

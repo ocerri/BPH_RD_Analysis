@@ -34,10 +34,10 @@ from B02JpsiKst_selection import candidate_selection, category_selection
 
 import argparse
 parser = argparse.ArgumentParser()
-#Example: python B2JpsiKst_skimCAND_v1.py -d n_PUc0 --maxEvents 80000 --applyCorr
+#Example: python B2JpsiKst_skimCAND_v1.py -d CP_general --maxEvents 80000 --applyCorr
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
-parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
+parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'none'], default='jobs', help='Function to perform')
 parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
 parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
@@ -56,19 +56,19 @@ MCend = '/ntuples_B2JpsiKst/out_CAND_*.root'
 RDloc = '../data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {
-'n_PU0'         : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU0_10-2-3'+MCend,
-'n_PU20'        : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU20_10-2-3'+MCend,
-'n_PUc0'        : MCloc+'BP_Tag-Probe_B0_JpsiKst_Hardbbbar_evtgen_HELAMP_PUc0_10-2-3'+MCend,
-'n_PU35'        : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU35_10-2-3'+MCend,
-#
-'fsr_PU20'      : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgenFSR_SVV_PU20_10-2-3'+MCend,
-#
-'s_PU0'         : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_SoftQCD_PTFilter5_0p0-evtgen_SVV_PU0_10-2-3'+MCend,
-#
-#
+'CP_general'    : MCloc+'CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'+MCend,
 
-# 'data' : RDloc+'*2018*B2JpsiKst_200521_CAND.root'
-'data' : RDloc+'*2018*B2JpsiKst_200622_CAND.root'
+'data'          : RDloc+'*2018*B2JpsiKst_210501_CAND.root',
+
+## OLD
+# 'n_PU0'         : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU0_10-2-3'+MCend,
+# 'n_PU20'        : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU20_10-2-3'+MCend,
+'old_PUc0'        : MCloc+'BP_Tag-Probe_B0_JpsiKst_Hardbbbar_evtgen_HELAMP_PUc0_10-2-3'+MCend,
+# 'n_PU35'        : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU35_10-2-3'+MCend,
+# 'fsr_PU20'      : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgenFSR_SVV_PU20_10-2-3'+MCend,
+# 's_PU0'         : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_SoftQCD_PTFilter5_0p0-evtgen_SVV_PU0_10-2-3'+MCend,
+#
+# 'data' : RDloc+'*2018*B2JpsiKst_200622_CAND.root'
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -106,28 +106,9 @@ def compMass(pt1, pt2, eta1, eta2, phi1, phi2, m1, m2):
     p1p2 = pt1 * pt2 * (np.cos(phi1 - phi2) + np.sinh(eta1) * np.sinh(eta2))
     return np.sqrt(m1**2 + m2**2 + 2*(E1*E2 - p1p2))
 
-def compMass3(pt1, pt2, pt3, eta1, eta2, eta3, phi1, phi2, phi3, m1, m2, m3):
-    E1 = np.hypot(m1, pt1*np.cosh(eta1))
-    E2 = np.hypot(m2, pt2*np.cosh(eta2))
-    E3 = np.hypot(m3, pt3*np.cosh(eta3))
-    p1p2 = pt1 * pt2 * (np.cos(phi1 - phi2) + np.sinh(eta1) * np.sinh(eta2))
-    p1p3 = pt1 * pt3 * (np.cos(phi1 - phi3) + np.sinh(eta1) * np.sinh(eta3))
-    p2p3 = pt2 * pt3 * (np.cos(phi2 - phi3) + np.sinh(eta2) * np.sinh(eta3))
-    return np.sqrt(m1**2 + m2**2 + m3**2 + 2*(E1*E2 - p1p2) + 2*(E1*E3 - p1p3) + 2*(E2*E3 - p2p3))
-
 def SumPt(pt1, pt2, phi1, phi2):
     pSq = pt1**2 + pt2**2 + 2*pt1*pt2*np.cos(phi1-phi2)
     return np.sqrt(pSq)
-
-def insertOrdered(list, el):
-    if len(list) == 0:
-        return 0, [el]
-    else:
-        for il in range(len(list)):
-            if list[il] < el:
-                break
-        # list = list[:il] + [el] + list[il:]
-        return il, list[:il] + [el] + list[il:]
 
 def extractEventInfos(j, ev, corr=None):
     m_mu   = 0.105658
@@ -192,13 +173,15 @@ def extractEventInfos(j, ev, corr=None):
 
     e.mass_KK = compMass(e.pi_pt, e.K_pt, e.pi_eta, e.K_eta, e.pi_phi, e.K_phi, m_K, m_K)
 
-    e.isAntiB = abs(e.mass_piK - m_Kst) > abs(e.mass_Kpi - m_Kst)
-    e.mass_candKst = e.mass_Kpi if e.isAntiB else e.mass_piK
-    e.mass_candB = e.mass_mumuKpi_cJpsi if e.isAntiB else e.mass_mumupiK_cJpsi
-    if e.isAntiB:
-        e.B_pt = p4_B.Pt()
-        e.B_eta = p4_B.Eta()
-        e.B_phi = p4_B.Phi()
+    if ev.K_charge[j] > 0 and ev.pi_charge[j] < 0:
+        e.isAntiB = 0
+    elif ev.K_charge[j] < 0 and ev.pi_charge[j] > 0:
+        e.isAntiB = 1
+    else:
+        print 'Charges not matching: K:{}  pi:{}'.format(ev.K_charge[j], ev.pi_charge[j])
+        raise
+    e.mass_candKst = e.mass_piK
+    e.mass_candB = e.mass_mumupiK_cJpsi
 
     return e
 
@@ -222,7 +205,7 @@ def makeSelection(inputs):
     if serial:
         pb = ProgressBar(maxEntry=idxInt[1]+1)
     else:
-        perc = int((idxInt[1]-idxInt[0])*0.3)
+        perc = int((idxInt[1]-idxInt[0])*0.35)
 
     output = np.zeros((int(1.5*(idxInt[1]-idxInt[0]+1)), len(leafs_names)))
 
@@ -255,8 +238,8 @@ def makeSelection(inputs):
 
             aux = (evEx.trgMu_pt, evEx.trgMu_eta, evEx.trgMu_sigdxy,
                    evEx.otherMu_pt,
-                   evEx.mum_pt, evEx.mum_eta, evEx.mum_phi, ev.mum_dxy[j],
-                   evEx.mup_pt, evEx.mup_eta, evEx.mup_phi, ev.mup_dxy[j],
+                   evEx.mum_pt, evEx.mum_eta, evEx.mum_phi, ev.mum_dxy_PV[j],
+                   evEx.mup_pt, evEx.mup_eta, evEx.mup_phi, ev.mup_dxy_PV[j],
                    ev.pval_mumu[j], evEx.mass_mumu,
                    evEx.Jpsi_pt, ev.cosT_Jpsi_PV[j],
                    evEx.K_pt, evEx.K_eta, evEx.K_phi, ev.K_sigdxy_PV[j],
@@ -280,7 +263,8 @@ def makeSelection(inputs):
                         ev.MC_mup_pt, ev.MC_mup_eta,
                         ev.MC_mum_pt, ev.MC_mum_eta,
                         ev.MC_d_vtxB, ev.MC_dxy_vtxB,
-                        ev.d_vtxB_PV_mumupiK[j], ev.dxy_vtxB_PV[j]
+                        ev.d_vtxB_PV_mumupiK[j], ev.dxy_vtxB_PV[j],
+                        ev.nTrueIntMC
                         )
             ev_output.append(aux)
 
@@ -317,7 +301,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
     print n, catName
     if 'data' in n:
         loc = '../data/cmsRD/skimmed/B2JpsiKst'+ n.replace('data', '')
-        out = re.search('20[01][1-9][0-3][0-9]', filepath)
+        out = re.search('21[01][1-9][0-3][0-9]', filepath)
         if out is None:
             print filepath
             raise
@@ -348,6 +332,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         tree = rt.TChain('outA/Tevts')
         hAllNvtx = rt.TH1D('hAllNvtx', 'hAllNvtx', 101, -0.5, 100.5)
         hAllVtxZ = rt.TH1D('hAllVtxZ', 'hAllVtxZ', 100, -25, 25)
+        hAllNTrueIntMC = rt.TH1D('hAllNTrueIntMC', 'hAllNTrueIntMC', 101, -0.5, 100.5)
+
         for fn in glob(filepath):
             tree.Add(fn)
             fAux = rt.TFile.Open(fn, 'READ')
@@ -355,7 +341,13 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
             hAllNvtx.Add(hAux)
             hAux = fAux.Get('trgF/hAllVtxZ')
             hAllVtxZ.Add(hAux)
+
+            if not 'data' in n:
+                hAux = fAux.Get('trgF/hAllNTrueIntMC')
+                hAllNTrueIntMC.Add(hAux)
+
             fAux.Close()
+
         print 'Computing events from {} files'.format(tree.GetNtrees())
         N_cand_in = min(maxEvents, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
@@ -385,7 +377,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                             'MC_mup_pt', 'MC_mup_eta',
                             'MC_mum_pt', 'MC_mum_eta',
                             'MC_d_vtxB', 'MC_dxy_vtxB',
-                            'd_vtxB_PV', 'dxy_vtxB_PV'
+                            'd_vtxB_PV', 'dxy_vtxB_PV',
+                            'MC_nInteractions'
                            ]
 
         applyCorr = None
@@ -461,6 +454,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         fAux = rt.TFile.Open(fskimmed_name, 'UPDATE')
         hAllNvtx.Write()
         hAllVtxZ.Write()
+        if not 'data' in n:
+            hAllNTrueIntMC.Write()
         fAux.Close()
 
         with open(logfile, 'w') as f:
@@ -481,8 +476,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
 def createSubmissionFile(tmpDir, njobs):
     fjob = open(tmpDir+'/job.sh', 'w')
     fjob.write('#!/bin/bash\n')
-    fjob.write('source /cvmfs/cms.cern.ch/cmsset_default.sh; cd /storage/user/ocerri/CMSSW_10_2_3/; eval `scramv1 runtime -sh`\n')
-    fjob.write('cd /storage/user/ocerri/BPhysics/scripts\n')
+    fjob.write('source /cvmfs/cms.cern.ch/cmsset_default.sh; cd /storage/af/user/ocerri/CMSSW_10_2_3/; eval `scramv1 runtime -sh`\n')
+    fjob.write('cd /storage/af/user/ocerri/BPhysics/scripts\n')
     fjob.write('python B2JpsiKst_skimCAND_v1.py --function makeSel --tmpDir $1 --jN $2\n')
     os.system('chmod +x {}/job.sh'.format(tmpDir))
 
@@ -523,13 +518,13 @@ def createSubmissionFile(tmpDir, njobs):
     fsub.write('\n')
     fsub.write('on_exit_hold = (ExitBySignal == True) || (ExitCode != 0)')   # Send the job to Held state on failure.
     fsub.write('\n')
-    fsub.write('periodic_release =  (NumJobStarts < 3) && ((CurrentTime - EnteredCurrentStatus) > (60*20))')   # Periodically retry the jobs for 3 times with an interval of 20 minutes.
+    fsub.write('periodic_release =  (NumJobStarts < 2) && ((CurrentTime - EnteredCurrentStatus) > (60*20))')   # Periodically retry the jobs for 3 times with an interval of 20 minutes.
     fsub.write('\n')
     fsub.write('+PeriodicRemove = ((JobStatus =?= 2) && ((MemoryUsage =!= UNDEFINED && MemoryUsage > 2.5*RequestMemory)))')
     fsub.write('\n')
     fsub.write('max_retries    = 3')
     fsub.write('\n')
-    fsub.write('requirements   = Machine =!= LastRemoteHost')
+    fsub.write('requirements   = Machine =!= LastRemoteHost && regexp("blade-.*", TARGET.Machine)')
     fsub.write('\n')
     fsub.write('universe = vanilla')
     fsub.write('\n')

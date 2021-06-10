@@ -1,4 +1,5 @@
 import numpy as np
+import re
 
 def exclusiveTrigger(j, ev, trgAcc, trgNegate = []):
     prefix = ''
@@ -17,11 +18,19 @@ def exclusiveTrigger(j, ev, trgAcc, trgNegate = []):
     return True
 
 def trigger_selection(j, ev, evEx, cat):
+    if ev.trgMu_L1_dR[j] > 0.5:
+        return False
+    ptThr = float(re.search('Mu[0-9]+_', cat.trg).group(0)[2:-1])
+    if np.abs(ev.trgMu_L1_pt[j]) < ptThr:
+        return False
+    if np.abs(ev.trgMu_L1_eta[j]) > 1.5:
+        return False
+
     if not exclusiveTrigger(j, ev, 'HLT_' + cat.trg):
         return False
     if evEx.mu_pt < cat.min_pt or evEx.mu_pt > cat.max_pt:
         return False
-    if not ev.trgMu_sigdxy[j] > cat.minIP:
+    if not ev.trgMu_sigdxy_BS[j] > cat.minIP:
         return False
     eta = ev.trgMu_eta[j] if hasattr(ev, 'trgMu_eta') else ev.trgCand_eta[j]
     if not abs(eta) < 1.5:

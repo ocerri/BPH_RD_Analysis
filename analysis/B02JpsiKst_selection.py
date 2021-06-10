@@ -1,4 +1,5 @@
 import numpy as np
+import re
 
 def exclusiveTrigger(j, ev, trgAcc, trgNegate = []):
     if not hasattr(ev, 'trgMu_'+trgAcc):
@@ -12,11 +13,20 @@ def exclusiveTrigger(j, ev, trgAcc, trgNegate = []):
     return True
 
 def trigger_selection(iMu, ev, cat, muPt, muEta):
+    if ev.trgMu_L1_dR[iMu] > 0.5:
+        return False
+    ptThr = float(re.search('Mu[0-9]+_', cat.trg).group(0)[2:-1])
+    if np.abs(ev.trgMu_L1_pt[iMu]) < ptThr:
+        return False
+    if np.abs(ev.trgMu_L1_eta[iMu]) > 1.5:
+        return False
+
     if not exclusiveTrigger(iMu, ev, 'HLT_' + cat.trg):
         return False
+
     if muPt < cat.min_pt or muPt > cat.max_pt:
         return False
-    if not ev.trgMu_sigdxy[iMu] > cat.minIP:
+    if not ev.trgMu_sigdxy_BS[iMu] > cat.minIP:
         return False
     if not abs(muEta) < 1.5:
         return False
@@ -42,12 +52,12 @@ def category_selection(j, ev, evEx, cat, saveTrgMu=False):
         if passed[0]:
             evEx.trgMu_pt = evEx.mup_pt
             evEx.trgMu_eta = evEx.mup_eta
-            evEx.trgMu_sigdxy = ev.trgMu_sigdxy[int(ev.mup_isTrg[j])]
+            evEx.trgMu_sigdxy = ev.trgMu_sigdxy_BS[int(ev.mup_isTrg[j])]
             evEx.otherMu_pt = evEx.mum_pt
         elif passed[1]:
             evEx.trgMu_pt = evEx.mum_pt
             evEx.trgMu_eta = evEx.mum_eta
-            evEx.trgMu_sigdxy = ev.trgMu_sigdxy[int(ev.mum_isTrg[j])]
+            evEx.trgMu_sigdxy = ev.trgMu_sigdxy_BS[int(ev.mum_isTrg[j])]
             evEx.otherMu_pt = evEx.mup_pt
         else:
             evEx.trgMu_pt = -1
@@ -62,14 +72,14 @@ def candidate_selection(j, ev, evEx, skipCut=None):
         return False
     if not evEx.mup_pt > 3.5:
         return False
-    if not ev.mup_dxy[j] < 3:
+    if not ev.mup_dxy_PV[j] < 3:
         return False
 
     if not abs(evEx.mum_eta) < 2.2:
         return False
     if not evEx.mum_pt > 3.5:
         return False
-    if not ev.mum_dxy[j] < 3:
+    if not ev.mum_dxy_PV[j] < 3:
         return False
 
     if not ev.pval_mumu[j] > 0.1:

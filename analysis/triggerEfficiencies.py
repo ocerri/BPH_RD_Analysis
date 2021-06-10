@@ -97,7 +97,7 @@ branchesToLoad = ['mTag_pt', 'mTag_eta', 'mTag_phi', 'mTag_sigdxy_BS', 'mTag_sig
                   'mTag_softID', 'mTag_tightID',
                   'mTag_HLT_Mu7_IP4', 'mTag_HLT_Mu9_IP6', 'mTag_HLT_Mu12_IP6',
                   'mProbe_pt', 'mProbe_eta', 'mProbe_phi', 'mProbe_sigdxy_BS', 'mProbe_sigdxy_PV',
-                  'mProbe_L1_pt', 'mProbe_L1_dR',
+                  'mProbe_L1_pt', 'mProbe_L1_eta', 'mProbe_L1_dR',
                   'mProbe_softID', 'mProbe_tightID',
                   'mProbe_HLT_Mu7_IP4', 'mProbe_HLT_Mu9_IP6', 'mProbe_HLT_Mu12_IP6',
                   'deltaR_tagProbe', 'massMuMu', 'vtx_isGood', 'massMuMu_refit',
@@ -121,7 +121,8 @@ if args.dataset == 'RD':
     dataDir = '../data/cmsRD'
     # RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210209_CAND.root')
     # RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210309_CAND.root')
-    RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210410_CAND.root')
+    # RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210410_CAND.root')
+    RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210423_CAND.root')
     df = loadDF(RDdsLoc, branchesToLoad)
     print 'Data probe muons:', df.shape[0]
     CMS_lumi.extraText = "     Internal"
@@ -317,12 +318,13 @@ def analyzeBin(idx, verbose=False):
         selTot = np.logical_and(selTot, df['mTag_HLT_' + args.tagTrigger] == 1)
 
 
-    dptRel = np.abs(df['mProbe_L1_pt']/df['mProbe_pt']) - 1
-    l1Matching = np.logical_and(dptRel < 0.4, df['mProbe_L1_dR'] < 0.2)
+    ## Require L1 mathing
+    # dptRel = np.abs(df['mProbe_L1_pt']/df['mProbe_pt']) - 1
+    l1Matching = np.logical_and(df['mProbe_L1_pt'] > 0, df['mProbe_L1_dR'] < 0.5)
     selPass = np.logical_and(selTot, l1Matching)
-
     ptThr = float(re.search('Mu[0-9]+_', probeTrigger).group(0)[2:-1])
     selPass = np.logical_and(selPass, df['mProbe_L1_pt'] > ptThr)
+    selPass = np.logical_and(selPass, np.abs(df['mProbe_L1_eta']) < 1.5)
     selPass = np.logical_and(selPass, df['mProbe_' + probeTrigger] == 1)
 
     # selPass = np.logical_and(selTot, df['mProbe_' + probeTrigger] == 1)
@@ -362,7 +364,7 @@ def analyzeBin(idx, verbose=False):
 
     if verbose:
         print 'Time: {:.1f} s'.format(time.time()-st)
-    print idx, nSigTot, nSigPass, 'done'
+    print idx, '{:.1f}/{:.1f}'.format(nSigPass, nSigTot), 'done'
     return idx, nSigTot, nSigPass
 
 

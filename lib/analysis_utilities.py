@@ -106,10 +106,10 @@ def getEff(k,N):
 
 class DSetLoader(object):
     def __init__(self, in_sample,
-                 candLoc='/storage/user/ocerri/BPhysics/data/cmsMC_private/',
+                 candLoc='/storage/af/user/ocerri/BPhysics/data/cmsMC_private/',
                  candDir='ntuples_B2DstMu',
-                 site_loc_conf = '/mnt/hadoop/store/user/ocerri',
-                 sampleFile = '/storage/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml',
+                 site_loc_conf = '/storage/cms/store/user/ocerri/',
+                 sampleFile = '/storage/af/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml',
                  loadSkim=None
                  ):
         samples = yaml.load(open(sampleFile))['samples']
@@ -127,6 +127,10 @@ class DSetLoader(object):
             else:
                 aux = glob(site_loc_conf + part[:-38].replace('ocerri-','') + '/*/*')
             self.MINIAOD_dirs += aux
+
+        aux = os.path.dirname(sampleFile) + '/inputFiles_' + samples[self.sample]['dataset'] + '.txt'
+        fAux = open(aux, 'r')
+        self.MINIAOD_filelist = [ x[:-1]for x in fAux.readlines()]
 
         self.full_name = samples[self.sample]['dataset']
 
