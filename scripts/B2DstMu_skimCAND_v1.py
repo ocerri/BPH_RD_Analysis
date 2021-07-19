@@ -4,33 +4,26 @@
 #############################################################################
 import sys, os, pickle, time, re
 from glob import glob
-sys.path.append('../lib')
-sys.path.append('../analysis')
-import itertools
-import json
 from multiprocessing import Pool
 import commands
+from os.path import join
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-from scipy.interpolate import interp1d
-from array import array
 
-import uproot as ur
+try:
+    from analysis_utilities import getEff
+except ImportError:
+    print >> sys.stderr, "Make sure to source the env.sh file in the repo!"
+    raise
+from progressBar import ProgressBar
+from categoriesDef import categories
+from B02DstMu_selection import candidate_selection, trigger_selection
+
 import ROOT as rt
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
-
-from analysis_utilities import drawOnCMSCanvas, getEff
-from histo_utilities import create_TH1D, create_TH2D, std_color_list, SetMaxToMaxHist
-from cebefo_style import Set_2D_colz_graphics
-from gridVarQ2Plot import col_dic, plot_gridVarQ2
-from progressBar import ProgressBar
-from categoriesDef import categories
-from B02DstMu_selection import candidate_selection, trigger_selection
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -52,66 +45,30 @@ args = parser.parse_args()
 #############################################################################
 ####                          Datset declaration                         ####
 #############################################################################
-MCloc = '../data/cmsMC_private/'
-MCend = '/ntuples_B2DstMu/out_CAND_*.root'
-# MCend = '/ntuples_B2DstMu_BS/out_CAND_*.root'
-RDloc = '../data/cmsRD/ParkingBPH*/'
+root = join(os.environ['HOME'],'BPhysics/data')
+MCloc = join(root,'cmsMC/')
+MCend = 'ntuples_B2DstMu/out_CAND_*.root'
+RDloc = join(root,'cmsRD/ParkingBPH*/')
 
 filesLocMap = {
-'mu'               : MCloc+'CP_BdToDstarMuNu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'+MCend,
-
-# 'mu_HQETPU0'     : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_HQET2_central_PU0_10-2-3'+MCend,
-# 'mu_PU0'         : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
-# 'mu_PU20'        : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-'old_mu_PUc0'      : MCloc+'BP_Tag_B0_MuNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# 'muSoft_PUc0'    : MCloc+'BP_Tag_B0_MuNuDmst_SoftQCDall_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# 'mu_PU35'        : MCloc+'BPH_Tag-B0_MuNuDmst-pD0bar-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU35_10-2-3'+MCend,
-# #
-# 'tau_PU0'        : MCloc+'B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU0_10-2-3'+MCend,
-# 'tau_PU20'       : MCloc+'BPH_Tag-B0_TauNuDmst-pD0bar-kp-t2mnn_pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-# 'tau_PUc0'       : MCloc+'BP_Tag_B0_TauNuDmst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-#
-# 'Hc_PU20'        : MCloc+'BPH_Tag-B0_DmstHc-pD0bar-kp-Hc2mu_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_PU20_10-2-3'+MCend,
-# 'Hc_PUc0'        : MCloc+'BP_Tag_B0_DmstHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-#
-# 'DstmDsp_PUc0'      : MCloc+'BP_Tag_B0_DstmDsp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# 'DstmDp_PUc0'       : MCloc+'BP_Tag_B0_DstmDp_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# 'DstmD0_PUc0'       : MCloc+'BP_Tag_B0_DstmD0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# #
-# 'BpDstmHc_PUc0'     : MCloc+'BP_Tag_Bp_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# 'BmDstmHc_PUc0'     : MCloc+'BP_Tag_Bm_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# 'antiB0DstmHc_PUc0' : MCloc+'BP_Tag_antiB0_DstmHc_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-#
-# 'DstPip_PU20'       : MCloc+'BPH_Tag-Bp_MuNuDstst_DmstPi_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_ISGW2_PU20_10-2-3'+MCend,
-# 'DstPip_PUc0'       : MCloc+'BP_Tag_Bp_MuNuDstst_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-#
-# 'DstPi0_PUc0'       : MCloc+'BP_Tag_B0_MuNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# 'DstPi0_nR_PUc0'    : MCloc+'BP_Tag_B0_DmstPi0MuNu_Hardbbbar_evtgen_GR_PUc0_10-2-3'+MCend,
-#
-# 'DstPipPi0_PUc0'    : MCloc+'BP_Tag_Bp_MuNuDstst_PipPi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# 'DstPipPi0_nR_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPipPi0_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
-#
-# 'DstPipPim_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_PipPim_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-# 'DstPipPim_nR_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPipPim_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
-#
-# 'DstPi0Pi0_PUc0'    : MCloc+'BP_Tag_B0_MuNuDstst_Pi0Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-#
-# 'B0_DstPiPiPi_PUc0' : MCloc+'BP_Tag_B0_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
-# #
-# 'Bp_DstPiPiPi_PUc0' : MCloc+'BP_Tag_Bp_MuNuDstPiPiPi_Hardbbbar_evtgen_PHSP_PUc0_10-2-3'+MCend,
-#
-# 'TauDstPip_PUc0'    : MCloc+'BP_Tag_Bp_TauNuDstst_Pip_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-#
-# 'TauDstPi0_PUc0'    : MCloc+'BP_Tag_B0_TauNuDstst_Pi0_Hardbbbar_evtgen_ISGW2_PUc0_10-2-3'+MCend,
-#
-#
-# 'data_B0'          : RDloc+'*_RDntuplizer_B2DstMu_201101_CAND.root',
-# 'data_antiB0'      : RDloc+'*_RDntuplizer_antiB2DstMu_201122_CAND.root',
-# 'data_combDstmMum' : RDloc+'*_RDntuplizer_combDmstMum_201125_CAND.root',
-# 'data_combDstpMup' : RDloc+'*_RDntuplizer_combDpstMup_201125_CAND.root',
-# 'data_DstmHadp'    : RDloc+'*_RDntuplizer_B2DstHad_201102_CAND.root',
-# 'data_DstpHadm'    : RDloc+'*_RDntuplizer_B2DstpHadm_201228_CAND.root'
+    "BdToDstarMuNu"        : "CP_BdToDstarMuNu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BdToDstarTauNu"       : "CP_BdToDstarTauNu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BuToMuNuDstPi"        : "CP_BuToMuNuDstPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BdToMuNuDstPi"        : "CP_BdToMuNuDstPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BdToMuNuDstPiPi"      : "CP_BdToMuNuDstPiPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BuToMuNuDstPiPi"      : "CP_BuToMuNuDstPiPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BuToTauNuDstPi"       : "CP_BuToTauNuDstPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BdToTauNuDstPi"       : "CP_BdToTauNuDstPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BdToTauNuDstPiPi"     : "CP_BdToTauNuDstPiPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BuToTauNuDstPiPi"     : "CP_BuToTauNuDstPiPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BsToMuNuDstK"         : "CP_BsToMuNuDstK_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BsToTauNuDstK"        : "CP_BsToTauNuDstK_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "General_BdToJpsiKstar": "CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "General_BuToJpsiK"    : "CP_General_BuToJpsiK_BMuonFilter_TuneCP5_13TeV-pythia8-evtgen"
 }
+
+for key in filesLocMap:
+    filesLocMap[key] = join(MCloc,filesLocMap[key],MCend)
 
 def getTLVfromField(ev, n, idx, mass):
     v = rt.TLorentzVector()
@@ -124,13 +81,17 @@ def getTLVfromField(ev, n, idx, mass):
 class Container(object):
     pass
 
-fBfield = rt.TFile.Open('../data/calibration/bFieldMap_2Dover3D.root', 'r')
-hBfieldMapsRatio = fBfield.Get('bfieldMap')
+hBfieldMapsRatio = None
+
 def get_bFieldCorr3D(phi, eta, verbose=False):
+    global hBfieldMapsRatio
     if np.abs(eta) > 2.4:
         eta = 2.39*np.sign(eta)
     if np.abs(phi) > np.pi:
         phi = phi - 2*np.pi*np.sign(phi)
+    if hBfieldMapsRatio is None:
+        fBfield = rt.TFile.Open(join(root,'calibration/bFieldMap_2Dover3D.root'), 'r')
+        hBfieldMapsRatio = fBfield.Get('bfieldMap')
     idx = hBfieldMapsRatio.GetBin(hBfieldMapsRatio.GetXaxis().FindBin(phi), hBfieldMapsRatio.GetYaxis().FindBin(eta))
     return 1./hBfieldMapsRatio.GetBinContent(idx)
 
@@ -545,7 +506,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
     print '\n' + 50*'-'
     print n, catName
     if 'data' in n:
-        loc = '../data/cmsRD/skimmed/B2DstMu'+ n.replace('data', '')
+        loc = join(root,'cmsRD/skimmed/B2DstMu'+ n.replace('data', ''))
         out = re.search('21[01][1-9][0-3][0-9]', filepath)
         if out is None:
             print filepath
@@ -782,13 +743,17 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
 def createSubmissionFile(tmpDir, njobs):
     fjob = open(tmpDir+'/job.sh', 'w')
     fjob.write('#!/bin/bash\n')
-    fjob.write('source /cvmfs/cms.cern.ch/cmsset_default.sh; cd /storage/af/user/ocerri/CMSSW_10_2_3/; eval `scramv1 runtime -sh`\n')
-    fjob.write('cd /storage/af/user/ocerri/BPhysics/scripts\n')
-    fjob.write('python B2DstMu_skimCAND_v1.py --function makeSel --tmpDir $1 --jN $2\n')
+    fjob.write('source /cvmfs/cms.cern.ch/cmsset_default.sh;\n')
+    fjob.write('cd %s/RDstAnalysis/CMSSW_10_2_3/;\n' % os.environ['HOME'])
+    fjob.write('eval `scramv1 runtime -sh`\n')
+    fjob.write('cd %s/RDstAnalysis/BPH_RD_Analysis/\n' % os.environ['HOME'])
+    fjob.write('export PYTHONPATH=%s/RDstAnalysis/BPH_RD_Analysis/lib:$PYTHONPATH\n' % os.environ['HOME'])
+    fjob.write('export PYTHONPATH=%s/RDstAnalysis/BPH_RD_Analysis/analysis:$PYTHONPATH\n' % os.environ['HOME'])
+    fjob.write('python ./scripts/B2DstMu_skimCAND_v1.py --function makeSel --tmpDir $1 --jN $2\n')
     os.system('chmod +x {}/job.sh'.format(tmpDir))
 
     fsub = open(tmpDir+'/jobs.jdl', 'w')
-    fsub.write('executable    = ' + tmpDir+'/job.sh')
+    fsub.write('executable    = ' + tmpDir + '/job.sh')
     fsub.write('\n')
     fsub.write('arguments     = {} $(ProcId) '.format(tmpDir))
     fsub.write('\n')
@@ -842,13 +807,14 @@ if __name__ == "__main__":
     if args.function == 'main':
         file_loc = {}
         for n in args.dataset:
-            for kn in filesLocMap.keys():
-                if not re.match(n, kn) is None:
+            for kn in filesLocMap:
+                if re.match(n, kn):
                     print 'Adding', kn
                     file_loc[kn] = filesLocMap[kn]
-        if len(file_loc.keys()) == 0:
+
+        if len(file_loc) == 0:
             print 'No dataset provided'
-            exit()
+            exit(1)
 
         recreate = []
         if args.recreate:
