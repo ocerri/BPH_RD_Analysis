@@ -1,21 +1,34 @@
 #!/usr/bin/env python
-#############################################################################
-####                              Imports                                ####
-#############################################################################
+"""
+Script for running the skimmer. After you have created the ntuples, you can run
+this script by running:
+
+    $ python B2DstMu_skimCAND_v1.py -d BdToDstarMuNu --applyCorr
+
+The argument to `-d` can be a regular expression, so if you want it to match
+all the soft QCD MC events you can run:
+
+    $ python B2DstMu_skimCAND_v1.py -d SoftQCDnonD --applyCorr
+
+You can also pass a list of regular expressions:
+
+    $ python B2DstMu_skimCAND_v1.py -d BdToDstarMuNu,BdToDstarTauNu --applyCorr
+
+"""
 import sys, os, pickle, time, re
 from glob import glob
 from multiprocessing import Pool
 import commands
 from os.path import join
-
 import numpy as np
 import pandas as pd
 
 try:
     from analysis_utilities import getEff
 except ImportError:
-    print >> sys.stderr, "Make sure to source the env.sh file in the repo!"
-    raise
+    print >> sys.stderr, "Failed to import analysis_utilities."
+    print >> sys.stderr, "Did you remember to source the env.sh file in the repo?"
+    sys.exit(1)
 from progressBar import ProgressBar
 from categoriesDef import categories
 from B02DstMu_selection import candidate_selection, trigger_selection
@@ -25,29 +38,12 @@ rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
 
-import argparse
-parser = argparse.ArgumentParser()
-#Example: python B2DstMu_skimCAND_v1.py -d mu --applyCorr
-parser.add_argument ('--function', type=str, default='main', help='Function to perform')
-parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
-parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
-parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
-parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
-parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
-parser.add_argument ('--trkControlRegion', default=False, action='store_true', help='Track control region selection')
-parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
-parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
-######## Arguments not for user #####################
-parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
-parser.add_argument ('--jN', type=int, default=None, help='Job number')
-args = parser.parse_args()
-
 #############################################################################
 ####                          Datset declaration                         ####
 #############################################################################
 root = join(os.environ['HOME'],'BPhysics/data')
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples_B2DstMu/out_CAND_*.root'
+MCend = 'ntuples/B2DstMu/out_CAND_*.root'
 RDloc = join(root,'cmsRD/ParkingBPH*/')
 
 filesLocMap = {
@@ -64,7 +60,13 @@ filesLocMap = {
     "BsToMuNuDstK"         : "CP_BsToMuNuDstK_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
     "BsToTauNuDstK"        : "CP_BsToTauNuDstK_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
     "General_BdToJpsiKstar": "CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "General_BuToJpsiK"    : "CP_General_BuToJpsiK_BMuonFilter_TuneCP5_13TeV-pythia8-evtgen"
+    "General_BuToJpsiK"    : "CP_General_BuToJpsiK_BMuonFilter_TuneCP5_13TeV-pythia8-evtgen",
+    "BdToDstDu"            : "CP_BdToDstDu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BdToDstDd"            : "CP_BdToDstDd_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BdToDstDs"            : "CP_BdToDstDs_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BuToDstDu"            : "CP_BuToDstDu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BuToDstDd"            : "CP_BuToDstDd_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
+    "BsToDstDs"            : "CP_BsToDstDs_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen"
 }
 
 for key in filesLocMap:
@@ -337,36 +339,27 @@ def makeSelection(inputs):
     N_accepted_cand = []
     N_accepted_tot = 0
 
+    start, stop = idxInt
+
     tree = rt.TChain('outA/Tevts')
-    lastIdxDisc = -1
     for fn in glob(filepath):
         tree.Add(fn)
-        if tree.GetEntries() + lastIdxDisc < idxInt[0]:
-            lastIdxDisc += tree.GetEntries()
-            tree = rt.TChain('outA/Tevts')
-        elif tree.GetEntries() + lastIdxDisc > idxInt[1]:
-            break
-
-    nDiscEvts = lastIdxDisc + 1
 
     if serial:
-        pb = ProgressBar(maxEntry=idxInt[1]+1)
+        pb = ProgressBar(maxEntry=stop+1)
     else:
-        perc = int((idxInt[1]-idxInt[0])*0.35)
+        perc = int((stop-start)*0.35)
 
-    output = np.zeros((int(1.5*(idxInt[1]-idxInt[0]+1)), len(leafs_names)))
+    output = np.zeros((int(1.5*(stop-start+1)), len(leafs_names)))
 
-    for i_ev, ev in enumerate(tree):
-        i_ev += nDiscEvts
-        if i_ev < idxInt[0]:
-            continue
-        if i_ev > idxInt[1]:
-            break
+    for i_ev in range(start,stop):
+        tree.GetEntry(i_ev)
+        ev = tree
 
         if serial:
-            pb.show(i_ev-idxInt[0])
-        elif (i_ev-idxInt[0]) % perc == 0:
-            print tag, ': {:.0f}%'.format(100*(i_ev+1-idxInt[0])/(idxInt[1]-idxInt[0]))
+            pb.show(i_ev-start)
+        elif (i_ev-start) % perc == 0:
+            print tag, ': {:.0f}%'.format(100*(i_ev+1-start)/(stop-start))
         N_acc = 0
 
         ev_output = []
@@ -498,7 +491,7 @@ def makeSelection(inputs):
         print tag, ': done'
     return [output, N_accepted_cand]
 
-def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControlRegion=False, maxEvents=args.maxEvents):
+def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControlRegion=False, maxEvents=1e15):
     if cat is None:
         catName = 'NoCat'
     else:
@@ -514,7 +507,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
         N_evts_per_job = 100000
     else:
-        d = os.path.dirname(filepath) + '/skimmed/'
+        d = join(os.path.dirname(filepath),'skimmed/')
         if not os.path.isdir(d):
             os.makedirs(d)
         fskimmed_name = d + catName
@@ -544,9 +537,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         hAllVtxZ = rt.TH1D('hAllVtxZ', 'hAllVtxZ', 100, -25, 25)
         hAllNTrueIntMC = rt.TH1D('hAllNTrueIntMC', 'hAllNTrueIntMC', 101, -0.5, 100.5)
 
-        print filepath
-        print len(glob(filepath))
-        for i,fn in enumerate(glob(filepath)):
+        filenames = glob(filepath)
+        print "Analyzing %i files matching '%s'" % (len(filenames),filepath)
+        for i, fn in enumerate(filenames):
             try:
                 tree.Add(fn)
                 fAux = rt.TFile.Open(fn, 'READ')
@@ -559,7 +552,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                     hAllNTrueIntMC.Add(hAux)
                 fAux.Close()
             except:
-                print '[ERROR] Problem with vertexes histograms in', fn
+                print >> sys.stderr, '[ERROR] Problem with vertexes histograms in %s' % fn
                 raise
         print 'Computing events from {} files'.format(tree.GetNtrees())
         N_cand_in = min(maxEvents, tree.GetEntries())
@@ -653,16 +646,13 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
             output, N_accepted_cand = makeSelection([n, '', filepath, leafs_names, cat,
                                                      [0, N_cand_in-1], applyCorr, skipCut, trkControlRegion, True])
         else:
-            pdiv = list(np.arange(0, N_cand_in, N_evts_per_job))
+            pdiv = list(range(0, N_cand_in, N_evts_per_job))
             if not pdiv[-1] == N_cand_in:
                 pdiv.append(N_cand_in)
             print 'Will be divided into ' + str(len(pdiv)-1) + ' jobs'
             inputs = []
-            for i in range(1, len(pdiv)):
-                corr = 0
-                if i == 1:
-                    corr = -1
-                inputs.append([n, str(i), filepath, leafs_names, cat, [pdiv[i-1]+1+corr, pdiv[i]], applyCorr, skipCut, trkControlRegion, False])
+            for i, (start, stop) in enumerate(zip(pdiv[:-1],pdiv[1:])):
+                inputs.append([n, str(i), filepath, leafs_names, cat, [start, stop], applyCorr, skipCut, trkControlRegion, False])
             print ' '
 
             start = time.time()
@@ -676,22 +666,25 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 os.system('rm -rf ' + tmpDir + '/out')
                 os.system('rm -rf ' + tmpDir + '/*.p')
                 os.makedirs(tmpDir + '/out')
+                tmpDir = os.path.abspath(tmpDir)
                 for ii, inAux in enumerate(inputs):
-                    pickle.dump( inAux, open( tmpDir+'/input_{}.p'.format(ii), 'wb' ) )
+                    with open(join(tmpDir,'input_%i.p' % ii), 'wb') as f:
+                        pickle.dump(inAux, f)
                 createSubmissionFile(tmpDir, len(inputs))
                 print 'Submitting jobs'
-                cmd = 'condor_submit {}/jobs.jdl'.format(tmpDir)
+                cmd = 'condor_submit %s' % join(tmpDir,'jobs.jdl')
                 cmd += ' -batch-name skim_' + n
                 if args.trkControlRegion:
                     cmd += '_trkControl'
                 status, output = commands.getstatusoutput(cmd)
-                if status !=0:
-                    print 'Error in processing command:\n   ['+cmd+']'
-                    print 'Output:\n   ['+output+'] \n'
+                if status != 0:
+                    print >> sys.stderr, "Error in processing command: '%s'" % cmd
+                    print >> sys.stderr, "Output: %s" % output
+                    sys.exit(1)
                 print 'Job submitted'
                 print 'Waiting for jobs to be finished'
                 time.sleep(20)
-                proceed=False
+                proceed = False
                 while not proceed:
                     status, output = commands.getstatusoutput('condor_q')
                     found = False
@@ -705,8 +698,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
 
                 outputs = []
                 for ii in range(len(inputs)):
-                    o = pickle.load( open( tmpDir+'/output_{}.p'.format(ii), 'rb' ) )
-                    outputs.append(o)
+                    with open(join(tmpDir,'output_%i.p' % ii), 'rb') as f:
+                        o = pickle.load(f)
+                        outputs.append(o)
 
             output = np.concatenate(tuple([o[0] for o in outputs]))
             N_accepted_cand = []
@@ -741,80 +735,81 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
     os.system('echo '+logfile+';cat '+logfile + ';echo ')
 
 def createSubmissionFile(tmpDir, njobs):
-    fjob = open(tmpDir+'/job.sh', 'w')
-    fjob.write('#!/bin/bash\n')
-    fjob.write('source /cvmfs/cms.cern.ch/cmsset_default.sh;\n')
-    fjob.write('cd %s/RDstAnalysis/CMSSW_10_2_3/;\n' % os.environ['HOME'])
-    fjob.write('eval `scramv1 runtime -sh`\n')
-    fjob.write('cd %s/RDstAnalysis/BPH_RD_Analysis/\n' % os.environ['HOME'])
-    fjob.write('export PYTHONPATH=%s/RDstAnalysis/BPH_RD_Analysis/lib:$PYTHONPATH\n' % os.environ['HOME'])
-    fjob.write('export PYTHONPATH=%s/RDstAnalysis/BPH_RD_Analysis/analysis:$PYTHONPATH\n' % os.environ['HOME'])
-    fjob.write('python ./scripts/B2DstMu_skimCAND_v1.py --function makeSel --tmpDir $1 --jN $2\n')
-    os.system('chmod +x {}/job.sh'.format(tmpDir))
+    job_file = join(tmpDir,'job.sh')
+    with open(job_file, 'w') as fjob:
+        fjob.write('#!/bin/bash\n')
+        fjob.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
+        fjob.write('cd %s/RDstAnalysis/CMSSW_10_2_3/\n' % os.environ['HOME'])
+        fjob.write('eval `scramv1 runtime -sh`\n')
+        fjob.write('cd %s/RDstAnalysis/BPH_RD_Analysis/\n' % os.environ['HOME'])
+        fjob.write('export PYTHONPATH=%s/RDstAnalysis/BPH_RD_Analysis/lib:$PYTHONPATH\n' % os.environ['HOME'])
+        fjob.write('export PYTHONPATH=%s/RDstAnalysis/BPH_RD_Analysis/analysis:$PYTHONPATH\n' % os.environ['HOME'])
+        fjob.write('python ./scripts/B2DstMu_skimCAND_v1.py --function makeSel --tmpDir $1 --jN $2\n')
+        os.system('chmod +x {}/job.sh'.format(tmpDir))
 
-    fsub = open(tmpDir+'/jobs.jdl', 'w')
-    fsub.write('executable    = ' + tmpDir + '/job.sh')
-    fsub.write('\n')
-    fsub.write('arguments     = {} $(ProcId) '.format(tmpDir))
-    fsub.write('\n')
-    fsub.write('output        = {}/out/job_$(ProcId)_$(ClusterId).out'.format(tmpDir))
-    fsub.write('\n')
-    fsub.write('error         = {}/out/job_$(ProcId)_$(ClusterId).err'.format(tmpDir))
-    fsub.write('\n')
-    fsub.write('log           = {}/out/job_$(ProcId)_$(ClusterId).log'.format(tmpDir))
-    fsub.write('\n')
-    fsub.write('WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT')
-    fsub.write('\n')
-    fsub.write('+MaxRuntime   = 3600')
-    fsub.write('\n')
-    fsub.write('+RunAsOwner = True')
-    fsub.write('\n')
-    fsub.write('+InteractiveUser = True')
-    fsub.write('\n')
-    fsub.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7-m20200605"')
-    fsub.write('\n')
-    fsub.write('+SingularityBindCVMFS = True')
-    fsub.write('\n')
-    fsub.write('run_as_owner = True')
-    fsub.write('\n')
-    fsub.write('RequestDisk = 2000000')
-    fsub.write('\n')
-    fsub.write('RequestMemory = 2500')
-    fsub.write('\n')
-    fsub.write('RequestCpus = 1')
-    fsub.write('\n')
-    fsub.write('x509userproxy = $ENV(X509_USER_PROXY)')
-    fsub.write('\n')
-    fsub.write('on_exit_remove = (ExitBySignal == False) && (ExitCode == 0)')
-    fsub.write('\n')
-    fsub.write('on_exit_hold = (ExitBySignal == True) || (ExitCode != 0)')   # Send the job to Held state on failure.
-    fsub.write('\n')
-    fsub.write('periodic_release =  (NumJobStarts < 2) && ((CurrentTime - EnteredCurrentStatus) > (60*20))')   # Periodically retry the jobs for 2 times with an interval of 20 minutes.
-    fsub.write('\n')
-    fsub.write('+PeriodicRemove = ((JobStatus =?= 2) && ((MemoryUsage =!= UNDEFINED && MemoryUsage > 2.5*RequestMemory)))')
-    fsub.write('\n')
-    fsub.write('max_retries    = 3')
-    fsub.write('\n')
-    fsub.write('requirements   = Machine =!= LastRemoteHost && regexp("blade-.*", TARGET.Machine)')
-    fsub.write('\n')
-    fsub.write('universe = vanilla')
-    fsub.write('\n')
-    fsub.write('queue '+str(njobs))
-    fsub.write('\n')
-    fsub.close()
+    sub_file = join(tmpDir,'jobs.jdl')
+    with open(sub_file, 'w') as fsub:
+        fsub.write('executable    = %s\n' % join(tmpDir,'job.sh'))
+        fsub.write('arguments     = {} $(ProcId)\n'.format(tmpDir))
+        fsub.write('output        = {}/out/job_$(ProcId)_$(ClusterId).out\n'.format(tmpDir))
+        fsub.write('error         = {}/out/job_$(ProcId)_$(ClusterId).err\n'.format(tmpDir))
+        fsub.write('log           = {}/out/job_$(ProcId)_$(ClusterId).log\n'.format(tmpDir))
+        fsub.write('WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT\n')
+        fsub.write('+MaxRuntime   = 3600\n')
+        fsub.write('+RunAsOwner = True\n')
+        fsub.write('+InteractiveUser = True\n')
+        fsub.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7-m20200605"\n')
+        fsub.write('+SingularityBindCVMFS = True\n')
+        fsub.write('run_as_owner = True\n')
+        fsub.write('RequestDisk = 2000000\n')
+        fsub.write('RequestMemory = 2500\n')
+        fsub.write('RequestCpus = 1\n')
+        fsub.write('x509userproxy = $ENV(X509_USER_PROXY)\n')
+        fsub.write('on_exit_remove = (ExitBySignal == False) && (ExitCode == 0)\n')
+        # Send the job to Held state on failure.
+        fsub.write('on_exit_hold = (ExitBySignal == True) || (ExitCode != 0)\n')
+        # Periodically retry the jobs for 2 times with an interval of 20 minutes.
+        fsub.write('periodic_release =  (NumJobStarts < 2) && ((CurrentTime - EnteredCurrentStatus) > (60*20))\n')
+        fsub.write('+PeriodicRemove = ((JobStatus =?= 2) && ((MemoryUsage =!= UNDEFINED && MemoryUsage > 2.5*RequestMemory)))\n')
+        fsub.write('max_retries    = 3\n')
+        fsub.write('requirements   = Machine =!= LastRemoteHost && regexp("blade-.*", TARGET.Machine)\n')
+        fsub.write('universe = vanilla\n')
+        fsub.write('queue %i\n' % njobs)
+        fsub.close()
 
 if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument ('--function', type=str, default='main', help='Function to perform')
+    parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
+    parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
+    parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
+    parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
+    parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
+    parser.add_argument ('--trkControlRegion', default=False, action='store_true', help='Track control region selection')
+    parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
+    parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
+    ######## Arguments not for user #####################
+    parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
+    parser.add_argument ('--jN', type=int, default=None, help='Job number')
+    args = parser.parse_args()
+
     if args.function == 'main':
         file_loc = {}
         for n in args.dataset:
             for kn in filesLocMap:
                 if re.match(n, kn):
-                    print 'Adding', kn
+                    print 'Adding %s' % kn
                     file_loc[kn] = filesLocMap[kn]
 
+        if len(args.dataset) == 0:
+            print >> sys.stderr, 'No dataset provided, rerun with -d'
+            sys.exit(1)
+
         if len(file_loc) == 0:
-            print 'No dataset provided'
-            exit(1)
+            print >> sys.stderr, "No datasets found matching '%s'" % str(args.dataset)
+            sys.exit(1)
 
         recreate = []
         if args.recreate:
@@ -832,12 +827,14 @@ if __name__ == "__main__":
         for idx in skip:
             for cn in args.cat:
                 for n, fp in file_loc.iteritems():
-                    create_dSet(n, fp, categories[cn], skipCut=idx, applyCorrections=args.applyCorr, trkControlRegion=args.trkControlRegion)
+                    create_dSet(n, fp, categories[cn], skipCut=idx, applyCorrections=args.applyCorr, trkControlRegion=args.trkControlRegion, maxEvents=args.maxEvents)
     elif args.function == 'makeSel':
         tmpDir = args.tmpDir
-        input = pickle.load( open( tmpDir+'/input_{}.p'.format(args.jN), 'rb' ) )
+        with open(join(tmpDir,'input_%i.p' % args.jN), 'rb') as f:
+            input = pickle.load(f)
         output = makeSelection(input)
-        pickle.dump(output, open( tmpDir+'/output_{}.p'.format(args.jN), 'wb' ) )
+        with open(join(tmpDir,'output_%i.p' % args.jN), 'wb') as f:
+            pickle.dump(output, f)
 
     else:
         print args.function, 'not recognized'
