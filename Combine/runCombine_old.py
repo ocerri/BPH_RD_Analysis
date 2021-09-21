@@ -165,22 +165,27 @@ FreeParFF = {
    'NoFF': []
 }[schemeFF]
 
-processOrder = [
-    'mu', 'tau',
-    'Bu_MuDstPi', 'Bd_MuDstPi'
-    'Bd_MuDstPiPi', 'Bu_MuDstPiPi'
-    'Bu_TauDstPi', 'Bd_TauDstPi'
-    'Bd_TauDstPiPi', 'Bu_TauDstPiPi'
-    'Bs_MuDstK', 'Bs_TauDstK',
-    'Bd_DstDu', 'Bu_DstDu'
-    'Bd_DstDd', 'Bu_DstDd'
-    'Bd_DstDs', 'Bs_DstDs'
-]
+processOrder = ['tau', 'mu',
+                'DstPip','DstPi0',
+                'DstPipPi0','DstPipPim','DstPi0Pi0',
+                'TauDstPi0', 'TauDstPip',
+                'DstmDsp','DstmD0','DstmDp',
+                'BpDstmHc','BmDstmHc','antiB0DstmHc']
 
 
-samples_Bu = [p  for p in processOrder if not (p[:2] == 'Bd' or p[:2] == 'Bs')]
-samples_Bu = [p  for p in processOrder if p[:2] == 'Bd']
-samples_Bs = [p  for p in processOrder if p[:2] == 'Bs']
+SamplesB0 = ['mu', 'tau',
+             'DstmD0', 'DstmDp', 'DstmDsp',
+             'antiB0DstmHc',
+             'DstPi0',
+             'DstPipPim', 'DstPi0Pi0',
+             'TauDstPi0'
+            ]
+
+SamplesBp = ['BpDstmHc', 'BmDstmHc',
+             'DstPip',
+             'DstPipPi0',
+             'TauDstPip'
+            ]
 
 
 ########################### --------------------------------- #########################
@@ -216,15 +221,13 @@ def createCardName(a):
 card_name = createCardName(args)
 print 'Card name:', card_name
 
-basedir = os.path.dirname(os.path.abspath(__file__)).replace('Combine', '')
-
-outdir = basedir + 'Combine/results/' + card_name
+outdir = '/storage/user/ocerri/BPhysics/Combine/results/' + card_name
 if not os.path.isdir(outdir):
     os.system('mkdir -p ' + outdir + '/fig')
-card_location = basedir + 'Combine/cards/{}.txt'.format(card_name)
-histo_file_dir = basedir + 'data/_root/histos4combine/'
+card_location = '/storage/user/ocerri/BPhysics/Combine/cards/{}.txt'.format(card_name)
+histo_file_dir = '/storage/user/ocerri/BPhysics/data/_root/histos4combine/'
 
-webFolder = os.path.expanduser('~') + '/public_html/BPH_RDst/Combine/' + card_name
+webFolder = '/storage/user/ocerri/public_html/BPH_RDst/Combine/' + card_name
 if not os.path.isdir(webFolder):
     os.makedirs(webFolder)
     os.system('cp '+webFolder+'/../index.php '+webFolder)
@@ -278,27 +281,24 @@ def loadDatasets(category, loadRD, dataType):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
     MCsample = {
-    ######## Signals
-    'mu': DSetLoader('Bd_MuNuDst'),
-    'tau': DSetLoader('Bd_TauNuDst'),
-    ######## D** background
-    'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi'),
-    'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi'),
-    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi'),
-    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi'),
-    'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi'),
-    'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi'),
-    'Bd_TauDstPiPi': DSetLoader('Bd_TauNuDstPiPi'),
-    'Bu_TauDstPiPi': DSetLoader('Bu_TauNuDstPiPi'),
-    'Bs_MuDstK': DSetLoader('Bs_MuNuDstK'),
-    'Bs_TauDstK': DSetLoader('Bs_TauNuDstK'),
-    ######## D*Hc background
-    'Bd_DstDu': DSetLoader('Bd_DstDu'),
-    'Bu_DstDu': DSetLoader('Bu_DstDu'),
-    'Bd_DstDd': DSetLoader('Bd_DstDd'),
-    'Bu_DstDd': DSetLoader('Bu_DstDd'),
-    'Bd_DstDs': DSetLoader('Bd_DstDs'),
-    'Bs_DstDs': DSetLoader('Bs_DstDs'),
+    'tau' : DSetLoader('B0_TauNuDmst_PUc0'),
+    'mu' : DSetLoader('B0_MuNuDmst_PUc0'),
+    # 'mu' : DSetLoader('B0_MuNuDmst_SoftQCDall_PUc0'),
+    'DstmD0' : DSetLoader('B0_DstmD0_PUc0'),
+    'DstmDp' : DSetLoader('B0_DstmDp_PUc0'),
+    'DstmDsp' : DSetLoader('B0_DstmDsp_PUc0'),
+    'BpDstmHc' : DSetLoader('Bp_DstmHc_PUc0'),
+    'BmDstmHc' : DSetLoader('Bm_DstmHc_PUc0'),
+    'antiB0DstmHc' : DSetLoader('antiB0_DstmHc_PUc0'),
+    'DstPip' : DSetLoader('Bp_MuNuDstst_Pip_PUc0'),
+    'DstPi0' : DSetLoader('B0_MuNuDstst_Pi0_PUc0'),
+    'DstPipPi0' : DSetLoader('Bp_MuNuDstst_PipPi0_PUc0'),
+    'DstPipPim' : DSetLoader('B0_MuNuDstst_PipPim_PUc0'),
+    # 'DstPipPi0' : DSetLoader('Bp_MuNuDstPipPi0_PUc0'),
+    # 'DstPipPim' : DSetLoader('B0_MuNuDstPipPim_PUc0'),
+    'DstPi0Pi0' : DSetLoader('B0_MuNuDstst_Pi0Pi0_PUc0'),
+    'TauDstPi0' : DSetLoader('B0_TauNuDstst_Pi0_PUc0'),
+    'TauDstPip' : DSetLoader('Bp_TauNuDstst_Pip_PUc0')
     }
 
     dSet = {}
@@ -312,7 +312,7 @@ def loadDatasets(category, loadRD, dataType):
 
     if loadRD:
         print 'Loading data datasets'
-        dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
+        dataDir = '/storage/user/ocerri/BPhysics/data/cmsRD'
         lumi_tot = 0
 
         #B0 data

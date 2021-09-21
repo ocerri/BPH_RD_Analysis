@@ -8,14 +8,14 @@ this script by running:
 The argument to `-d` can be a regular expression, so if you want it to match
 all the soft QCD MC events you can run:
 
-    $ python B2DstMu_skimCAND_v1.py -d SoftQCDnonD --applyCorr
+    $ python B2DstMu_skimCAND_v1.py -d SoftQCDnonD
 
 You can also pass a list of regular expressions:
 
-    $ python B2DstMu_skimCAND_v1.py -d BdToDstarMuNu,BdToDstarTauNu --applyCorr
+    $ python B2DstMu_skimCAND_v1.py -d BdToDstarMuNu,BdToDstarTauNu
 
 """
-import sys, os, pickle, time, re
+import sys, os, pickle, time, re, yaml
 from glob import glob
 from multiprocessing import Pool
 import commands
@@ -23,12 +23,14 @@ from os.path import join
 import numpy as np
 import pandas as pd
 
-try:
-    from analysis_utilities import getEff
-except ImportError:
-    print >> sys.stderr, "Failed to import analysis_utilities."
-    print >> sys.stderr, "Did you remember to source the env.sh file in the repo?"
-    sys.exit(1)
+# try:
+# except ImportError:
+#     print >> sys.stderr, "Failed to import analysis_utilities."
+#     print >> sys.stderr, "Did you remember to source the env.sh file in the repo?"
+#     sys.exit(1)
+sys.path.append('../lib')
+sys.path.append('../analysis')
+from analysis_utilities import getEff
 from progressBar import ProgressBar
 from categoriesDef import categories
 from B02DstMu_selection import candidate_selection, trigger_selection
@@ -41,36 +43,28 @@ import root_numpy as rtnp
 #############################################################################
 ####                          Datset declaration                         ####
 #############################################################################
-root = join(os.environ['HOME'],'BPhysics/data')
+filesLocMap = {}
+
+root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples/B2DstMu/out_CAND_*.root'
+MCend = 'ntuples_B2DstMu/out_CAND_*.root'
+MC_samples = ['Bd_MuNuDst',      'Bd_TauNuDst',
+              'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
+              'Bd_MuNuDstPiPi',  'Bu_MuNuDstPiPi',
+              'Bu_TauNuDstPi',   'Bd_TauNuDstPi',
+              'Bd_TauNuDstPiPi', 'Bu_TauNuDstPiPi',
+              'Bs_MuNuDstK',     'Bs_TauNuDstK',
+              'Bd_DstDu',        'Bd_DstDd',        'Bd_DstDs',
+              'Bu_DstDu',        'Bu_DstDd',
+              'Bs_DstDs']
+
+sampleFile = '/storage/af/user/' + os.environ['USER'] + '/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml'
+samples = yaml.load(open(sampleFile))['samples']
+for s in MC_samples:
+    filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
+
 RDloc = join(root,'cmsRD/ParkingBPH*/')
-
-filesLocMap = {
-    "BdToDstarMuNu"        : "CP_BdToDstarMuNu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BdToDstarTauNu"       : "CP_BdToDstarTauNu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BuToMuNuDstPi"        : "CP_BuToMuNuDstPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BdToMuNuDstPi"        : "CP_BdToMuNuDstPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BdToMuNuDstPiPi"      : "CP_BdToMuNuDstPiPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BuToMuNuDstPiPi"      : "CP_BuToMuNuDstPiPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BuToTauNuDstPi"       : "CP_BuToTauNuDstPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BdToTauNuDstPi"       : "CP_BdToTauNuDstPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BdToTauNuDstPiPi"     : "CP_BdToTauNuDstPiPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BuToTauNuDstPiPi"     : "CP_BuToTauNuDstPiPi_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BsToMuNuDstK"         : "CP_BsToMuNuDstK_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BsToTauNuDstK"        : "CP_BsToTauNuDstK_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "General_BdToJpsiKstar": "CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "General_BuToJpsiK"    : "CP_General_BuToJpsiK_BMuonFilter_TuneCP5_13TeV-pythia8-evtgen",
-    "BdToDstDu"            : "CP_BdToDstDu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BdToDstDd"            : "CP_BdToDstDd_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BdToDstDs"            : "CP_BdToDstDs_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BuToDstDu"            : "CP_BuToDstDu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BuToDstDd"            : "CP_BuToDstDd_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen",
-    "BsToDstDs"            : "CP_BsToDstDs_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen"
-}
-
-for key in filesLocMap:
-    filesLocMap[key] = join(MCloc,filesLocMap[key],MCend)
+filesLocMap['data'] = join(RDloc, '*_B2DstMu_210917_CAND.root')
 
 def getTLVfromField(ev, n, idx, mass):
     v = rt.TLorentzVector()
@@ -83,7 +77,10 @@ def getTLVfromField(ev, n, idx, mass):
 class Container(object):
     pass
 
-hBfieldMapsRatio = None
+# hBfieldMapsRatio = None
+# if hBfieldMapsRatio is None:
+fBfield = rt.TFile.Open('/storage/af/group/rdst_analysis/BPhysics/calibration/bFieldMap_2Dover3D.root', 'r')
+hBfieldMapsRatio = fBfield.Get('bfieldMap')
 
 def get_bFieldCorr3D(phi, eta, verbose=False):
     global hBfieldMapsRatio
@@ -91,9 +88,6 @@ def get_bFieldCorr3D(phi, eta, verbose=False):
         eta = 2.39*np.sign(eta)
     if np.abs(phi) > np.pi:
         phi = phi - 2*np.pi*np.sign(phi)
-    if hBfieldMapsRatio is None:
-        fBfield = rt.TFile.Open(join(root,'calibration/bFieldMap_2Dover3D.root'), 'r')
-        hBfieldMapsRatio = fBfield.Get('bfieldMap')
     idx = hBfieldMapsRatio.GetBin(hBfieldMapsRatio.GetXaxis().FindBin(phi), hBfieldMapsRatio.GetYaxis().FindBin(eta))
     return 1./hBfieldMapsRatio.GetBinContent(idx)
 
@@ -346,7 +340,7 @@ def makeSelection(inputs):
         tree.Add(fn)
 
     if serial:
-        pb = ProgressBar(maxEntry=stop+1)
+        pb = ProgressBar(maxEntry=stop)
     else:
         perc = int((stop-start)*0.35)
 
@@ -661,7 +655,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 outputs = p.map(makeSelection, inputs)
             elif args.parallelType == 'jobs':
                 tmpDir = 'tmp/B2DstMu_skimCAND_' + n
-                if args.trkControlRegion:
+                if trkControlRegion:
                     tmpDir += '_trkControl'
                 os.system('rm -rf ' + tmpDir + '/out')
                 os.system('rm -rf ' + tmpDir + '/*.p')
@@ -674,7 +668,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 print 'Submitting jobs'
                 cmd = 'condor_submit %s' % join(tmpDir,'jobs.jdl')
                 cmd += ' -batch-name skim_' + n
-                if args.trkControlRegion:
+                if trkControlRegion:
                     cmd += '_trkControl'
                 status, output = commands.getstatusoutput(cmd)
                 if status != 0:
@@ -689,7 +683,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                     status, output = commands.getstatusoutput('condor_q')
                     found = False
                     for line in output.split('\n'):
-                        aux = 'skim_'+n+('_trkControl' if args.trkControlRegion else '')
+                        aux = 'skim_'+n+('_trkControl' if trkControlRegion else '')
                         if aux in line:
                             print line
                             time.sleep(10)
@@ -758,7 +752,7 @@ def createSubmissionFile(tmpDir, njobs):
         fsub.write('+MaxRuntime   = 3600\n')
         fsub.write('+RunAsOwner = True\n')
         fsub.write('+InteractiveUser = True\n')
-        fsub.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7-m20200605"\n')
+        fsub.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"\n')
         fsub.write('+SingularityBindCVMFS = True\n')
         fsub.write('run_as_owner = True\n')
         fsub.write('RequestDisk = 2000000\n')
@@ -787,7 +781,8 @@ if __name__ == "__main__":
     parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
     parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
     parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
-    parser.add_argument ('--trkControlRegion', default=False, action='store_true', help='Track control region selection')
+    # parser.add_argument ('--trkControlRegion', default=False, action='store_true', help='Track control region selection')
+    parser.add_argument ('--region', type=str, default='all', choices=['signal', 'trkControl', 'all'], help='Region to skim: signal (0 tracks) or track control (1+)')
     parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
     parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
     ######## Arguments not for user #####################
@@ -824,10 +819,18 @@ if __name__ == "__main__":
         else:
             skip.append([])
 
+        trackControlFlag = []
+        if args.region == 'all' or args.region=='signal':
+            trackControlFlag.append(False)
+        if args.region == 'all' or args.region=='trkControl':
+            trackControlFlag.append(True)
+
         for idx in skip:
             for cn in args.cat:
                 for n, fp in file_loc.iteritems():
-                    create_dSet(n, fp, categories[cn], skipCut=idx, applyCorrections=args.applyCorr, trkControlRegion=args.trkControlRegion, maxEvents=args.maxEvents)
+                    for trkSelectionFlag in trackControlFlag:
+                        create_dSet(n, fp, categories[cn], skipCut=idx, applyCorrections=args.applyCorr, trkControlRegion=trkSelectionFlag, maxEvents=args.maxEvents)
+
     elif args.function == 'makeSel':
         tmpDir = args.tmpDir
         with open(join(tmpDir,'input_%i.p' % args.jN), 'rb') as f:

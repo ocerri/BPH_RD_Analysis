@@ -106,9 +106,10 @@ def getEff(k,N):
 
 class DSetLoader(object):
     def __init__(self, in_sample,
-                 candLoc='/storage/af/user/ocerri/BPhysics/data/cmsMC_private/',
+                 # candLoc='/storage/af/user/ocerri/BPhysics/data/cmsMC_private/',
+                 candLoc='/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/',
                  candDir='ntuples_B2DstMu',
-                 site_loc_conf = '/storage/cms/store/user/ocerri/',
+                 # site_loc_conf = '/storage/cms/store/user/ocerri/',
                  sampleFile = '/storage/af/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml',
                  loadSkim=None
                  ):
@@ -119,14 +120,14 @@ class DSetLoader(object):
         self.candLoc = candLoc
         self.candDir = candDir
 
-        self.MINIAOD_dirs = []
-        for part in samples[self.sample]['parts']:
-            aux = glob(part)
-            if len(aux) > 0:
-                aux = [os.path.dirname(part)]
-            else:
-                aux = glob(site_loc_conf + part[:-38].replace('ocerri-','') + '/*/*')
-            self.MINIAOD_dirs += aux
+        # self.MINIAOD_dirs = []
+        # for part in samples[self.sample]['parts']:
+        #     aux = glob(part)
+        #     if len(aux) > 0:
+        #         aux = [os.path.dirname(part)]
+        #     else:
+        #         aux = glob(site_loc_conf + part[:-38].replace('ocerri-','') + '/*/*')
+        #     self.MINIAOD_dirs += aux
 
         aux = os.path.dirname(sampleFile) + '/inputFiles_' + samples[self.sample]['dataset'] + '.txt'
         fAux = open(aux, 'r')
@@ -150,7 +151,7 @@ class DSetLoader(object):
         if os.path.isfile(effCandFile):
             self.effCand = yaml.load(open(effCandFile, 'r'))
         else:
-            print 'CAND efficiency file missing.'
+            print 'CAND efficiency file missing for {}.'.format(in_sample)
 
         if not loadSkim is None:
             if loadSkim == 'all':
