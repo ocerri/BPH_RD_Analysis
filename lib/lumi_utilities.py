@@ -37,7 +37,7 @@ def getLumiByTrigger(dataset_loc, trg, verbose=False):
         aux = n.split('/')[-2:]
         if verbose:
             print aux[1].replace('_CAND.root', '')
-        lumi_rep = '../data/cmsRD/lumiReport/'
+        lumi_rep = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/lumiReport/'
         lumi_rep += aux[0] + '_' + aux[1].replace('CAND.root', 'brilcalcPerTrigger.yaml')
         if os.path.isfile(lumi_rep):
             lumiDic = yaml.load(open(lumi_rep, 'rb'))

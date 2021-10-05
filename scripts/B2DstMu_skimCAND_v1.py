@@ -3,7 +3,7 @@
 Script for running the skimmer. After you have created the ntuples, you can run
 this script by running:
 
-    $ python B2DstMu_skimCAND_v1.py -d BdToDstarMuNu --applyCorr
+    $ python B2DstMu_skimCAND_v1.py -d "Bd_MuNuDst\Z" --cat low
 
 The argument to `-d` can be a regular expression, so if you want it to match
 all the soft QCD MC events you can run:
@@ -48,20 +48,27 @@ filesLocMap = {}
 root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
 MCend = 'ntuples_B2DstMu/out_CAND_*.root'
-MC_samples = ['Bd_MuNuDst',      'Bd_TauNuDst',
+MC_samples = ['Bd_MuNuDst',
+              'Bd_TauNuDst',
               'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
               'Bd_MuNuDstPiPi',  'Bu_MuNuDstPiPi',
               'Bu_TauNuDstPi',   'Bd_TauNuDstPi',
               'Bd_TauNuDstPiPi', 'Bu_TauNuDstPiPi',
               'Bs_MuNuDstK',     'Bs_TauNuDstK',
               'Bd_DstDu',        'Bd_DstDd',        'Bd_DstDs',
-              'Bu_DstDu',        'Bu_DstDd',
+              'Bu_DstDu',
+              'Bu_DstDd',
               'Bs_DstDs']
 
-sampleFile = '/storage/af/user/' + os.environ['USER'] + '/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml'
+sampleFile = '/storage/af/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml'
 samples = yaml.load(open(sampleFile))['samples']
 for s in MC_samples:
-    filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
+    if s == 'Bd_MuNuDst':
+        filesLocMap[s] = join(MCloc, samples[s]['dataset'], 'ntuples_B2DstMu_wOC/out_CAND_*.root')
+    elif s == 'Bu_DstDd':
+        filesLocMap[s] = join(MCloc, samples[s]['dataset'], 'ntuples_B2DstMu_tOC/out_CAND_*.root')
+    else:
+        filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
 filesLocMap['data'] = join(RDloc, '*_B2DstMu_210917_CAND.root')
@@ -79,7 +86,7 @@ class Container(object):
 
 # hBfieldMapsRatio = None
 # if hBfieldMapsRatio is None:
-fBfield = rt.TFile.Open('/storage/af/group/rdst_analysis/BPhysics/calibration/bFieldMap_2Dover3D.root', 'r')
+fBfield = rt.TFile.Open('/storage/af/group/rdst_analysis/BPhysics/data/calibration/bFieldMap_2Dover3D.root', 'r')
 hBfieldMapsRatio = fBfield.Get('bfieldMap')
 
 def get_bFieldCorr3D(phi, eta, verbose=False):
@@ -347,7 +354,9 @@ def makeSelection(inputs):
     output = np.zeros((int(1.5*(stop-start+1)), len(leafs_names)))
 
     for i_ev in range(start,stop):
-        tree.GetEntry(i_ev)
+        bytesRead = tree.GetEntry(i_ev, 1)
+        if bytesRead == 0:
+            print 'Error reading entry', i_ev
         ev = tree
 
         if serial:
@@ -422,6 +431,10 @@ def makeSelection(inputs):
                     muSisPdgId.append(id)
                 while len(muSisPdgId) < 2:
                     muSisPdgId.append(0)
+                if abs(muSisPdgId[0]) < abs(muSisPdgId[1]):
+                    aux = muSisPdgId[0]
+                    muSisPdgId[0] = muSisPdgId[1]
+                    muSisPdgId[1] = aux 
 
                 aux += (ev.MC_q2, ev.MC_Est_mu, ev.MC_M2_miss,
                         ev.MC_B_pt, ev.MC_B_eta, ev.MC_B_phi, ev.MC_B_ctau,
@@ -445,7 +458,7 @@ def makeSelection(inputs):
                         evEx.MC_tkMotherMotherPdgId[0], evEx.MC_tkMotherMotherPdgId[1],
                         ev.nTrueIntMC
                        )
-            if 'mu' in n or 'tau' in n:
+            if n in ['Bd_MuNuDst', 'Bd_TauNuDst']:
                 aux += (ev.wh_CLNCentral,
                         ev.wh_CLNR0Down, ev.wh_CLNR0Up,
                         ev.wh_CLNeig1Down, ev.wh_CLNeig1Up,
@@ -533,18 +546,21 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
 
         filenames = glob(filepath)
         print "Analyzing %i files matching '%s'" % (len(filenames),filepath)
+        pb = ProgressBar(maxEntry=len(filenames))
         for i, fn in enumerate(filenames):
+            pb.show(i)
             try:
                 tree.Add(fn)
-                fAux = rt.TFile.Open(fn, 'READ')
-                hAux = fAux.Get('trgF/hAllNvts')
-                hAllNvtx.Add(hAux)
-                hAux = fAux.Get('trgF/hAllVtxZ')
-                hAllVtxZ.Add(hAux)
-                if not 'data' in n:
-                    hAux = fAux.Get('trgF/hAllNTrueIntMC')
-                    hAllNTrueIntMC.Add(hAux)
-                fAux.Close()
+                if i < 500:
+                    fAux = rt.TFile.Open(fn, 'READ')
+                    hAux = fAux.Get('trgF/hAllNvts')
+                    hAllNvtx.Add(hAux)
+                    hAux = fAux.Get('trgF/hAllVtxZ')
+                    hAllVtxZ.Add(hAux)
+                    if not 'data' in n:
+                        hAux = fAux.Get('trgF/hAllNTrueIntMC')
+                        hAllNTrueIntMC.Add(hAux)
+                    fAux.Close()
             except:
                 print >> sys.stderr, '[ERROR] Problem with vertexes histograms in %s' % fn
                 raise
@@ -615,7 +631,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'MC_tkMotherMotherPdgId_0', 'MC_tkMotherMotherPdgId_1',
                             'MC_nInteractions'
                            ]
-        if 'mu' in n or 'tau' in n:
+        if n in ['Bd_MuNuDst', 'Bd_TauNuDst']:
             leafs_names += ['wh_CLNCentral',
                             'wh_CLNR0Down', 'wh_CLNR0Up',
                             'wh_CLNeig1Down', 'wh_CLNeig1Up',
@@ -636,7 +652,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
             if 'data' in n:
                 applyCorr = 'RD'
 
-        if N_cand_in < 1.5*N_evts_per_job:
+        if N_cand_in < 1.5*N_evts_per_job or args.parallelType == 'serial':
             output, N_accepted_cand = makeSelection([n, '', filepath, leafs_names, cat,
                                                      [0, N_cand_in-1], applyCorr, skipCut, trkControlRegion, True])
         else:
@@ -689,6 +705,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             time.sleep(10)
                             found = True
                     proceed = not found
+                print 'All jobs finished'
 
                 outputs = []
                 for ii in range(len(inputs)):
@@ -733,13 +750,18 @@ def createSubmissionFile(tmpDir, njobs):
     with open(job_file, 'w') as fjob:
         fjob.write('#!/bin/bash\n')
         fjob.write('source /cvmfs/cms.cern.ch/cmsset_default.sh\n')
-        fjob.write('cd %s/RDstAnalysis/CMSSW_10_2_3/\n' % os.environ['HOME'])
-        fjob.write('eval `scramv1 runtime -sh`\n')
-        fjob.write('cd %s/RDstAnalysis/BPH_RD_Analysis/\n' % os.environ['HOME'])
-        fjob.write('export PYTHONPATH=%s/RDstAnalysis/BPH_RD_Analysis/lib:$PYTHONPATH\n' % os.environ['HOME'])
-        fjob.write('export PYTHONPATH=%s/RDstAnalysis/BPH_RD_Analysis/analysis:$PYTHONPATH\n' % os.environ['HOME'])
-        fjob.write('python ./scripts/B2DstMu_skimCAND_v1.py --function makeSel --tmpDir $1 --jN $2\n')
-        os.system('chmod +x {}/job.sh'.format(tmpDir))
+        if os.environ['USER'] == 'ocerri':
+            fjob.write('cd /storage/af/user/ocerri/CMSSW_10_2_3/; eval `scramv1 runtime -sh`\n')
+            fjob.write('cd '+os.path.dirname(os.path.abspath(__file__))+'\n')
+            fjob.write('python B2DstMu_skimCAND_v1.py --function makeSel --tmpDir $1 --jN $2\n')
+        else:
+            fjob.write('cd %s/RDstAnalysis/CMSSW_10_2_3/\n' % os.environ['HOME'])
+            fjob.write('eval `scramv1 runtime -sh`\n')
+            fjob.write('cd %s/RDstAnalysis/BPH_RD_Analysis/\n' % os.environ['HOME'])
+            fjob.write('export PYTHONPATH=%s/RDstAnalysis/BPH_RD_Analysis/lib:$PYTHONPATH\n' % os.environ['HOME'])
+            fjob.write('export PYTHONPATH=%s/RDstAnalysis/BPH_RD_Analysis/analysis:$PYTHONPATH\n' % os.environ['HOME'])
+            fjob.write('python ./scripts/B2DstMu_skimCAND_v1.py --function makeSel --tmpDir $1 --jN $2\n')
+    os.system('chmod +x {}/job.sh'.format(tmpDir))
 
     sub_file = join(tmpDir,'jobs.jdl')
     with open(sub_file, 'w') as fsub:
@@ -749,7 +771,9 @@ def createSubmissionFile(tmpDir, njobs):
         fsub.write('error         = {}/out/job_$(ProcId)_$(ClusterId).err\n'.format(tmpDir))
         fsub.write('log           = {}/out/job_$(ProcId)_$(ClusterId).log\n'.format(tmpDir))
         fsub.write('WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT\n')
-        fsub.write('+MaxRuntime   = 3600\n')
+        fsub.write('+JobQueue="Short"\n')
+        # fsub.write('+RequestWalltime   = 7000\n')
+        fsub.write('+MaxRuntime   = 7000\n')
         fsub.write('+RunAsOwner = True\n')
         fsub.write('+InteractiveUser = True\n')
         fsub.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"\n')
@@ -759,7 +783,7 @@ def createSubmissionFile(tmpDir, njobs):
         fsub.write('RequestMemory = 2500\n')
         fsub.write('RequestCpus = 1\n')
         fsub.write('x509userproxy = $ENV(X509_USER_PROXY)\n')
-        fsub.write('on_exit_remove = (ExitBySignal == False) && (ExitCode == 0)\n')
+        fsub.write('on_exit_remove = ((ExitBySignal == False) && (ExitCode == 0)) || (JobStatus=?=3)\n')
         # Send the job to Held state on failure.
         fsub.write('on_exit_hold = (ExitBySignal == True) || (ExitCode != 0)\n')
         # Periodically retry the jobs for 2 times with an interval of 20 minutes.
@@ -777,7 +801,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument ('--function', type=str, default='main', help='Function to perform')
     parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
-    parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs'], default='jobs', help='Function to perform')
+    parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'serial'], default='jobs', help='Function to perform')
     parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
     parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
     parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
@@ -792,11 +816,14 @@ if __name__ == "__main__":
 
     if args.function == 'main':
         file_loc = {}
+        nCount = 0
         for n in args.dataset:
             for kn in filesLocMap:
                 if re.match(n, kn):
                     print 'Adding %s' % kn
                     file_loc[kn] = filesLocMap[kn]
+                    nCount += 1
+        print 'Running over {} datasets'.format(nCount)
 
         if len(args.dataset) == 0:
             print >> sys.stderr, 'No dataset provided, rerun with -d'

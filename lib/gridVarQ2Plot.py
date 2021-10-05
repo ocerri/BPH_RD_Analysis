@@ -8,27 +8,29 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import tdrstyle
 tdrstyle.setTDRStyle()
 
-col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'BpDstst': rt.kOrange-3, 'B0Dstst': rt.kViolet-7, 'TauDstst':rt.kMagenta-9, 'JpsiKst':rt.kYellow-7}
+col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'BpDstst': rt.kOrange-3, 'B0Dstst': rt.kViolet-7, 'BsDstst':rt.kYellow-7, 'TauDstst':rt.kMagenta-9, 'JpsiKst':rt.kYellow-7}
 
 label_dic = {'data' : 'Data',
              'mu'   : 'B#rightarrow D*#mu#nu',
              'tau'  : 'B#rightarrow D*#tau#nu',
-             'Hc'   : 'B#rightarrow D*H_{c}',
-             'DstD'   : 'B#rightarrow D*D(#muX)',
+             'Hc'   : 'B_{(s)}#rightarrow D*H_{c}(#muX)',
+             'DstD'   : 'B_{(s)}#rightarrow D*H_{c}(#muX)',
              'BpDstst': 'B^{+}#rightarrow D**#mu#nu',
              'B0Dstst': 'B^{0}#rightarrow D**#mu#nu',
-             'TauDstst': 'B#rightarrow D**#tau#nu',
+             'BsDstst': 'B_{s}#rightarrow D_{s}**#mu#nu',
+             'TauDstst': 'B_{(s)}#rightarrow D_{(s)}**#tau#nu',
              'JpsiKst': 'B#rightarrow J/#PsiK*',
             }
 
 fillStyleVar = [1, 3345, 3354, 1, 1, 1, 1, 1, 1]
 sampleDstst = {
-'BpDstst': ['DstPip', 'DstPipPi0'],
-'B0Dstst': ['DstPi0', 'DstPipPim', 'DstPi0Pi0'],
-'TauDstst': ['TauDstPi0', 'TauDstPip'],
+'BpDstst': ['Bu_MuDstPi', 'Bu_MuDstPiPi'],
+'B0Dstst': ['Bd_MuDstPi', 'Bd_MuDstPiPi'],
+'BsDstst': ['Bs_MuDstK'],
+'TauDstst': ['Bu_TauDstPi', 'Bd_TauDstPi', 'Bd_TauDstPiPi', 'Bu_TauDstPiPi', 'Bs_TauDstK'],
 }
 
-sampleDstmHc = ['DstmD0', 'DstmDp', 'DstmDsp', 'BpDstmHc', 'BmDstmHc', 'antiB0DstmHc']
+sampleDstHc = ['Bd_DstDu', 'Bu_DstDu', 'Bd_DstDd', 'Bu_DstDd', 'Bd_DstDs', 'Bs_DstDs']
 
 
 def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name='', background=False):
@@ -45,7 +47,7 @@ def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name='', 
             if 'h_aux_'+n+cat_name == h.GetName():
                 leg.AddEntry(h, label_dic[n], 'f')
                 break
-    present = np.sum([n in h_dic.keys() for n in sampleDstmHc])
+    present = np.sum([n in h_dic.keys() for n in sampleDstHc])
     if present:
         h = rt.TH1D('hAuxLeg_DstD', 'hAuxLeg_DstD', 1, 0, 1)
         h.SetLineWidth(0)
@@ -171,7 +173,7 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                         h.Add(hh)
                     h_list.append(h)
 
-            for iproc, procName in enumerate(sampleDstmHc):
+            for iproc, procName in enumerate(sampleDstHc):
                 if not procName in h_dic.keys(): continue
                 h = h_dic[procName].Clone('h_aux_'+procName+'_'+cat_name)
                 if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
@@ -400,7 +402,7 @@ def plot_SingleCategory(CMS_lumi,
 
     for iProc, procName in enumerate(procOrder):
         if procName == 'DstD':
-            for iproc, pName in enumerate(sampleDstmHc):
+            for iproc, pName in enumerate(sampleDstHc):
                 if not pName in h_dic.keys(): continue
                 h = h_dic[pName].Clone('h_aux_'+pName+tag)
                 if pName in scale_dic.keys(): h.Scale(scale_dic[pName])

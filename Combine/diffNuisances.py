@@ -3,7 +3,7 @@ import re
 from sys import argv, stdout, stderr, exit
 import datetime
 from optparse import OptionParser
-import HiggsAnalysis.CombinedLimit.calculate_pulls as CP 
+import HiggsAnalysis.CombinedLimit.calculate_pulls as CP
 
 # tool to compare fitted nuisance parameters to prefit values.
 #
@@ -35,6 +35,7 @@ parser.add_option("-f", "--format",   dest="format", default="text", type="strin
 parser.add_option("-g", "--histogram", dest="plotfile", default=None, type="string", help="If true, plot the pulls of the nuisances to the given file.")
 parser.add_option("", "--pullDef",  dest="pullDef", default="", type="string", help="Choose the definition of the pull, see python/calculate_pulls.py for options")
 parser.add_option("", "--skipFitB", dest="skipFitB", default=False, action='store_true', help="skip the B-only fit, instead the S+B fit will be repeated")
+parser.add_option("", "--skipFitSB", dest="skipFitSB", default=False, action='store_true', help="skip the S+B fit, instead the B-only fit will be repeated")
 
 (options, args) = parser.parse_args()
 if len(args) == 0:
@@ -43,9 +44,9 @@ if len(args) == 0:
 
 if options.pullDef!="" and options.pullDef not in CP.allowed_methods(): exit("Method %s not allowed, choose one of [%s]"%(options.pullDef,",".join(CP.allowed_methods())))
 
-if options.pullDef and options.absolute_values : 
+if options.pullDef and options.absolute_values :
   print "Pulls are always defined as absolute, will modify --absolute_values to False for you"
-  options.absolute_values = False 
+  options.absolute_values = False
 
 if options.pullDef : options.show_all_parameters=True
 
@@ -53,7 +54,7 @@ setUpString = "diffNuisances run on %s, at %s with the following options ... "%(
 
 file = ROOT.TFile(args[0])
 if file == None: raise RuntimeError, "Cannot open file %s" % args[0]
-fit_s  = file.Get("fit_s")
+fit_s  = file.Get("fit_s") if not options.skipFitSB  else file.Get("fit_b")
 fit_b  = file.Get("fit_b") if not options.skipFitB  else file.Get("fit_s")
 prefit = file.Get("nuisances_prefit")
 if fit_s == None or fit_s.ClassName()   != "RooFitResult": raise RuntimeError, "File %s does not contain the output of the signal fit 'fit_s'"     % args[0]
@@ -117,14 +118,14 @@ for i in range(fpf_s.getSize()):
         row += [ "[%.2f, %.2f]" % (nuis_s.getMin(), nuis_s.getMax()) ]
 
     else:
-        # get best-fit value and uncertainty at prefit for this 
+        # get best-fit value and uncertainty at prefit for this
         # nuisance parameter
  	if nuis_p.getErrorLo()==0 : nuis_p.setError(nuis_p.getErrorHi())
         mean_p, sigma_p, sigma_pu,sigma_pd = (nuis_p.getVal(), nuis_p.getError(),nuis_p.getErrorHi(),nuis_p.getErrorLo())
 
 	if not sigma_p > 0: sigma_p = (nuis_p.getMax()-nuis_p.getMin())/2
 	nuisIsSymm = abs(abs(nuis_p.getErrorLo())-abs(nuis_p.getErrorHi()))<0.01 or nuis_p.getErrorLo() == 0
-        if options.absolute_values: 
+        if options.absolute_values:
 		if nuisIsSymm : row += [ "%.6f +/- %.6f" % (nuis_p.getVal(), nuis_p.getError()) ]
 		else: row += [ "%.6f +%.6f %.6f" % (nuis_p.getVal(), nuis_p.getErrorHi(), nuis_p.getErrorLo()) ]
 
@@ -136,16 +137,16 @@ for i in range(fpf_s.getSize()):
  	    if nuisIsSymm : nuis_x.setError(nuis_x.getErrorHi())
 	    nuiselo = abs(nuis_x.getErrorLo()) if nuis_x.getErrorLo()>0 else nuis_x.getError()
 	    nuisehi = nuis_x.getErrorHi()
-	    if options.pullDef and nuis_p!=None: 
+	    if options.pullDef and nuis_p!=None:
 	    	nx,ned,neu = CP.returnPullAsym(options.pullDef,nuis_x.getVal(),mean_p,nuisehi,sigma_pu,abs(nuiselo),abs(sigma_pd))
-	    else: 
+	    else:
 	        nx,ned,neu = nuis_x.getVal(), nuiselo, nuisehi
 
             if nuisIsSymm : row += [ "%+.2f +/- %.2f" % (nx, (abs(ned)+abs(neu))/2) ]
 	    else: row += [ "%+.2f +%.2f %.2f" % (nx, neu, ned) ]
 
             if nuis_p != None:
-	        if options.plotfile: 
+	        if options.plotfile:
 	          if fit_name=='b':
 	    	    nuis_p_i+=1
 		    if options.pullDef and nuis_p!=None:
@@ -175,11 +176,11 @@ for i in range(fpf_s.getSize()):
 		  hist_prefit.SetBinError(nuis_p_i,sigma_p)
 	      	  hist_prefit.GetXaxis().SetBinLabel(nuis_p_i,name)
 
-                if sigma_p>0: 
+                if sigma_p>0:
                     if options.pullDef:
-			valShift = nx 
+			valShift = nx
 			sigShift = 1
-                    else: 
+                    else:
 		        # calculate the difference of the nuisance parameter
                         # w.r.t to the prefit value in terms of the uncertainty
                         # on the prefit value
@@ -200,14 +201,14 @@ for i in range(fpf_s.getSize()):
                     row[-1] += " (%+4.2fsig, %4.2f)" % (valShift, sigShift)
                 else:
                     row[-1] = " %+4.2f, %4.2f" % (valShift, sigShift)
-                
+
 		if fit_name == 'b':
                       pulls.append(valShift)
 
                 if (abs(valShift) > options.vtol2 or abs(sigShift-1) > options.stol2):
 
                     # severely report this nuisance:
-                    # 
+                    #
                     # the best fit moved by more than 2.0 sigma or the uncertainty (sigma)
                     # changed by more than 50% (default thresholds) w.r.t the prefit values
 
@@ -218,7 +219,7 @@ for i in range(fpf_s.getSize()):
                 elif (abs(valShift) > options.vtol  or abs(sigShift-1) > options.stol):
 
                     # report this nuisance:
-                    # 
+                    #
                     # the best fit moved by more than 0.3 sigma or the uncertainty (sigma)
                     # changed by more than 10% (default thresholds) w.r.t the prefit values
 
@@ -228,10 +229,12 @@ for i in range(fpf_s.getSize()):
 
                 elif options.show_all_parameters:
                     flag = True
-	
-    # end of loop over s and b
 
-    row += [ "%+4.2f"  % fit_s.correlation(name, options.poi) ]
+    # end of loop over s and b
+    if options.skipFitSB and options.poi == 'r':
+        row += [ "0"]
+    else:
+        row += [ "%+4.2f"  % fit_s.correlation(name, options.poi) ]
     if flag or options.show_all_parameters: table[name] = row
 
 #end of loop over all fitted parameters
@@ -242,7 +245,7 @@ for i in range(fpf_s.getSize()):
 
 #print details
 print setUpString
-print 
+print
 
 fmtstring = "%-40s     %15s    %15s  %10s"
 highlight = "*%s*"
@@ -392,7 +395,7 @@ if options.plotfile:
     leg.Draw()
     fout.WriteTObject(canvas_nuis)
     canvas_pferrs = ROOT.TCanvas("post_fit_errs", "post_fit_errs", 900, 600)
-    for b in range(1,hist_fit_e_s.GetNbinsX()+1): 
+    for b in range(1,hist_fit_e_s.GetNbinsX()+1):
       hist_fit_e_s.SetBinContent(b,hist_fit_s.GetBinError(b)/hist_prefit.GetBinError(b))
       hist_fit_e_b.SetBinContent(b,hist_fit_b.GetBinError(b)/hist_prefit.GetBinError(b))
       hist_fit_e_s.SetBinError(b,0)
@@ -420,6 +423,3 @@ if options.plotfile:
     canvas_pferrs.RedrawAxis()
 
     fout.WriteTObject(canvas_pferrs)
-
-   
-

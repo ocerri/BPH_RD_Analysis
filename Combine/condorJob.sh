@@ -2,7 +2,7 @@
 directory=$1
 command="${@:2}"
 
-cd /storage/user/ocerri/work/CMSSW_10_2_13/src/
+cd /storage/af/user/ocerri/work/CMSSW_10_2_13/src/
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 eval `scramv1 runtime -sh`
 echo "cd $directory"

@@ -2,7 +2,7 @@
 
 """
 ######### Notes #########
-To activate the environment run: cd ~/work/CMSSW_10_2_13/src/; cmsenv; cd ~/BPhysics/Combine/
+To activate the environment run: cd ~/work/CMSSW_10_2_13/src/; cmsenv; cd ~/BPH_RD_Analysis/Combine/
 
 ######## Release notes #########
 New from previous version:
@@ -59,16 +59,15 @@ parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'
 parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
 parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial tag.')
 
-parser.add_argument ('--unblinded', default=True, type=bool, help='Unblind the fit regions.')
+parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--freeMuBr', default=True, help='Make muon branching fraction with a rate parameter (flat prior).')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
-parser.add_argument ('--dataType', default=0, choices=[0,1,2], type=int, help='0: both, 1: only B0, 2: only anti-B0.')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
-parser.add_argument ('--calBpT', default='poly', choices=['ratio', 'poly', 'none'], help='Form factor scheme to use.')
+parser.add_argument ('--calBpT', default='none', choices=['ratio', 'poly', 'none'], help='Form factor scheme to use.')
 
 
 availableSteps = ['clean', 'histos', 'preFitPlots',
@@ -166,20 +165,20 @@ FreeParFF = {
 }[schemeFF]
 
 processOrder = [
-    'mu', 'tau',
-    'Bu_MuDstPi', 'Bd_MuDstPi'
-    'Bd_MuDstPiPi', 'Bu_MuDstPiPi'
-    'Bu_TauDstPi', 'Bd_TauDstPi'
-    'Bd_TauDstPiPi', 'Bu_TauDstPiPi'
+    'tau', 'mu',
+    'Bu_MuDstPi', 'Bd_MuDstPi',
+    'Bd_MuDstPiPi', 'Bu_MuDstPiPi',
+    'Bu_TauDstPi', 'Bd_TauDstPi',
+    'Bd_TauDstPiPi', 'Bu_TauDstPiPi',
     'Bs_MuDstK', 'Bs_TauDstK',
-    'Bd_DstDu', 'Bu_DstDu'
-    'Bd_DstDd', 'Bu_DstDd'
+    'Bd_DstDu', 'Bu_DstDu',
+    'Bd_DstDd', 'Bu_DstDd',
     'Bd_DstDs', 'Bs_DstDs'
 ]
 
 
-samples_Bu = [p  for p in processOrder if not (p[:2] == 'Bd' or p[:2] == 'Bs')]
-samples_Bu = [p  for p in processOrder if p[:2] == 'Bd']
+samples_Bd = [p  for p in processOrder if not (p[:2] == 'Bu' or p[:2] == 'Bs')]
+samples_Bu = [p  for p in processOrder if p[:2] == 'Bu']
 samples_Bs = [p  for p in processOrder if p[:2] == 'Bs']
 
 
@@ -199,10 +198,6 @@ def createCardName(a):
         c += '_Asimov'
         if args.lumiMult != 1.:
             c += '{:.0f}'.format(args.lumiMult)
-    elif a.dataType:
-        c += '_onlyB0'
-        if a.dataType == 2:
-            c += 'bar'
     if not a.unblinded:
         c += '_blinded'
     if a.noMCstats:
@@ -274,12 +269,12 @@ def cleanPreviousResults():
 
 ########################### -------- Create histrograms ------------------ #########################
 
-def loadDatasets(category, loadRD, dataType):
+def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
     MCsample = {
     ######## Signals
-    'mu': DSetLoader('Bd_MuNuDst'),
+    'mu': DSetLoader('Bd_MuNuDst', candDir='ntuples_B2DstMu_wOC'),
     'tau': DSetLoader('Bd_TauNuDst'),
     ######## D** background
     'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi'),
@@ -296,7 +291,7 @@ def loadDatasets(category, loadRD, dataType):
     'Bd_DstDu': DSetLoader('Bd_DstDu'),
     'Bu_DstDu': DSetLoader('Bu_DstDu'),
     'Bd_DstDd': DSetLoader('Bd_DstDd'),
-    'Bu_DstDd': DSetLoader('Bu_DstDd'),
+    'Bu_DstDd': DSetLoader('Bu_DstDd', candDir='ntuples_B2DstMu_tOC'),
     'Bd_DstDs': DSetLoader('Bd_DstDs'),
     'Bs_DstDs': DSetLoader('Bs_DstDs'),
     }
@@ -306,7 +301,9 @@ def loadDatasets(category, loadRD, dataType):
     mcType = 'bare' if args.bareMC else 'corr'
     print 'mcType:', mcType
     for n, s in MCsample.iteritems():
-        if not n in processOrder: raise
+        if not n in processOrder:
+            print n, 'not declarted in processOrder'
+            raise
         dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType)))
         dSetTkSide[n] = rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType))
 
@@ -315,35 +312,22 @@ def loadDatasets(category, loadRD, dataType):
         dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
         lumi_tot = 0
 
-        #B0 data
-        if dataType == 0 or dataType == 1:
-            creation_date = '201101'
-            locRD = dataDir+'/skimmed/B2DstMu_B0_{}_{}'.format(creation_date, category.name)
-            dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
-            dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
-            datasets_loc = glob(dataDir + '/ParkingBPH*/*RDntuplizer_B2DstMu_{}_CAND.root'.format(creation_date))
-            lumi_tot = getLumiByTrigger(datasets_loc, category.trg, verbose=True)
-
-        #Anti-B0 data
-        if dataType == 0 or dataType == 2:
-            creation_date = '201122'
-            locRD = dataDir+'/skimmed/B2DstMu_antiB0_{}_{}'.format(creation_date, category.name)
-
-            aux = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
-            auxTk = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
-            if dataType == 0:
-                dSet['data'] = pd.concat([dSet['data'], aux])
-                dSetTkSide['data'] = pd.concat([dSetTkSide['data'], auxTk])
-            else:
-                dSet['data'] = aux
-                dSetTkSide['data'] = auxTk
+        creation_date = '210917'
+        locRD = dataDir+'/skimmed/B2DstMu_{}_{}'.format(creation_date, category.name)
+        dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
+        dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
+        datasets_loc = glob(dataDir + '/ParkingBPH*/*RDntuplizer_B2DstMu_{}_CAND.root'.format(creation_date))
+        lumi_tot = getLumiByTrigger(datasets_loc, category.trg, verbose=True)
 
     return MCsample, dSet, dSetTkSide
 
-def computeBrVarWeights(ds, selItems={}, relScale=0.2, keepNorm=False):
+def computeBrVarWeights(ds, selItems={}, relScale=0.2, keepNorm=False, absVal=True):
     sel = np.ones_like(ds['mu_pt']).astype(np.bool)
     for var, val in selItems.iteritems():
-        sel = np.logical_and(ds[var].astype(np.int) == val, sel)
+        if absVal:
+            sel = np.logical_and(np.abs(ds[var].astype(np.int)) == val, sel)
+        else:
+            sel = np.logical_and(ds[var].astype(np.int) == val, sel)
     w = np.ones_like(sel)
     up = np.where(sel, 1.+relScale, 1.)
     down = np.where(sel, max(0, 1.-relScale), 1.)
@@ -399,19 +383,20 @@ def computeTksPVweights(ds, relScale=0.05, centralVal=0.39/0.10):
     return w, up, down
 
 def createHistograms(category):
-    MCsample, dSet, dSetTkSide = loadDatasets(category, not args.asimov, args.dataType)
+    MCsample, dSet, dSetTkSide = loadDatasets(category, not args.asimov)
     mcType = 'bare' if args.bareMC else 'corr'
     ######################################################
     ########## Load calibrations
     ######################################################
     from pileup_utilities import pileupReweighter
-    puReweighter = pileupReweighter(MCsample['mu'].skimmed_dir + '/{}_{}.root'.format(category.name, mcType), category)
+    skimmedFile_loc = MCsample['mu'].skimmed_dir + '/{}_{}.root'.format(category.name, mcType)
+    puReweighter = pileupReweighter(skimmedFile_loc, 'hAllNTrueIntMC', trg=category.trg)
 
-    dataDir = '/storage/user/ocerri/BPhysics/data'
-    decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors.pickle', 'rb'))
+    dataDir = '/storage/af/group/rdst_analysis/BPhysics/data'
+    decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors_v2.pickle', 'rb'))
 
     loc = dataDir+'/calibration/triggerScaleFactors/'
-    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v8base.root', 'READ')
+    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v21count.root', 'READ')
     hTriggerSF = fTriggerSF.Get('hSF_HLT_' + category.trg)
     def computeTrgSF(ds, hSF, selection=None):
         trgSF = np.ones_like(ds['q2'])
@@ -503,10 +488,10 @@ def createHistograms(category):
             print 'Unknown calibration'
             raise
 
-    pWeightsEta = pickle.load(open(dataDir+'/calibration/B0pTspectrum/etaWeights_poly_{}.p'.format(category.name), 'rb'))
-    def computeB0etaWeights(ds):
-        w = np.polyval(p=pWeightsEta, x=ds['B_eta'])
-        return np.clip(w, a_min=0.5, a_max=1.5)
+    # pWeightsEta = pickle.load(open(dataDir+'/calibration/B0pTspectrum/etaWeights_poly_{}.p'.format(category.name), 'rb'))
+    # def computeB0etaWeights(ds):
+    #     w = np.polyval(p=pWeightsEta, x=ds['B_eta'])
+    #     return np.clip(w, a_min=0.5, a_max=1.5)
 
     # def fSoftTrackEff(x, a=0.6, tau=0.8):
     #     return np.where(x<0.1, np.ones_like(x), 1 - a*np.exp(-x/tau))
@@ -530,44 +515,6 @@ def createHistograms(category):
         return w
 
 
-    class pythiaCalOneShotReader:
-        def __init__(self, calibration_file=None):
-            if not calibration_file is None:
-                self.loadCalibration(calibration_file)
-
-        def loadCalibration(self, calibration_file):
-            d = pickle.load(open( calibration_file, 'rb' ))
-            self.beta = d['beta']
-            self.betaVar = d['betaVar']
-            self.nVar = len(d['betaVar'])
-            self.x = None
-
-        def loadInputs(self, ds):
-            x = np.array(ds[['q2','M2_miss', 'Est_mu']])
-            x = np.column_stack((
-                np.ones_like(x[:,0]),
-                x,
-                x[:,0]*x[:,1],
-                x[:,0]*x[:,2],
-                x[:,1]*x[:,2],
-            ))
-
-            self.x = x
-
-        def _computeWeights(self, beta, pMin=1e-2):
-            p = np.clip(np.dot(self.x, beta), pMin, 1-pMin)
-            w = p/(1-p)
-            return w
-
-        def getWeights(self, shape=0, scale=1.):
-
-            sign = np.sign(shape)
-            idx = np.abs(shape) - 1
-            delta_p = sign*scale*self.betaVar[idx]
-
-            return self._computeWeights(self.beta + delta_p)
-    pythiaCalReader = pythiaCalOneShotReader('../data/calibration/pythiaProcessesHardToSoft/polyOneShot'+category.name+'.pkl')
-
     if args.useMVA:
         fname = dataDir+'../plot_scripts/kinObsMVA/clfGBC_tauVall_{}{}.p'.format(args.useMVA, category.name)
         clfGBC = pickle.load(open(fname, 'rb'))
@@ -587,8 +534,7 @@ def createHistograms(category):
 
     histo = {}
     eventCountingStr = {}
-    RDoMC_normRatio = 6 # Difference in Pythia prediction between Hard and Soft QCD production
-    RDoMC_normRatio *= 2 #Both charge signs
+    RDoMC_normRatio = 1
 
     ######################################################
     ########## Signal region
@@ -700,7 +646,7 @@ def createHistograms(category):
         weights = {}
 
         print 'Including pileup reweighting'
-        weights['pileup'] = puReweighter.weightsPileupMC[ds['N_vtx'].astype(np.int)]
+        weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
 
         print 'Including trigger corrections'
         nameSF = 'trg{}SF'.format(category.trg)
@@ -755,15 +701,15 @@ def createHistograms(category):
 
 
         # B phase space corrections
-        weights['etaB'] = computeB0etaWeights(ds)
-        if (not args.calBpT == 'none') and (n in SamplesB0):
+        # weights['etaB'] = computeB0etaWeights(ds)
+        if (not args.calBpT == 'none') and (n in samples_Bd):
             print 'Including B0 pT corrections'
             if cal_pT_B0.kind == 'ratio':
                 weights['B0pT'+category.name], wVar['B0pT'+category.name+'Up'], wVar['B0pT'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
             else:
                 weights['B0pT'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'B0pT'+category.name, cal_pT_B0)
                 wVar.update(auxVarDic)
-        if (not args.calBpT == 'none') and (n in SamplesBp):
+        if (not args.calBpT == 'none') and (n in samples_Bu):
             print 'Including B +/- pT corrections'
             # weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
             if cal_pT_B0.kind == 'ratio':
@@ -771,20 +717,6 @@ def createHistograms(category):
             else:
                 weights['BpPt'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'BpPt'+category.name, cal_pT_B0)
                 wVar.update(auxVarDic)
-
-        # Soft vs Hard QCD
-        # if n in ['mu']:
-        #     print 'Including pythia process corrections'
-        #     pythiaCalReader.loadInputs(ds)
-        #     weights['pythiaProcess'] = pythiaCalReader.getWeights()
-        #     for shapeVar in range(1, len(pythiaCalReader.betaVar)+1):
-        #         for mod in [+1, -1]:
-        #             varName = 'pythiaProcess'+category.name + '_lam'+str(shapeVar)
-        #             if mod > 0:
-        #                 varName += 'Up'
-        #             else:
-        #                 varName += 'Down'
-        #             wVar[varName] = pythiaCalReader.getWeights(mod*shapeVar)/weights['pythiaProcess']
 
         # Hammer corrections to the FF
         if n in ['mu', 'tau'] and schemeFF != 'NoFF':
@@ -795,35 +727,55 @@ def createHistograms(category):
                     tag = schemeFF + nPar + var
                     wVar['B2Dst'+tag] = ds['wh_'+tag]/ds['wh_'+schemeFF+'Central']
                     wVar['B2Dst'+tag] *= sMC.effCand['rate_'+schemeFF+'Central']/sMC.effCand['rate_' + tag]
-        #Dstst resonance mix
-        if n == 'DstPip' or n =='TauDstPip':
-            print 'Including D**->D*Pi width variations'
-            _, wVar['fDststWideUp'], wVar['fDststWideDown'] = computeBrVarWeights(ds, {'MC_munuSisterPdgId': -20423}, 0.6/2.7, keepNorm=True) #Gamma 14 pdg 2020
 
-            _, wVar['D2420_10WidthUp'], wVar['D2420_10WidthDown'] = computeWidthVarWeights(ds, selItems=[[10423, 2.422, 0.020]], relScale=0.15)
-            # _, wVar['D2430_10WidthUp'], wVar['D2430_10WidthDown'] = computeWidthVarWeights(ds, selItems=[[20423, 2.445, 0.250]], relScale=0.1)
-            _, wVar['D2460_1StWidthUp'], wVar['D2460_1StWidthDown'] = computeWidthVarWeights(ds, selItems=[[425, 2.461, 0.043]], relScale=0.15)
-        if n == 'DstPipPim' or n == 'DstPi0Pi0':
-            print 'Including D**->D*PiPi width variations'
-            widthMods = [[100413, 2.640, 0.200]]
-            weights['DstPiPiWidth'], wVar['DstPiPiWidthUp'], wVar['DstPiPiWidthDown'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.2, newGamma=[0.35])
-        #Hc mix variations
-        if n == 'DstmD0':
-            _, wVar['BrB02DstD0KpUp'], wVar['BrB02DstD0KpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 421, 'MC_DstSisterPdgId_light': 321}, 0.21/2.47) #Gamma 169 pdg 2020
-            _, wVar['BrB02DstD0KstpUp'], wVar['BrB02DstD0KstpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 421, 'MC_DstSisterPdgId_light': 323}, 0.5) # Guess
-            _, wVar['BrB02DstDst0KpUp'], wVar['BrB02DstDst0KpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 423, 'MC_DstSisterPdgId_light': 321}, 0.09/1.06) #Gamma 170 pdg 2020
-            _, wVar['BrB02DstDst0KstpUp'], wVar['BrB02DstDst0KstpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 423, 'MC_DstSisterPdgId_light': 323}, 0.5) # Guess
-            _, wVar['BrB02DstDstpK0Up'], wVar['BrB02DstDstpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 311}, 0.5/5.3) #Gamma 173 pdg 2020
-            _, wVar['BrB02DstDstpKst0Up'], wVar['BrB02DstDstpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
-        if n == 'DstmDp':
-            _, wVar['BrB02DstDpK0Up'], wVar['BrB02DstDpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 411, 'MC_DstSisterPdgId_light': 311}, 0.5/3.2) #Gamma 172 pdg 2020
-            _, wVar['BrB02DstDpKst0Up'], wVar['BrB02DstDpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 411, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
-            _, wVar['BrB02DstDstpK0Up'], wVar['BrB02DstDstpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 311}, 0.2/2.7) #Gamma 173 pdg 2020
-            _, wVar['BrB02DstDstpKst0Up'], wVar['BrB02DstDstpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
-        if n == 'DstmDsp':
-            _, wVar['BrB02DstDsUp'], wVar['BrB02DstDsDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 431}, 1.1/8.0) #Gamma 83 pdg 2020
-            _, wVar['BrB02DstDsstUp'], wVar['BrB02DstDsstDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 433}, .14/1.77) #Gamma 85 pdg 2020
-            _, wVar['BrB02DstDs0stUp'], wVar['BrB02DstDs0stDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 10431}, .6/1.5) #Gamma 95 pdg 2020
+        # #Dstst resonance mix
+        if not re.search('DstPi\Z', n) is None:
+            print 'Including D**->D*Pi width variations'
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7, keepNorm=True)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55, keepNorm=True)
+            wVar['fDststWideUp'] = wNeuUp * wChUp
+            wVar['fDststWideDown'] = wNeuDw * wChDw
+
+
+            _, wVar['D2420_widthUp'], wVar['D2420_widthDown'] = computeWidthVarWeights(ds,
+                                                                                       selItems=[[10423, 2.421, 0.0274],
+                                                                                                 [10413, 2.423, 0.020]],
+                                                                                       newGamma=[0.030, 0.025],
+                                                                                       relScale=0.15)
+
+            _, wVar['D2430_widthUp'], wVar['D2430_widthDown'] = computeWidthVarWeights(ds,
+                                                                                       selItems=[[20423, 2.445, 0.250],
+                                                                                                 [20413, 2.445, 0.250]],
+                                                                                       newGamma=[0.3, 0.3],
+                                                                                       relScale=0.1)
+
+            _, wVar['D2460_widthUp'], wVar['D2460_widthDown'] = computeWidthVarWeights(ds,
+                                                                                       selItems=[[425, 2.461, 0.049],
+                                                                                                 [415, 2.460, 0.037]],
+                                                                                       newGamma=[0.045, 0.045],
+                                                                                       relScale=0.15)
+
+        # if n == 'DstPipPim' or n == 'DstPi0Pi0':
+        #     print 'Including D**->D*PiPi width variations'
+        #     widthMods = [[100413, 2.640, 0.200]]
+        #     weights['DstPiPiWidth'], wVar['DstPiPiWidthUp'], wVar['DstPiPiWidthDown'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.2, newGamma=[0.35])
+        # #Hc mix variations
+        # if n == 'DstmD0':
+        #     _, wVar['BrB02DstD0KpUp'], wVar['BrB02DstD0KpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 421, 'MC_DstSisterPdgId_light': 321}, 0.21/2.47) #Gamma 169 pdg 2020
+        #     _, wVar['BrB02DstD0KstpUp'], wVar['BrB02DstD0KstpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 421, 'MC_DstSisterPdgId_light': 323}, 0.5) # Guess
+        #     _, wVar['BrB02DstDst0KpUp'], wVar['BrB02DstDst0KpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 423, 'MC_DstSisterPdgId_light': 321}, 0.09/1.06) #Gamma 170 pdg 2020
+        #     _, wVar['BrB02DstDst0KstpUp'], wVar['BrB02DstDst0KstpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 423, 'MC_DstSisterPdgId_light': 323}, 0.5) # Guess
+        #     _, wVar['BrB02DstDstpK0Up'], wVar['BrB02DstDstpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 311}, 0.5/5.3) #Gamma 173 pdg 2020
+        #     _, wVar['BrB02DstDstpKst0Up'], wVar['BrB02DstDstpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
+        # if n == 'DstmDp':
+        #     _, wVar['BrB02DstDpK0Up'], wVar['BrB02DstDpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 411, 'MC_DstSisterPdgId_light': 311}, 0.5/3.2) #Gamma 172 pdg 2020
+        #     _, wVar['BrB02DstDpKst0Up'], wVar['BrB02DstDpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 411, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
+        #     _, wVar['BrB02DstDstpK0Up'], wVar['BrB02DstDstpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 311}, 0.2/2.7) #Gamma 173 pdg 2020
+        #     _, wVar['BrB02DstDstpKst0Up'], wVar['BrB02DstDstpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
+        # if n == 'DstmDsp':
+        #     _, wVar['BrB02DstDsUp'], wVar['BrB02DstDsDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 431}, 1.1/8.0) #Gamma 83 pdg 2020
+        #     _, wVar['BrB02DstDsstUp'], wVar['BrB02DstDsstDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 433}, .14/1.77) #Gamma 85 pdg 2020
+        #     _, wVar['BrB02DstDs0stUp'], wVar['BrB02DstDs0stDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 10431}, .6/1.5) #Gamma 95 pdg 2020
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -1012,7 +964,7 @@ def createHistograms(category):
         weights = {}
 
         print 'Including pileup reweighting'
-        weights['pileup'] = puReweighter.weightsPileupMC[ds['N_vtx'].astype(np.int)]
+        weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
 
         print 'Including trigger corrections'
         nameSF = 'trg{}SF'.format(category.trg)
@@ -1063,14 +1015,14 @@ def createHistograms(category):
             s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
             wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
 
-        if (not args.calBpT == 'none') and (n in SamplesB0):
+        if (not args.calBpT == 'none') and (n in samples_Bd):
             print 'Including B0 pT corrections'
             if cal_pT_B0.kind == 'ratio':
                 weights['B0pT'+category.name], wVar['B0pT'+category.name+'Up'], wVar['B0pT'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
             else:
                 weights['B0pT'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'B0pT'+category.name, cal_pT_B0)
                 wVar.update(auxVarDic)
-        if (not args.calBpT == 'none') and (n in SamplesBp):
+        if (not args.calBpT == 'none') and (n in samples_Bu):
             print 'Including B +/- pT corrections'
             # weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
             if cal_pT_B0.kind == 'ratio':
@@ -1086,39 +1038,58 @@ def createHistograms(category):
                     tag = schemeFF + nPar + var
                     wVar['B2Dst'+tag] = ds['wh_'+tag]/ds['wh_'+schemeFF+'Central']
                     wVar['B2Dst'+tag] *= sMC.effCand['rate_'+schemeFF+'Central']/sMC.effCand['rate_' + tag]
-        #Dstst resonance mix
-        if n == 'DstPip' or n == 'TauDstPip':
+
+        # #Dstst resonance mix
+        if not re.search('DstPi\Z', n) is None:
             print 'Including D**->D*Pi width variations'
-            _, wVar['fDststWideUp'], wVar['fDststWideDown'] = computeBrVarWeights(ds, {'MC_munuSisterPdgId': -20423}, 0.6/2.7, keepNorm=True) #Gamma 14 pdg 2020
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7, keepNorm=True)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55, keepNorm=True)
+            wVar['fDststWideUp'] = wNeuUp * wChUp
+            wVar['fDststWideDown'] = wNeuDw * wChDw
 
-            _, wVar['D2420_10WidthUp'], wVar['D2420_10WidthDown'] = computeWidthVarWeights(ds, selItems=[[10423, 2.422, 0.020]], relScale=0.15)
-            # _, wVar['D2430_10WidthUp'], wVar['D2430_10WidthDown'] = computeWidthVarWeights(ds, selItems=[[20423, 2.445, 0.250]], relScale=0.1)
-            _, wVar['D2460_1StWidthUp'], wVar['D2460_1StWidthDown'] = computeWidthVarWeights(ds, selItems=[[425, 2.461, 0.043]], relScale=0.15)
-        if n == 'DstPipPim' or n == 'DstPi0Pi0':
-            print 'Including D**->D*PiPi width variations'
-            widthMods = [[100413, 2.640, 0.200]]
-            weights['DstPiPiWidth'], wVar['DstPiPiWidthUp'], wVar['DstPiPiWidthDown'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.2, newGamma=[0.35])
 
-        #Hc mix variations
-        if n == 'DstmD0':
-            _, wVar['BrB02DstD0KpUp'], wVar['BrB02DstD0KpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 421, 'MC_DstSisterPdgId_light': 321}, 0.21/2.47) #Gamma 169 pdg 2020
-            _, wVar['BrB02DstD0KstpUp'], wVar['BrB02DstD0KstpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 421, 'MC_DstSisterPdgId_light': 323}, 0.5) # Guess
-            _, wVar['BrB02DstDst0KpUp'], wVar['BrB02DstDst0KpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 423, 'MC_DstSisterPdgId_light': 321}, 0.09/1.06) #Gamma 170 pdg 2020
-            _, wVar['BrB02DstDst0KstpUp'], wVar['BrB02DstDst0KstpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 423, 'MC_DstSisterPdgId_light': 323}, 0.5) # Guess
-            _, wVar['BrB02DstDstpK0Up'], wVar['BrB02DstDstpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 311}, 0.5/5.3) #Gamma 173 pdg 2020
-            _, wVar['BrB02DstDstpKst0Up'], wVar['BrB02DstDstpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
-        if n == 'DstmDp':
-            _, wVar['BrB02DstDpK0Up'], wVar['BrB02DstDpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 411, 'MC_DstSisterPdgId_light': 311}, 0.5/3.2) #Gamma 172 pdg 2020
-            _, wVar['BrB02DstDpKst0Up'], wVar['BrB02DstDpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 411, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
-            _, wVar['BrB02DstDstpK0Up'], wVar['BrB02DstDstpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 311}, 0.2/2.7) #Gamma 173 pdg 2020
-            _, wVar['BrB02DstDstpKst0Up'], wVar['BrB02DstDstpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
-        if n == 'DstmDsp':
-            _, wVar['BrB02DstDsUp'], wVar['BrB02DstDsDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 431}, 1.1/8.0) #Gamma 83 pdg 2020
-            _, wVar['BrB02DstDsstUp'], wVar['BrB02DstDsstDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 433}, .14/1.77) #Gamma 85 pdg 2020
-            _, wVar['BrB02DstDs0stUp'], wVar['BrB02DstDs0stDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 10431}, .6/1.5) #Gamma 95 pdg 2020
+            _, wVar['D2420_widthUp'], wVar['D2420_widthDown'] = computeWidthVarWeights(ds,
+                                                                                       selItems=[[10423, 2.421, 0.0274],
+                                                                                                 [10413, 2.423, 0.020]],
+                                                                                       newGamma=[0.030, 0.025],
+                                                                                       relScale=0.15)
+
+            _, wVar['D2430_widthUp'], wVar['D2430_widthDown'] = computeWidthVarWeights(ds,
+                                                                                       selItems=[[20423, 2.445, 0.250],
+                                                                                                 [20413, 2.445, 0.250]],
+                                                                                       newGamma=[0.3, 0.3],
+                                                                                       relScale=0.1)
+
+            _, wVar['D2460_widthUp'], wVar['D2460_widthDown'] = computeWidthVarWeights(ds,
+                                                                                       selItems=[[425, 2.461, 0.049],
+                                                                                                 [415, 2.460, 0.037]],
+                                                                                       newGamma=[0.045, 0.045],
+                                                                                       relScale=0.15)
+        # if n == 'DstPipPim' or n == 'DstPi0Pi0':
+        #     print 'Including D**->D*PiPi width variations'
+        #     widthMods = [[100413, 2.640, 0.200]]
+        #     weights['DstPiPiWidth'], wVar['DstPiPiWidthUp'], wVar['DstPiPiWidthDown'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.2, newGamma=[0.35])
+        #
+        # #Hc mix variations
+        # if n == 'DstmD0':
+        #     _, wVar['BrB02DstD0KpUp'], wVar['BrB02DstD0KpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 421, 'MC_DstSisterPdgId_light': 321}, 0.21/2.47) #Gamma 169 pdg 2020
+        #     _, wVar['BrB02DstD0KstpUp'], wVar['BrB02DstD0KstpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 421, 'MC_DstSisterPdgId_light': 323}, 0.5) # Guess
+        #     _, wVar['BrB02DstDst0KpUp'], wVar['BrB02DstDst0KpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 423, 'MC_DstSisterPdgId_light': 321}, 0.09/1.06) #Gamma 170 pdg 2020
+        #     _, wVar['BrB02DstDst0KstpUp'], wVar['BrB02DstDst0KstpDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 423, 'MC_DstSisterPdgId_light': 323}, 0.5) # Guess
+        #     _, wVar['BrB02DstDstpK0Up'], wVar['BrB02DstDstpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 311}, 0.5/5.3) #Gamma 173 pdg 2020
+        #     _, wVar['BrB02DstDstpKst0Up'], wVar['BrB02DstDstpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
+        # if n == 'DstmDp':
+        #     _, wVar['BrB02DstDpK0Up'], wVar['BrB02DstDpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 411, 'MC_DstSisterPdgId_light': 311}, 0.5/3.2) #Gamma 172 pdg 2020
+        #     _, wVar['BrB02DstDpKst0Up'], wVar['BrB02DstDpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 411, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
+        #     _, wVar['BrB02DstDstpK0Up'], wVar['BrB02DstDstpK0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 311}, 0.2/2.7) #Gamma 173 pdg 2020
+        #     _, wVar['BrB02DstDstpKst0Up'], wVar['BrB02DstDstpKst0Down'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 413, 'MC_DstSisterPdgId_light': 313}, 0.5) # Guess
+        # if n == 'DstmDsp':
+        #     _, wVar['BrB02DstDsUp'], wVar['BrB02DstDsDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 431}, 1.1/8.0) #Gamma 83 pdg 2020
+        #     _, wVar['BrB02DstDsstUp'], wVar['BrB02DstDsstDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 433}, .14/1.77) #Gamma 85 pdg 2020
+        #     _, wVar['BrB02DstDs0stUp'], wVar['BrB02DstDs0stDown'] = computeBrVarWeights(ds, {'MC_DstSisterPdgId_heavy': 10431}, .6/1.5) #Gamma 95 pdg 2020
 
         # Correct the amount of random tracks from PV
-        weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.1)
+        weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=2.5)
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -1771,60 +1742,46 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += '\n'
 
     #### Branching ratio uncertainty
-    decayBR = pickle.load(open('/storage/user/ocerri/BPhysics/data/forcedDecayChannelsFactors.pickle', 'rb'))
+    brPklLoc = '/storage/af/group/rdst_analysis/BPhysics/data/forcedDecayChannelsFactors_v2.pickle'
+    decayBR = pickle.load(open(brPklLoc, 'rb'))
 
-    for n in processes:
-        if n in ['tau',
-                 'DstPip', 'DstPi0',
-                 'DstPipPim', 'DstPipPi0', 'DstPi0Pi0',
-                 'TauDstPip', 'TauDstPi0'
-                 ]: continue
-        val = ' {:.2f}'.format(1+decayBR[n][1]/decayBR[n][0])
+    def brScaleSys(name, relevantProcesses=[], relUnc=0.01, ccc=card):
+        val = ' {:.2f}'.format(1+relUnc)
         aux = ''
         for nn in processes:
-            if nn == n or (n=='mu' and nn=='tau'):
+            if nn in relevantProcesses:
                 aux += val
             else:
                 aux += ' -'
-        if n == 'mu' and args.freeMuBr:
-            card += 'muBr rateParam * mu 1.\n'
-            card += 'muBr rateParam * tau 1.\n'
-        else:
-            card += n + 'Br lnN' + aux*nCat + '\n'
+        return name + ' lnN' + aux*nCat + '\n'
 
+    if args.freeMuBr:
+        card += 'mutauNorm rateParam * mu 1.\n'
+        card += 'mutauNorm rateParam * tau 1.\n'
+    else:
+        card += brScaleSys('muBr', ['mu', 'tau'], relUnc=1.4/50.5)
 
-    #### Branching ratio uncertainty with isospin symmetry constraint
-    val = ' {:.2f}'.format(1+decayBR['DstPip'][1]/decayBR['DstPip'][0]) #DstPi0 has no info
-    aux = ''
-    for n in processes:
-        if n in ['DstPip', 'DstPi0']: aux += val
-        else: aux += ' -'
-    card += 'DstPiBr lnN' + aux*nCat + '\n'
+    card += brScaleSys('DstPiBr', ['Bu_MuDstPi', 'Bd_MuDstPi', 'Bu_TauDstPi', 'Bd_TauDstPi'], relUnc=0.4/6.0)
+    card += brScaleSys('DstPiPiBr', ['Bu_MuDstPiPi', 'Bd_MuDstPiPi', 'Bu_TauDstPiPi', 'Bd_TauDstPiPi'], relUnc=0.3/0.96)
+    card += brScaleSys('DstKBr', ['Bs_MuDstK', 'Bs_TauDstK'], relUnc=1.5/5.9)
 
-    val = ' {:.2f}'.format(1+decayBR['DstPipPim'][1]/decayBR['DstPipPim'][0]) #DstPipPim is the only one meaasured
-    aux = ''
-    for n in processes:
-        if n in ['DstPipPim', 'DstPipPi0', 'DstPi0Pi0']: aux += val
-        else: aux += ' -'
-    card += 'DstPiPiBr lnN' + aux*nCat + '\n'
+    card += brScaleSys('RDs_stst', ['Bu_TauDstPi', 'Bd_TauDstPi', 'Bd_TauDstPiPi', 'Bu_TauDstPiPi', 'Bs_TauDstK'], relUnc=0.3)
 
-    val = ' {:.2f}'.format(1+decayBR['TauDstPip'][1]/decayBR['TauDstPip'][0]) #DstPi0 has no info
-    aux = ''
-    for n in processes:
-        if n in ['TauDstPip', 'TauDstPi0']: aux += val
-        else: aux += ' -'
-    card += 'TauDstPiBr lnN' + aux*nCat + '\n'
+    card += brScaleSys('DuMuBr', ['Bd_DstDu', 'Bu_DstDu'], relUnc=2.5/60.8)
+    card += brScaleSys('DdMuBr', ['Bd_DstDd', 'Bu_DstDd'], relUnc=2.7/158.8)
+    card += brScaleSys('DsMuBr', ['Bd_DstDs', 'Bs_DstDs'], relUnc=2.1/75.4)
+
 
 
     ############ Transfer factor uncertainty of B -> D*D samples from control region to signal region
-    val = ' 1.10'
-    aux = ''
-    for n in processes:
-        if n.startswith('DstmD') or n.endswith('Hc'):
-            aux += val
-        else:
-            aux += ' -'
-    card += 'B2DstHcTransferFactor lnN' + aux*nCat + '\n'
+    # val = ' 1.10'
+    # aux = ''
+    # for n in processes:
+    #     if n.startswith('DstmD') or n.endswith('Hc'):
+    #         aux += val
+    #     else:
+    #         aux += ' -'
+    # card += 'B2DstHcTransferFactor lnN' + aux*nCat + '\n'
 
 
     card += 60*'-'+'\n'
@@ -1837,11 +1794,12 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     nameSF = 'trg{}SF'.format(category.trg)
     counter = 0
     for k in histo.values()[0].keys():
-        if k.startswith(SamplesB0[0]+'__'+nameSF + '_pt') and k.endswith('Up'):
+        if k.startswith(processOrder[0]+'__'+nameSF + '_pt') and k.endswith('Up'):
             n = k[k.find('__')+2:-2]
             card += n+' shape' + ' 1.'*nProc*nCat + '\n'
             counter += 1
-    print 'SF unc', counter
+    print 'Trigger SF unc', counter
+
     # card += 'muonIdSF shape' + ' 1.'*nProc*nCat + '\n'
 
     aux = ''
@@ -1864,14 +1822,14 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         # B0 pT spectrum
         aux = ''
         for p in processes:
-            if p in SamplesB0:
+            if p in samples_Bd:
                 aux += ' 1.'
             else:
                 aux += ' -'
         names = []
         for k in histo.values()[0].keys():
-            if k.startswith(SamplesB0[0]+'__B0pT'+category.name) and k.endswith('Up'):
-                names.append(k[4:-2])
+            if k.startswith(samples_Bd[0]+'__B0pT'+category.name) and k.endswith('Up'):
+                names.append(k[len(samples_Bd[0]) + 2:-2])
         if len(names) == 1 and names[0]=='B0pT'+category.name:
             card += 'B0pT'+category.name+' shape' + aux*nCat + '\n'
         else:
@@ -1881,41 +1839,19 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         # B +/- pT spectrum
         aux = ''
         for p in processes:
-            if p in SamplesBp:
+            if p in samples_Bu:
                 aux += ' 1.'
             else:
                 aux += ' -'
         names = []
         for k in histo.values()[0].keys():
-            if k.startswith(SamplesBp[0]+'__BpPt'+category.name) and k.endswith('Up'):
-                names.append(k[len(SamplesBp[0])+2:-2])
+            if k.startswith(samples_Bu[0]+'__BpPt'+category.name) and k.endswith('Up'):
+                names.append(k[len(samples_Bu[0])+2:-2])
         if len(names) == 1 and names[0]=='BpPt'+category.name:
             card += 'BpPt'+category.name+' shape' + aux*nCat + '\n'
         else:
             for n in sorted(names):
                 card += n + ' shape' + aux*nCat + '\n'
-
-    # pythia process uncertainty
-    aux = ''
-    for p in processes:
-        if p == 'mu':
-            aux += ' 1.'
-        else:
-            aux += ' -'
-
-    uncLine = ''
-    for c in categories:
-        if c.startswith('AddTk_'):
-            uncLine += len(processes)*' -'
-        else:
-            uncLine += aux
-    names = []
-    for k in histo.values()[0].keys():
-        if k.startswith('mu__pythiaProcess'+category.name) and k.endswith('Up'):
-            names.append(k[4:-2])
-
-    # for n in sorted(names):
-    #     card += n + ' shape' + uncLine + '\n'
 
 
     # Form Factors from Hammer
@@ -1933,54 +1869,55 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # Dstst mix composition
     aux = ''
     for p in processes:
-        if p == 'DstPip' or p == 'TauDstPip':
+        if not re.search('DstPi\Z', p) is None:
             aux += ' 1.'
         else:
             aux += ' -'
     card += 'fDststWide shape' + aux*nCat + '\n'
-    card += 'D2420_10Width shape' + aux*nCat + '\n'
-    card += 'D2460_1StWidth shape' + aux*nCat + '\n'
+    card += 'D2420_width shape' + aux*nCat + '\n'
+    card += 'D2430_width shape' + aux*nCat + '\n'
+    card += 'D2460_width shape' + aux*nCat + '\n'
 
     # Dstst->DstPiPi width
-    aux = ''
-    for p in processes:
-        if p == 'DstPipPim' or p == 'DstPi0Pi0':
-            aux += ' 1.'
-        else: aux += ' -'
-    card += 'DstPiPiWidth shape' + aux*nCat + '\n'
+    # aux = ''
+    # for p in processes:
+    #     if p == 'DstPipPim' or p == 'DstPi0Pi0':
+    #         aux += ' 1.'
+    #     else: aux += ' -'
+    # card += 'DstPiPiWidth shape' + aux*nCat + '\n'
 
 
     # Hc mix composition
-    aux = ''
-    for p in processes:
-        if p == 'DstmD0': aux += ' 1.'
-        else: aux += ' -'
-    card += 'BrB02DstD0Kp shape' + aux*nCat + '\n'
-    card += 'BrB02DstD0Kstp shape' + aux*nCat + '\n'
-    card += 'BrB02DstDst0Kp shape' + aux*nCat + '\n'
-    card += 'BrB02DstDst0Kstp shape' + aux*nCat + '\n'
-
-    aux = ''
-    for p in processes:
-        if p == 'DstmDp': aux += ' 1.'
-        else: aux += ' -'
-    card += 'BrB02DstDpK0 shape' + aux*nCat + '\n'
-    card += 'BrB02DstDpKst0 shape' + aux*nCat + '\n'
-
-    aux = ''
-    for p in processes:
-        if p == 'DstmDp' or p == 'DstmD0': aux += ' 1.'
-        else: aux += ' -'
-    card += 'BrB02DstDstpK0 shape' + aux*nCat + '\n'
-    card += 'BrB02DstDstpKst0 shape' + aux*nCat + '\n'
-
-    aux = ''
-    for p in processes:
-        if p == 'DstmDsp': aux += ' 1.'
-        else: aux += ' -'
-    card += 'BrB02DstDs shape' + aux*nCat + '\n'
-    card += 'BrB02DstDsst shape' + aux*nCat + '\n'
-    card += 'BrB02DstDs0st shape' + aux*nCat + '\n'
+    # aux = ''
+    # for p in processes:
+    #     if p == 'DstmD0': aux += ' 1.'
+    #     else: aux += ' -'
+    # card += 'BrB02DstD0Kp shape' + aux*nCat + '\n'
+    # card += 'BrB02DstD0Kstp shape' + aux*nCat + '\n'
+    # card += 'BrB02DstDst0Kp shape' + aux*nCat + '\n'
+    # card += 'BrB02DstDst0Kstp shape' + aux*nCat + '\n'
+    #
+    # aux = ''
+    # for p in processes:
+    #     if p == 'DstmDp': aux += ' 1.'
+    #     else: aux += ' -'
+    # card += 'BrB02DstDpK0 shape' + aux*nCat + '\n'
+    # card += 'BrB02DstDpKst0 shape' + aux*nCat + '\n'
+    #
+    # aux = ''
+    # for p in processes:
+    #     if p == 'DstmDp' or p == 'DstmD0': aux += ' 1.'
+    #     else: aux += ' -'
+    # card += 'BrB02DstDstpK0 shape' + aux*nCat + '\n'
+    # card += 'BrB02DstDstpKst0 shape' + aux*nCat + '\n'
+    #
+    # aux = ''
+    # for p in processes:
+    #     if p == 'DstmDsp': aux += ' 1.'
+    #     else: aux += ' -'
+    # card += 'BrB02DstDs shape' + aux*nCat + '\n'
+    # card += 'BrB02DstDsst shape' + aux*nCat + '\n'
+    # card += 'BrB02DstDs0st shape' + aux*nCat + '\n'
 
     card += 60*'-'+'\n'
 
@@ -2419,6 +2356,7 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
     cmd += ' --seed ' + str(seed)
     cmd += ' -d ' + card.replace('.txt', '.root')
     if forceRDst:
+        cmd += ' --skipSBFit'
         cmd += ' --setParameterRanges r={:.2f},{:.2f}'.format(0, 1)
         cmd += ' --customStartingPoint --setParameters r={:.3f}'.format(rVal)
     else:
@@ -2442,12 +2380,20 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
     for line in output.split('\n'):
             if 'ERROR' in line: print line.replace('ERROR', '\033[1m\x1b[31mERROR\x1b[0m')
             if 'Error' in line: print line.replace('Error', '\033[1m\x1b[31mError\x1b[0m')
-            if line.startswith('customStartingPoint'): print line
+            if forceRDst:
+                if 'customStartingPoint' in line: print line
 
     if not out[-1] == '/': out += '/'
     arr = rtnp.root2array(out + 'higgsCombine{}.FitDiagnostics.mH120.{}.root'.format(runName, seed), treename='limit')
-    c, d, u, _ = arr['limit']
-    print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-d, 100*(u-d)*0.5/c)
+    if forceRDst:
+        if len(arr['limit']) > 1:
+            print '[ERROR] Multiple values for R(D*):', arr['limit']
+        else:
+            print 'R(D*) value fixed to', arr['limit'][0]
+    else:
+        c, d, u, _ = arr['limit']
+        print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-d, 100*(u-d)*0.5/c)
+
 
 def getPostfitHistos(tag, out, forceRDst, histo_prefit):
     runName = tag + ('_RDstFixed' if forceRDst else '')
@@ -2550,19 +2496,20 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
     N = h2.GetNbinsX()
     # n=80
     h2.LabelsOption("v")
-
     gSF = 70/float(n)
-    h2.SetMarkerSize(2.0*gSF)
-    h2.GetXaxis().SetLabelSize(0.07*gSF)
-    h2.GetYaxis().SetLabelSize(0.07*gSF)
-    h2.GetXaxis().SetRange(1, n)
-    h2.GetYaxis().SetRangeUser(nR-1, nR)
-    h2.GetZaxis().SetRangeUser(-100, 100)
-    h2.GetZaxis().SetNdivisions(-304)
-    CC1 = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(1200, 300), tag='tl1', mL=0.03, mR=0.08, mB=0.65, mT=0.1)
-    CC1.SaveAs(out+'fig/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.png')
-    CC1.SaveAs(webFolder+'/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.png')
-    CC1.SaveAs(webFolder+'/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.pdf')
+
+    if not nR is None:
+        h2.SetMarkerSize(2.0*gSF)
+        h2.GetXaxis().SetLabelSize(0.07*gSF)
+        h2.GetYaxis().SetLabelSize(0.07*gSF)
+        h2.GetXaxis().SetRange(1, n)
+        h2.GetYaxis().SetRangeUser(nR-1, nR)
+        h2.GetZaxis().SetRangeUser(-100, 100)
+        h2.GetZaxis().SetNdivisions(-304)
+        CC1 = drawOnCMSCanvas(CMS_lumi, [h2, h2], ['colz', 'text same'], size=(1200, 300), tag='tl1', mL=0.03, mR=0.08, mB=0.65, mT=0.1)
+        CC1.SaveAs(out+'fig/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.png')
+        CC1.SaveAs(webFolder+'/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.png')
+        CC1.SaveAs(webFolder+'/correlationR'+ ('_RDstFixed' if forceRDst else '')+'.pdf')
 
     h2.SetMarkerSize(.5*gSF)
     h2.GetXaxis().SetLabelSize(0.02*gSF)
@@ -2600,7 +2547,9 @@ def extactCovarianceBlock(tag, out, parameters=['r', 'B2DstCLNeig1'], forceRDst=
 def nuisancesDiff(tag, out, forceRDst):
     runName = tag + ('_RDstFixed' if forceRDst else '')
     cmd = 'python diffNuisances.py ' + out + '/fitDiagnostics{}.root'.format(runName)
-    if not forceRDst:
+    if forceRDst:
+        cmd += ' --skipFitSB'
+    else:
         cmd += ' --skipFitB'
     cmd += ' --all'
     cmd += ' --abs'
@@ -3207,7 +3156,7 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 ########################### -------- Condor submissions ------------------ #########################
 # Check for the right singularity using: ll /cvmfs/singularity.opensciencegrid.org/cmssw/
 jdlTemplate = '\n'.join([
-              'executable        = /storage/user/ocerri/BPhysics/Combine/condorJob.sh',
+              'executable        = '+basedir+'Combine/condorJob.sh',
               'arguments         = {arguments}',
               'output            = {outdir}/job_{jN}_$(ClusterId).out',
               'error             = {outdir}/job_{jN}_$(ClusterId).err',
@@ -3215,9 +3164,10 @@ jdlTemplate = '\n'.join([
               'JobPrio           = -1',
               'WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT',
               '+MaxRuntime       = 1200',
+              '+JobQueue         = "Short"',
               '+RunAsOwner       = True',
               '+InteractiveUser  = True',
-              '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7-m20200724"',
+              '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"',
               '+SingularityBindCVMFS = True',
               'run_as_owner      = True',
               'RequestDisk       = 2000000',
@@ -3477,13 +3427,13 @@ if __name__ == "__main__":
             cPost = {}
             cPrePostComp = {}
             for c in categoriesToCombine:
-                tag = 'postfit'+c.capitalize()+ ('_RDstFixed' if args.forceRDst else '')
+                tag = 'postfit'+c.capitalize() + ('_RDstFixed' if args.forceRDst else '')
                 cPost[c] = drawPlots(tag, histo_post[c], c.capitalize())
-                cPrePostComp[c] = drawPrePostFitComparison(histo[c], histo_post[c], tag=c)
+                cPrePostComp[c] = drawPrePostFitComparison(histo[c], histo_post[c], tag=c + ('_RDstFixed' if args.forceRDst else ''))
         else:
             tag = 'postfit'+ ('_RDstFixed' if args.forceRDst else '')
             cPost = drawPlots(tag, histo_post, args.category.capitalize())
-            cPrePostComp = drawPrePostFitComparison(histo, histo_post)
+            cPrePostComp = drawPrePostFitComparison(histo, histo_post, tag=('_RDstFixed' if args.forceRDst else ''))
         nuisancesDiff(args.cardTag, outdir, args.forceRDst)
         print '\n'
 
