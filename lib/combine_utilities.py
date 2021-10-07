@@ -221,9 +221,10 @@ def dumpDiffNuisances(output, outdir, tag='', useBonlyResults=False, parsToPrint
 stringJubCustomizationCaltechT2 = '''
 +RunAsOwner = True
 +InteractiveUser = True
-+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7-m20200605"
++SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"
 +SingularityBindCVMFS = True
 +MaxRuntime = 3600
++JobQueue   = "Short"
 RequestDisk = 200000
 RequestMemory = 2500
 RequestCpus = 1
