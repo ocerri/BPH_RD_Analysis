@@ -70,7 +70,7 @@ parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC inst
 parser.add_argument ('--calBpT', default='none', choices=['ratio', 'poly', 'none'], help='Form factor scheme to use.')
 
 
-availableSteps = ['clean', 'histos', 'preFitPlots',
+availableSteps = ['clean', 'histos', 'preFitPlots', 'shapeVarPlots',
                   'card', 'workspace',
                   'bias', 'scan', 'catComp',
                   'fitDiag', 'postFitPlots',
@@ -259,10 +259,10 @@ def cleanPreviousResults():
 
     os.system('rm -v '+histo_file_dir+os.path.basename(card_location).replace('.txt', '_*'))
 
-    os.system('rm -rfv '+outdir)
+    os.system('rm -rf '+outdir)
     os.system('mkdir -p ' + outdir + '/fig')
 
-    os.system('rm -rfv '+webFolder)
+    os.system('rm -rf '+webFolder)
     os.makedirs(webFolder)
     os.system('cp '+webFolder+'/../index.php '+webFolder)
 
@@ -336,7 +336,7 @@ def computeBrVarWeights(ds, selItems={}, relScale=0.2, keepNorm=False, absVal=Tr
         down = (float(down.shape[0])/np.sum(down)) * down
     return w, up, down
 
-def computeWidthVarWeights(ds, selItems=[], newGamma=None, relScale=0.1, keepNorm=True): #Gamma modification factor
+def computeWidthVarWeights(ds, selItems=[], newGamma=None, relScale=0.1, keepNorm=False): #Gamma modification factor
     # selItems=[ [pdgId, mass, Gamma] ]
     w = np.ones_like(ds['mu_pt'])
     up = np.ones_like(ds['mu_pt'])
@@ -369,9 +369,9 @@ def computeWidthVarWeights(ds, selItems=[], newGamma=None, relScale=0.1, keepNor
         down = np.where(sel, wDown, down)
 
     if keepNorm:
-        w = w * (w.shape[0]/np.sum(w))
-        up = up * (w.shape[0]/np.sum(up))
-        down = down * (w.shape[0]/np.sum(down))
+        w *= float(w.shape[0])/np.sum(w)
+        up *= float(w.shape[0])/np.sum(up)
+        down *=  float(w.shape[0])/np.sum(down)
     return w, up/w, down/w
 
 def computeTksPVweights(ds, relScale=0.05, centralVal=0.39/0.10):
@@ -744,28 +744,32 @@ def createHistograms(category):
             wVar['fDststWideDown'] = wNeuDw * wChDw
 
 
-            _, wVar['D2420_widthUp'], wVar['D2420_widthDown'] = computeWidthVarWeights(ds,
+            w, wVar['D2420_widthUp'], wVar['D2420_widthDown'] = computeWidthVarWeights(ds,
                                                                                        selItems=[[10423, 2.421, 0.0274],
                                                                                                  [10413, 2.423, 0.020]],
                                                                                        newGamma=[0.030, 0.025],
                                                                                        relScale=0.15)
+            weights['D2420_width'] = w
 
-            _, wVar['D2430_widthUp'], wVar['D2430_widthDown'] = computeWidthVarWeights(ds,
+            w, wVar['D2430_widthUp'], wVar['D2430_widthDown'] = computeWidthVarWeights(ds,
                                                                                        selItems=[[20423, 2.445, 0.250],
                                                                                                  [20413, 2.445, 0.250]],
                                                                                        newGamma=[0.3, 0.3],
                                                                                        relScale=0.1)
+            weights['D2430_width'] = w
 
-            _, wVar['D2460_widthUp'], wVar['D2460_widthDown'] = computeWidthVarWeights(ds,
+            w, wVar['D2460_widthUp'], wVar['D2460_widthDown'] = computeWidthVarWeights(ds,
                                                                                        selItems=[[425, 2.461, 0.049],
                                                                                                  [415, 2.460, 0.037]],
                                                                                        newGamma=[0.045, 0.045],
                                                                                        relScale=0.15)
+            weights['D2460_width'] = w
 
-        # if n == 'DstPipPim' or n == 'DstPi0Pi0':
-        #     print 'Including D**->D*PiPi width variations'
-        #     widthMods = [[100413, 2.640, 0.200]]
-        #     weights['DstPiPiWidth'], wVar['DstPiPiWidthUp'], wVar['DstPiPiWidthDown'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.2, newGamma=[0.35])
+        if not re.search('DstPiPi\Z', n) is None:
+            print 'Including D**->D*PiPi width variations'
+            widthMods = [[x, 2.640, 0.400] for x in [100413, 100423]]
+            uncN = 'Dst2S_width'
+            weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.3)
 
         ############################
         # Hc mix variations
@@ -1128,7 +1132,9 @@ def createHistograms(category):
                     wVar['B2Dst'+tag] = ds['wh_'+tag]/ds['wh_'+schemeFF+'Central']
                     wVar['B2Dst'+tag] *= sMC.effCand['rate_'+schemeFF+'Central']/sMC.effCand['rate_' + tag]
 
-        # #Dstst resonance mix
+        ############################
+        # Dstst resonance mix
+        ############################
         if not re.search('DstPi\Z', n) is None:
             print 'Including D**->D*Pi width variations'
             _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7, keepNorm=True)
@@ -1137,28 +1143,33 @@ def createHistograms(category):
             wVar['fDststWideDown'] = wNeuDw * wChDw
 
 
-            _, wVar['D2420_widthUp'], wVar['D2420_widthDown'] = computeWidthVarWeights(ds,
+            w, wVar['D2420_widthUp'], wVar['D2420_widthDown'] = computeWidthVarWeights(ds,
                                                                                        selItems=[[10423, 2.421, 0.0274],
                                                                                                  [10413, 2.423, 0.020]],
                                                                                        newGamma=[0.030, 0.025],
                                                                                        relScale=0.15)
+            weights['D2420_width'] = w
 
-            _, wVar['D2430_widthUp'], wVar['D2430_widthDown'] = computeWidthVarWeights(ds,
+            w, wVar['D2430_widthUp'], wVar['D2430_widthDown'] = computeWidthVarWeights(ds,
                                                                                        selItems=[[20423, 2.445, 0.250],
                                                                                                  [20413, 2.445, 0.250]],
                                                                                        newGamma=[0.3, 0.3],
                                                                                        relScale=0.1)
+            weights['D2430_width'] = w
 
-            _, wVar['D2460_widthUp'], wVar['D2460_widthDown'] = computeWidthVarWeights(ds,
+            w, wVar['D2460_widthUp'], wVar['D2460_widthDown'] = computeWidthVarWeights(ds,
                                                                                        selItems=[[425, 2.461, 0.049],
                                                                                                  [415, 2.460, 0.037]],
                                                                                        newGamma=[0.045, 0.045],
                                                                                        relScale=0.15)
-        # if n == 'DstPipPim' or n == 'DstPi0Pi0':
-        #     print 'Including D**->D*PiPi width variations'
-        #     widthMods = [[100413, 2.640, 0.200]]
-        #     weights['DstPiPiWidth'], wVar['DstPiPiWidthUp'], wVar['DstPiPiWidthDown'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.2, newGamma=[0.35])
-        #
+            weights['D2460_width'] = w
+
+        if not re.search('DstPiPi\Z', n) is None:
+            print 'Including D**->D*PiPi width variations'
+            widthMods = [[x, 2.640, 0.400] for x in [100413, 100423]]
+            uncN = 'Dst2S_width'
+            weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.3)
+
 
         ############################
         # Hc mix variations
@@ -1772,6 +1783,156 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
     print 30*'-' + '\n\n'
     return outCanvas
 
+def drawShapeVarPlots(card, tag=''):
+    print '-----> Creating shape variations plots for', card
+
+    plotsDir = webFolder + '/shapeUncertainties' + tag
+    if os.path.isdir(plotsDir):
+        os.system('rm -rf '+plotsDir)
+    os.system('mkdir -p '+plotsDir)
+    os.system('cp {d}/../index.php {d}/'.format(d=plotsDir))
+
+    print '--> REGION:'
+    for fn in glob(histo_file_dir + card + '_*.root'):
+        region = os.path.basename(fn).replace(card+'_', '').replace('.root', '')
+        if region.startswith('h2D'):
+            continue
+        if not region.startswith('AddTk_p_mHad'):
+            continue
+        print ' ', region
+
+        auxOut = os.path.join(plotsDir, region)
+        os.system('mkdir -p '+auxOut)
+        os.system('cp {d}/../index.php {d}/'.format(d=auxOut))
+
+        tfile = rt.TFile.Open(fn, 'READ')
+        keys = []
+        for k in tfile.GetListOfKeys():
+            keys.append(k.GetName())
+
+        processes = [k for k in keys if not '__' in k and not k == 'data_obs']
+        for p in processes:
+            hCentral = tfile.Get(p).Clone('hCentral')
+            hCentral.SetTitle('Central')
+            hCentral.GetYaxis().SetTitle('Events')
+            hCentral.GetXaxis().SetTitle(region)
+            hCentral.GetYaxis().SetRangeUser(0, 1.3*hCentral.GetMaximum())
+            if p == 'tau':
+                hCentral.Scale(SM_RDst)
+
+            shapeVarNames = []
+            for k in keys:
+                if (k.startswith(p + '__') or p=='total') and k.endswith('Up'):
+                    shapeVarNames.append(k.split('__')[1][:-2])
+            shapeVarNames = list(np.sort(np.unique(shapeVarNames)))
+
+            for sVar in shapeVarNames:
+                if p == 'total':
+                    hUp = hCentral.Clone('hUp')
+                    hUp.Reset()
+                    hDown = hCentral.Clone('hDown')
+                    hDown.Reset()
+                    for pp in processes:
+                        if pp=='total': continue
+                        scale = SM_RDst if pp == 'tau' else 1.
+                        if pp+'__'+sVar+'Up' in keys:
+                            hUp.Add(tfile.Get(pp+'__'+sVar+'Up'), scale)
+                            hDown.Add(tfile.Get(pp+'__'+sVar+'Down'), scale)
+                        else:
+                            hUp.Add(tfile.Get(pp), scale)
+                            hDown.Add(tfile.Get(pp), scale)
+                else:
+                    hUp = tfile.Get(p+'__'+sVar+'Up').Clone('hUp')
+                    hDown = tfile.Get(p+'__'+sVar+'Down').Clone('hDown')
+                    if p == 'tau':
+                        hUp.Scale(SM_RDst)
+                        hDown.Scale(SM_RDst)
+
+                hUp.SetLineColor(rt.kRed-4)
+                hUp.SetTitle('+1#sigma (n:{:.0f}%)'.format(100*hUp.Integral()/hCentral.Integral()))
+                hDown.SetLineColor(rt.kAzure+1)
+                hDown.SetTitle('-1#sigma (n:{:.0f}%)'.format(100*hDown.Integral()/hCentral.Integral()))
+                for i in range(1, hCentral.GetNbinsX()+1):
+                    if hCentral.GetBinContent(i) == 0:
+                        hCentral.SetBinContent(i, 1e-6)
+                        hCentral.SetBinError(i, 1e-6)
+                    if hUp.GetBinContent(i) == 0:
+                        hUp.SetBinContent(i, 1e-6)
+                    if hDown.GetBinContent(i) == 0:
+                        hDown.SetBinContent(i, 1e-6)
+                hl = [hCentral, hUp, hDown]
+
+                for ih, h in enumerate(hl):
+                    h.Sumw2(0)
+                    h.SetMarkerStyle(2)
+                    h.SetMarkerSize(2)
+                    h.SetMarkerColor(h.GetLineColor())
+                c = make_ratio_plot(hl,
+                                    draw_opt='',
+                                    leg_pos=[0.75,0.73,0.95,0.92],
+                                    marginTop=0.062,
+                                    ratio_bounds='auto')
+
+                # # Drowing MC uncertianty
+                h_tot = tfile.Get(p).Clone('h_tot')
+                c.pad1.cd()
+                h_tot.SetFillColor(rt.kGray)
+                h_tot.SetLineWidth(0)
+                h_tot.SetMarkerStyle(0)
+                h_tot.Draw('sameE2')
+                for h in hl:
+                    h.Draw('same')
+
+                g_up = rt.TGraph()
+                g_up.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
+                g_down = rt.TGraph()
+                g_down.SetPoint(0, h_tot.GetBinCenter(1)-0.5*h_tot.GetBinWidth(1), 1)
+                for i in range(1, h_tot.GetNbinsX()+1):
+                    x_low = h_tot.GetBinCenter(i) - 0.5*h_tot.GetBinWidth(i)
+                    x_up = h_tot.GetBinCenter(i) + 0.5*h_tot.GetBinWidth(i)
+                    c_MC = h_tot.GetBinContent(i)
+                    e_MC = h_tot.GetBinError(i)
+                    if c_MC > 0:
+                        y_up = (c_MC+e_MC)/c_MC
+                        y_down = (c_MC-e_MC)/c_MC
+                    else:
+                        y_up = 1.
+                        y_down = 1.
+                    g_up.SetPoint(2*i-1, x_low, y_up)
+                    g_up.SetPoint(2*i, x_up, y_up)
+                    g_down.SetPoint(2*i-1, x_low, y_down)
+                    g_down.SetPoint(2*i, x_up, y_down)
+                g_up.SetPoint(2*i+1, x_up, 1)
+                g_down.SetPoint(2*i+1, x_up, 1)
+                g_up.SetFillColorAlpha(rt.kGray, 0.5)
+                g_up.SetFillStyle(1)
+                g_down.SetFillColorAlpha(rt.kGray, 0.5)
+                g_down.SetFillStyle(1)
+                g_up.SetLineWidth(0)
+                c.leg.AddEntry(g_up, 'MC stat.', 'f')
+                c.statMCratio = [g_up, g_down]
+
+                c.pad2.cd()
+                # c.cd(2)
+                g_up.Draw('F')
+                g_down.Draw('F')
+                c.ln.DrawLine(h.GetXaxis().GetXmin(), 1, h.GetXaxis().GetXmax(), 1)
+                for h in c.hratio_list:
+                    h.Draw('same')
+
+                c.pad1.cd()
+                txt = rt.TLatex()
+                txt.SetTextSize(0.05)
+                txt.SetTextAlign(13)
+                txt.DrawLatexNDC(0.18, 0.91, 'Region: '+region)
+                txt.DrawLatexNDC(0.18, 0.85, 'Process: '+p)
+                txt.DrawLatexNDC(0.18, 0.79, 'Shape: '+sVar)
+
+                CMS_lumi.extraText = "       Simulation Internal"
+                CMS_lumi.CMS_lumi(c, -1, 0)
+                c.SaveAs(auxOut + '/'+p+'__'+sVar+'.png')
+        tfile.Close()
+    return
 
 def drawPrePostFitComparison(histoPre, histoPost, tag=''):
     print 20*'-', 'Pre/Post fit comaprison', tag, 20*'-'
@@ -2044,20 +2205,18 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     for p in processes:
         if not re.search('DstPi\Z', p) is None:
             aux += ' 1.'
-        else:
-            aux += ' -'
+        else: aux += ' -'
     card += 'fDststWide shape' + aux*nCat + '\n'
     card += 'D2420_width shape' + aux*nCat + '\n'
     card += 'D2430_width shape' + aux*nCat + '\n'
     card += 'D2460_width shape' + aux*nCat + '\n'
 
-    # Dstst->DstPiPi width
-    # aux = ''
-    # for p in processes:
-    #     if p == 'DstPipPim' or p == 'DstPi0Pi0':
-    #         aux += ' 1.'
-    #     else: aux += ' -'
-    # card += 'DstPiPiWidth shape' + aux*nCat + '\n'
+    aux = ''
+    for p in processes:
+        if not re.search('DstPiPi\Z', p) is None:
+            aux += ' 1.'
+        else: aux += ' -'
+    card += 'Dst2S_width shape' + aux*nCat + '\n'
 
 
     # Hc mix composition
@@ -3181,6 +3340,7 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         'D2430_width': 'Width D**(2430)',
         'D2460_width': 'Width D**(2460)',
         'RDs_stst': 'R(D**_{(s)})',
+        'Dst2S_width': 'Width D*(2S)',
 
         'brBd_DstDs' : 'Br. frac. B^{0}#rightarrow D*D_{s}',
         'brBd_DstDsst' : 'Br. frac. B^{0}#rightarrow D*D_{s}*',
@@ -3411,6 +3571,15 @@ if __name__ == "__main__":
         else:
             cPre = drawPlots('prefit', histo, args.category.capitalize(), scale_dic={'tau': SM_RDst})
         args.step.remove('preFitPlots')
+
+    if 'shapeVarPlots' in args.step:
+        if args.category == 'comb':
+            cPre = {}
+            for c in categoriesToCombine:
+                drawShapeVarPlots(card=card_name.replace('comb', c), tag='_'+c)
+        else:
+            drawShapeVarPlots(card_name)
+        args.step.remove('shapeVarPlots')
 
     if 'card' in args.step:
         for fitRegionsOnly in [False, True]:

@@ -427,14 +427,14 @@ def makeSelection(inputs):
             if not 'data' in n:
                 muSisPdgId = []
                 for id in ev.MC_muSistersPdgId:
-                    if np.abs(id) == 14: continue #neutrino
+                    if np.abs(id) in [14, 16]: continue #neutrino
                     muSisPdgId.append(id)
                 while len(muSisPdgId) < 2:
                     muSisPdgId.append(0)
                 if abs(muSisPdgId[0]) < abs(muSisPdgId[1]):
-                    aux = muSisPdgId[0]
+                    auxSwap = muSisPdgId[0]
                     muSisPdgId[0] = muSisPdgId[1]
-                    muSisPdgId[1] = aux 
+                    muSisPdgId[1] = auxSwap
 
                 aux += (ev.MC_q2, ev.MC_Est_mu, ev.MC_M2_miss,
                         ev.MC_B_pt, ev.MC_B_eta, ev.MC_B_phi, ev.MC_B_ctau,
