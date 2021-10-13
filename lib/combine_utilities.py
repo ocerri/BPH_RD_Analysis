@@ -67,12 +67,21 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
             plt.ylabel('POI')
             plt.grid()
         if np.all(nll_l[:-1] >= nll_l[1:]) and np.all(nll_u[:-1] <= nll_u[1:]):
-            f_l = interp1d(nll_l, r_l, 'quadratic', fill_value='extrapolate')
-            l = f_l(0.5)
-            l2 = f_l(2)
-            f_u = interp1d(nll_u, r_u, 'quadratic', fill_value='extrapolate')
-            u = f_u(0.5)
-            u2 = f_u(2.0)
+            if len(r_l) > 1:
+                f_l = interp1d(nll_l, r_l, 'quadratic', fill_value='extrapolate')
+                l = f_l(0.5)
+                l2 = f_l(2)
+            else:
+                print '[WARNING] Minimum at lower bound'
+                l, l2 = c, c
+            if len(r_u) > 1:
+                f_u = interp1d(nll_u, r_u, 'quadratic', fill_value='extrapolate')
+                u = f_u(0.5)
+                u2 = f_u(2.0)
+            else:
+                print '[WARNING] Minimum at upper bound'
+                u, u2 = c, c
+
         else:
             if not np.all(nll_l[:-1] >= nll_l[1:]):
                 print 'Low error'
@@ -87,8 +96,11 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
             print '----------------------------------'
             if iToy:
                 print 'Toy', iToy
-            print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-l, 100*(u-l)*0.5/c)
-            print 'Sigma = {:.3f}'.format((u-l)*0.5)
+            outStr = 'R(D*) = {:.3f} +{:.3f}/-{:.3f}'.format(c, u-c, c-l)
+            if c > 9e-4:
+                outStr += ' [{:.1f} %]'.format(100*(u-l)*0.5/c)
+                outStr += '\nSigma = {:.3f}'.format((u-l)*0.5)
+            print outStr
         res.append([c, c-l, u-c, (u-l)*0.5, l2, l, u, u2])
     if verbose:
         print '----------------------------------\n'

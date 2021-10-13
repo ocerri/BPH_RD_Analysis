@@ -79,7 +79,7 @@ availableSteps = ['clean', 'histos', 'preFitPlots', 'shapeVarPlots',
                   'impacts', 'GoF']
 defaultPipelineSingle = ['histos', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdownScan', 'GoF']
 defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'uncBreakdownTable', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
-# histos preFitPlots card workspace scan fitDiag postFitPlots uncBreakdownScan GoF
+# histos preFitPlots shapeVarPlots card workspace scan fitDiag postFitPlots uncBreakdownScan GoF
 parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
 parser.add_argument ('--submit', default=False, action='store_true', help='Submit a job instead of running the call interactively.')
 
@@ -88,7 +88,7 @@ parser.add_argument ('--decorrelateFFpars', default=False, action='store_true', 
 
 parser.add_argument ('--forceRDst', default=False, action='store_true', help='Perform fit fixing R(D*) to 0.295')
 parser.add_argument ('--seed', default=6741, type=int, help='Seed used by Combine')
-parser.add_argument ('--RDstLims', default=[0.15, 0.45], type=int, help='Initial boundaries for R(D*).', nargs='+')
+parser.add_argument ('--RDstLims', default=[], type=float, help='Initial boundaries for R(D*).', nargs='+')
 
 # Bias options
 parser.add_argument ('--runBiasToys', default=False, action='store_true', help='Only generate toys and run scans for bias, do not collect results.')
@@ -219,7 +219,7 @@ if not os.path.isdir(outdir):
 card_location = basedir + 'Combine/cards/{}.txt'.format(card_name)
 histo_file_dir = basedir + 'data/_root/histos4combine/'
 
-webFolder = os.path.expanduser('~') + '/public_html/BPH_RDst/Combine/' + card_name
+webFolder = '/storage/af/user/ocerri/public_html/BPH_RDst/Combine/' + card_name
 if not os.path.isdir(webFolder):
     os.makedirs(webFolder)
     os.system('cp '+webFolder+'/../index.php '+webFolder)
@@ -456,16 +456,16 @@ def createHistograms(category):
 
     if args.calBpT == 'ratio':
         print 'Using ratio B pT calibration'
-        calFile = 'pwWeights_{}_v10.txt'.format(category.name)
+        calFile = 'pwWeights_{}_v20.txt'.format(category.name)
     elif args.calBpT == 'poly':
         print 'Using polinomial B pT calibration'
-        calFile = 'polyCoeffWeights_{}_v10.pkl'.format(category.name)
+        calFile = 'polyCoeffWeights_{}_v20.pkl'.format(category.name)
 
     if args.calBpT == 'none':
         print 'Not using any B pT calibration'
     else:
-        cal_pT_B0 = pTCalReader(calibration_file=dataDir+'/calibration/B0pTspectrum/'+calFile)
-        cal_pT_Bp = pTCalReader(calibration_file=dataDir+'/calibration/Bcharged_pTspectrum/'+calFile)
+        cal_pT_Bd = pTCalReader(calibration_file=dataDir+'/calibration/Bd_pTspectrum/'+calFile)
+        # cal_pT_Bu = pTCalReader(calibration_file=dataDir+'/calibration/Bu_pTspectrum/'+calFile)
 
     def computePtWeights(ds, var, tag, cal_pT):
         if cal_pT.kind == 'poly':
@@ -689,12 +689,6 @@ def createHistograms(category):
         weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
         print 'Including soft track pT corrections'
-        # weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.3)*fSoftTrackEff(ds['pi_pt'], a=0.3)*fSoftTrackEff(ds['pis_pt'], a=0.3)
-        # wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)
-        # wVar['softTrkEffUp'] /= weights['softTrkEff']
-        # wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)
-        # wVar['softTrkEffDown'] /= weights['softTrkEff']
-
         l = ['K_pt', 'pi_pt', 'pis_pt']
         weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
         for mod in [+1, -1]:
@@ -705,22 +699,17 @@ def createHistograms(category):
             wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
 
 
+        ############################
         # B phase space corrections
+        ############################
         # weights['etaB'] = computeB0etaWeights(ds)
         if (not args.calBpT == 'none') and (n in samples_Bd):
-            print 'Including B0 pT corrections'
-            if cal_pT_B0.kind == 'ratio':
-                weights['B0pT'+category.name], wVar['B0pT'+category.name+'Up'], wVar['B0pT'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
+            print 'Including Bd pT corrections'
+            cname = 'BdpT'+category.name
+            if cal_pT_Bd.kind == 'ratio':
+                weights[cname], wVar[cname+'Up'], wVar[cname+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bd)
             else:
-                weights['B0pT'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'B0pT'+category.name, cal_pT_B0)
-                wVar.update(auxVarDic)
-        if (not args.calBpT == 'none') and (n in samples_Bu):
-            print 'Including B +/- pT corrections'
-            # weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
-            if cal_pT_B0.kind == 'ratio':
-                weights['BpPt'+category.name], wVar['BpPt'+category.name+'Up'], wVar['BpPt'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
-            else:
-                weights['BpPt'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'BpPt'+category.name, cal_pT_B0)
+                weights[cname], auxVarDic = computePtWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
                 wVar.update(auxVarDic)
 
         # Hammer corrections to the FF
@@ -1094,11 +1083,6 @@ def createHistograms(category):
         weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
         print 'Including soft track pT corrections'
-        # weights['softTrkEff'] = fSoftTrackEff(ds['K_pt'], a=0.3)*fSoftTrackEff(ds['pi_pt'], a=0.3)*fSoftTrackEff(ds['pis_pt'], a=0.3)*fSoftTrackEff(ds['tkPt_0'], a=0.3)*fSoftTrackEff(ds['tkPt_1'], a=0.3)
-        # wVar['softTrkEffUp'] = fSoftTrackEff(ds['K_pt'], a=0.2)*fSoftTrackEff(ds['pi_pt'], a=0.2)*fSoftTrackEff(ds['pis_pt'], a=0.2)*fSoftTrackEff(ds['tkPt_0'], a=0.2)*fSoftTrackEff(ds['tkPt_1'], a=0.2)
-        # wVar['softTrkEffUp'] /= weights['softTrkEff']
-        # wVar['softTrkEffDown'] = fSoftTrackEff(ds['K_pt'], a=0.4)*fSoftTrackEff(ds['pi_pt'], a=0.4)*fSoftTrackEff(ds['pis_pt'], a=0.4)*fSoftTrackEff(ds['tkPt_0'], a=0.4)*fSoftTrackEff(ds['tkPt_1'], a=0.4)
-        # wVar['softTrkEffDown'] /= weights['softTrkEff']
         l = ['K_pt', 'pi_pt', 'pis_pt', 'tkPt_0', 'tkPt_1']
         weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
         for mod in [+1, -1]:
@@ -1108,29 +1092,18 @@ def createHistograms(category):
             s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
             wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
 
+        ############################
+        # B phase space corrections
+        ############################
+        # weights['etaB'] = computeB0etaWeights(ds)
         if (not args.calBpT == 'none') and (n in samples_Bd):
-            print 'Including B0 pT corrections'
-            if cal_pT_B0.kind == 'ratio':
-                weights['B0pT'+category.name], wVar['B0pT'+category.name+'Up'], wVar['B0pT'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
+            print 'Including Bd pT corrections'
+            cname = 'BdpT'+category.name
+            if cal_pT_Bd.kind == 'ratio':
+                weights[cname], wVar[cname+'Up'], wVar[cname+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bd)
             else:
-                weights['B0pT'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'B0pT'+category.name, cal_pT_B0)
+                weights[cname], auxVarDic = computePtWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
                 wVar.update(auxVarDic)
-        if (not args.calBpT == 'none') and (n in samples_Bu):
-            print 'Including B +/- pT corrections'
-            # weights['BpPt'], wVar['BpPtUp'], wVar['BpPtDown'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
-            if cal_pT_B0.kind == 'ratio':
-                weights['BpPt'+category.name], wVar['BpPt'+category.name+'Up'], wVar['BpPt'+category.name+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bp)
-            else:
-                weights['BpPt'+category.name], auxVarDic = computePtWeights(ds, 'MC_B_pt', 'BpPt'+category.name, cal_pT_B0)
-                wVar.update(auxVarDic)
-        if n in ['mu', 'tau'] and schemeFF != 'NoFF':
-            print 'Including FF corrections (Hammer)'
-            weights['B2DstFF'] = ds['wh_'+schemeFF+'Central']*sMC.effCand['rate_den']/sMC.effCand['rate_'+schemeFF+'Central']
-            for nPar in FreeParFF:
-                for var in ['Up', 'Down']:
-                    tag = schemeFF + nPar + var
-                    wVar['B2Dst'+tag] = ds['wh_'+tag]/ds['wh_'+schemeFF+'Central']
-                    wVar['B2Dst'+tag] *= sMC.effCand['rate_'+schemeFF+'Central']/sMC.effCand['rate_' + tag]
 
         ############################
         # Dstst resonance mix
@@ -1797,8 +1770,8 @@ def drawShapeVarPlots(card, tag=''):
         region = os.path.basename(fn).replace(card+'_', '').replace('.root', '')
         if region.startswith('h2D'):
             continue
-        if not region.startswith('AddTk_p_mHad'):
-            continue
+        # if not region.startswith('AddTk_p_mHad'):
+        #     continue
         print ' ', region
 
         auxOut = os.path.join(plotsDir, region)
@@ -1849,9 +1822,14 @@ def drawShapeVarPlots(card, tag=''):
                         hDown.Scale(SM_RDst)
 
                 hUp.SetLineColor(rt.kRed-4)
-                hUp.SetTitle('+1#sigma (n:{:.0f}%)'.format(100*hUp.Integral()/hCentral.Integral()))
                 hDown.SetLineColor(rt.kAzure+1)
-                hDown.SetTitle('-1#sigma (n:{:.0f}%)'.format(100*hDown.Integral()/hCentral.Integral()))
+                if hCentral.Integral() > 0:
+                    hUp.SetTitle('+1#sigma (n:{:.0f}%)'.format(100*hUp.Integral()/hCentral.Integral()))
+                    hDown.SetTitle('-1#sigma (n:{:.0f}%)'.format(100*hDown.Integral()/hCentral.Integral()))
+                else:
+                    hUp.SetTitle('+1#sigma (n:{:.0f})'.format(hUp.Integral()))
+                    hDown.SetTitle('-1#sigma (n:{:.0f})'.format(hDown.Integral()))
+
                 for i in range(1, hCentral.GetNbinsX()+1):
                     if hCentral.GetBinContent(i) == 0:
                         hCentral.SetBinContent(i, 1e-6)
@@ -2153,7 +2131,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
 
     # B pT uncertainty
     if not args.calBpT == 'none':
-        # B0 pT spectrum
+        # Bd pT spectrum
         aux = ''
         for p in processes:
             if p in samples_Bd:
@@ -2162,30 +2140,10 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
                 aux += ' -'
         names = []
         for k in histo.values()[0].keys():
-            if k.startswith(samples_Bd[0]+'__B0pT'+category.name) and k.endswith('Up'):
+            if k.startswith(samples_Bd[0]+'__BdpT'+category.name) and k.endswith('Up'):
                 names.append(k[len(samples_Bd[0]) + 2:-2])
-        if len(names) == 1 and names[0]=='B0pT'+category.name:
-            card += 'B0pT'+category.name+' shape' + aux*nCat + '\n'
-        else:
-            for n in sorted(names):
-                card += n + ' shape' + aux*nCat + '\n'
-
-        # B +/- pT spectrum
-        aux = ''
-        for p in processes:
-            if p in samples_Bu:
-                aux += ' 1.'
-            else:
-                aux += ' -'
-        names = []
-        for k in histo.values()[0].keys():
-            if k.startswith(samples_Bu[0]+'__BpPt'+category.name) and k.endswith('Up'):
-                names.append(k[len(samples_Bu[0])+2:-2])
-        if len(names) == 1 and names[0]=='BpPt'+category.name:
-            card += 'BpPt'+category.name+' shape' + aux*nCat + '\n'
-        else:
-            for n in sorted(names):
-                card += n + ' shape' + aux*nCat + '\n'
+        for n in sorted(names):
+            card += n + ' shape' + aux*nCat + '\n'
 
 
     # Form Factors from Hammer
@@ -3318,8 +3276,8 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         rename = {
         'r': 'R(D*)',
         'mutauNorm': 'Norm B#rightarrow D*l#nu',
-        'B0pT': 'B^{0} p_{T} spectrum',
-        'BpPt': 'B^{+} p_{T} spectrum',
+        'BdpT': 'B^{0} p_{T} spectrum',
+        'BuPt': 'B^{+} p_{T} spectrum',
         'B2DstCLNR0':'R_{0} (CLN B#rightarrow D*l#nu)',
         'B2DstCLNeig1':'#lambda_{1} (CLN B#rightarrow D*l#nu)',
         'B2DstCLNeig2':'#lambda_{2} (CLN B#rightarrow D*l#nu)',
@@ -3350,8 +3308,8 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
             rename['tkPVfrac'+c] = 'Additional tracks origin ({})'.format(c)
             for i in range(1,5):
                 s = str(i)
-                rename['B0pT'+c+'_lam'+s] = 'B^{0} p_{T} '+c+' #lambda_{'+s+'}'
-                rename['BpPt'+c+'_lam'+s] = 'B^{+} p_{T} '+c+' #lambda_{'+s+'}'
+                rename['BdpT'+c+'_lam'+s] = 'B^{0} p_{T} '+c+' #lambda_{'+s+'}'
+                rename['BuPt'+c+'_lam'+s] = 'B^{+} p_{T} '+c+' #lambda_{'+s+'}'
 
         procName_dic = {
         'mu'        : 'B^{0}#rightarrow D*#mu#nu',
@@ -3471,6 +3429,11 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 
 ########################### -------- Condor submissions ------------------ #########################
 # Check for the right singularity using: ll /cvmfs/singularity.opensciencegrid.org/cmssw/
+mem = '2500'
+if 'histos' in args.step:
+    mem = '12000'
+elif args.category == 'comb' and 'fitDiag' in args.step:
+    mem = '7000'
 jdlTemplate = '\n'.join([
               'executable        = '+basedir+'Combine/condorJob.sh',
               'arguments         = {arguments}',
@@ -3480,15 +3443,15 @@ jdlTemplate = '\n'.join([
               'JobPrio           = -1',
               'WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT',
               '+MaxRuntime       = 1200',
-              '+JobQueue         = "Short"',
+              '+JobQueue         = ' + ('"Normal"' if ('fitDiag' in args.step and args.category == 'comb') else '"Short"'),
               '+RunAsOwner       = True',
               '+InteractiveUser  = True',
               '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"',
               '+SingularityBindCVMFS = True',
               'run_as_owner      = True',
               'RequestDisk       = 2000000',
-              'RequestMemory     = 2500',
-              'RequestCpus       = 1',
+              'RequestMemory     = ' + mem,
+              'RequestCpus       = {:.0f}'.format(np.ceil(float(mem)/4000)),
               'x509userproxy     = $ENV(X509_USER_PROXY)',
               'on_exit_remove    = (ExitBySignal == False) && (ExitCode == 0)',
               'on_exit_hold      = (ExitBySignal == True) || (ExitCode != 0)',
@@ -3633,9 +3596,6 @@ if __name__ == "__main__":
             collectBiasToysResults(biasOut, args.toysRDst)
 
     ################### Define combine auxiliary variables ###################
-    rDst_postFitRegion = args.RDstLims
-    fit_RDst = SM_RDst
-
     globalChannelMasking = ['AddTk_pm_mHad', 'B_pt', 'B_eta', 'specQ2']
     mAux = ['mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt', 'mass_D0pismu']
     if args.signalRegProj1D:
@@ -3671,6 +3631,16 @@ if __name__ == "__main__":
 
     if 'scan' in args.step:
         print '-----> Running likelyhood scan'
+        if len(args.RDstLims) > 0:
+            rLimits = args.RDstLims
+        elif args.unblinded:
+            rLimits = [0.08]
+        elif not args.unblinded:
+            if args.category == 'comb':
+                rLimits = [0.15]
+            else:
+                rLimits = [0.25]
+
         if args.maskScan:
             maskList = []
             for n in args.maskScan:
@@ -3688,21 +3658,15 @@ if __name__ == "__main__":
             fit_RDst, rDst_postFitRegion = runScan(args.cardTag+args.tagScan, card_location, outdir,
                                                    args.category.capitalize(),
                                                    maskStr=maskStr,
-                                                   rLimits=rDst_postFitRegion, strategy=0, draw=True)
+                                                   rLimits=rLimits, strategy=0, draw=True)
         else:
-            if len(args.RDstLims) == 1:
-                rLimits = args.RDstLims
-            elif args.unblinded:
-                rLimits = [0.08]
-            elif not args.unblinded:
-                if args.category == 'comb':
-                    rLimits = [0.15]
-                else:
-                    rLimits = [0.25]
             fit_RDst, rDst_postFitRegion = runScan(args.cardTag+'Base', card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                                    args.category.capitalize(),
                                                    rLimits=rLimits,
                                                    strategy=0, draw=True)
+    else:
+        rDst_postFitRegion = args.RDstLims if len(args.RDstLims) == 2 else [0.15, 0.45]
+        fit_RDst = SM_RDst
 
     if 'catComp' in args.step:
         if not args.category == 'comb':
