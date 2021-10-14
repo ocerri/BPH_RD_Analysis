@@ -67,7 +67,7 @@ parser.add_argument ('--asimov', default=False, action='store_true', help='Use A
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
-parser.add_argument ('--calBpT', default='none', choices=['ratio', 'poly', 'none'], help='Form factor scheme to use.')
+parser.add_argument ('--calBpT', default='poly', choices=['ratio', 'poly', 'none'], help='Form factor scheme to use.')
 
 
 availableSteps = ['clean', 'histos', 'preFitPlots', 'shapeVarPlots',
@@ -1104,6 +1104,19 @@ def createHistograms(category):
             else:
                 weights[cname], auxVarDic = computePtWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
                 wVar.update(auxVarDic)
+
+
+        ############################
+        # Form factor correction
+        ############################
+        if n in ['mu', 'tau'] and schemeFF != 'NoFF':
+            print 'Including FF corrections (Hammer)'
+            weights['B2DstFF'] = ds['wh_'+schemeFF+'Central']*sMC.effCand['rate_den']/sMC.effCand['rate_'+schemeFF+'Central']
+            for nPar in FreeParFF:
+                for var in ['Up', 'Down']:
+                    tag = schemeFF + nPar + var
+                    wVar['B2Dst'+tag] = ds['wh_'+tag]/ds['wh_'+schemeFF+'Central']
+                    wVar['B2Dst'+tag] *= sMC.effCand['rate_'+schemeFF+'Central']/sMC.effCand['rate_' + tag]
 
         ############################
         # Dstst resonance mix
@@ -3516,11 +3529,11 @@ if __name__ == "__main__":
             present = False
             while not present:
                 n = len(glob(os.path.join(histo_file_dir, card_name.replace('comb', c)) + '_*.root'))
-                if n>2:
+                if n>5:
                     present = True
                 else:
                     print 'Waiting for ' + c
-                    time.sleep(10)
+                    time.sleep(30)
             histo[c] = loadHisto4CombineFromRoot(histo_file_dir, card_name.replace('comb', c))
     else:
         loadShapeVar = 'card' in args.step
