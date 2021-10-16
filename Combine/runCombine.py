@@ -712,7 +712,9 @@ def createHistograms(category):
                 weights[cname], auxVarDic = computePtWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
                 wVar.update(auxVarDic)
 
-        # Hammer corrections to the FF
+        ############################
+        # Form factor correction
+        ############################
         if n in ['mu', 'tau'] and schemeFF != 'NoFF':
             print 'Including FF corrections (Hammer)'
             weights['B2DstFF'] = ds['wh_'+schemeFF+'Central']*sMC.effCand['rate_den']/sMC.effCand['rate_'+schemeFF+'Central']

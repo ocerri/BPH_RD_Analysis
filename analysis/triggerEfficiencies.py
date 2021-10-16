@@ -69,7 +69,7 @@ plt.switch_backend('Agg')
 
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rf.ERROR)
-webFolder = '/storage/user/ocerri/public_html/BPH_RDst/triggerScaleFactors/'+args.version
+webFolder = '/storage/af/user/ocerri/public_html/BPH_RDst/triggerScaleFactors/'+args.version
 if not os.path.exists(webFolder):
     print 'Creating', webFolder
     os.makedirs(webFolder)
@@ -119,9 +119,6 @@ def loadDF(loc, branches):
 
 if args.dataset == 'RD':
     dataDir = '../data/cmsRD'
-    # RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210209_CAND.root')
-    # RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210309_CAND.root')
-    # RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210410_CAND.root')
     RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210423_CAND.root')
     df = loadDF(RDdsLoc, branchesToLoad)
     print 'Data probe muons:', df.shape[0]
