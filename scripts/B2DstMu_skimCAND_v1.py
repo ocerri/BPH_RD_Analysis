@@ -65,8 +65,6 @@ samples = yaml.load(open(sampleFile))['samples']
 for s in MC_samples:
     if s == 'Bd_MuNuDst':
         filesLocMap[s] = join(MCloc, samples[s]['dataset'], 'ntuples_B2DstMu_wOC/out_CAND_*.root')
-    elif s == 'Bu_DstDd':
-        filesLocMap[s] = join(MCloc, samples[s]['dataset'], 'ntuples_B2DstMu_tOC/out_CAND_*.root')
     else:
         filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
 

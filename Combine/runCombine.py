@@ -268,7 +268,7 @@ def cleanPreviousResults():
 
 
 ########################### -------- Create histrograms ------------------ #########################
-
+corrScaleFactors = {}
 def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
@@ -318,6 +318,15 @@ def loadDatasets(category, loadRD):
         dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
         datasets_loc = glob(dataDir + '/ParkingBPH*/*RDntuplizer_B2DstMu_{}_CAND.root'.format(creation_date))
         lumi_tot = getLumiByTrigger(datasets_loc, category.trg, verbose=True)
+
+    for k in dSet.keys():
+        sel = np.logical_and(dSet[k]['B_eta'] > 0, dSet[k]['B_eta'] < 0.4)
+        dSet[k] = dSet[k][sel]
+        corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
+
+        sel = np.logical_and(dSetTkSide[k]['B_eta'] > 0, dSetTkSide[k]['B_eta'] < 0.4)
+        dSetTkSide[k] = dSetTkSide[k][sel]
+        corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
 
     return MCsample, dSet, dSetTkSide
 
@@ -545,17 +554,12 @@ def createHistograms(category):
     ########## Signal region
     ######################################################
     n_q2bins = len(binning['q2'])-1
+    negSide = [-2.5, -1.8, -1.4, -1.0, -0.6, -0.4, -0.2]
     binning['M2_miss'] = [
-    #         array('d', [-2.5] + list(np.arange(-1.8, -0.2, 0.4)) + [-0.2, 0., 0.2, 0.6, 8] ),
-            array('d', [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
-    #         array('d', [-2.5] + list(np.arange(-1.8, -0.1, 0.4)) + [-0.1, 0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.0, 0.4)) + [8] ),
-            array('d', [0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.5, 0.2)) + [8] ),
-
-    #         array('d', [-2.5] + list(np.arange(-1.8, 5.6, 0.4)) + [8] ),
-            array('d', list(np.arange(0, 6, 0.2)) + [8] ),
-
-    #         array('d', [-2.5] + list(np.arange(-1.8, 7.6, 0.4)) + [8] ),
-            array('d', list(np.arange(0, 7.8, 0.2)) + [8] ),
+            array('d', negSide + [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
+            array('d', negSide + [0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.5, 0.2)) + [8] ),
+            array('d', negSide + list(np.arange(0, 6, 0.2)) + [8] ),
+            array('d', negSide + list(np.arange(0, 7.8, 0.2)) + [8] ),
         ]
     binning['Est_mu'] = [
             array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.3] ),
@@ -590,35 +594,31 @@ def createHistograms(category):
 
     binning['mass_D0pismu'] = n_q2bins*[[50, 2.1, 5.28]]
 
+    negSide = [-2.5, -1.5, -0.8, -0.4, -0.2]
     binning_2D = [
         [
-    #         array('d', [-2.5] + list(np.arange(-1.8, -0.2, 0.4)) + [-0.2, 0., 0.2, 0.6, 8] ),
-            array('d', [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
-
+            array('d', negSide + [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
             array('d', [0.3] + list(np.arange(0.7, 2.3, 0.3)) + [2.3] )
         ],
         [
-    #         array('d', [-2.5] + list(np.arange(-1.8, 3.0, 0.4)) + [8] ),
-            array('d', [0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.0, 0.2)) + [8] ),
-
+            array('d', negSide + [0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.0, 0.2)) + [8] ),
             array('d', [0.3] + list(np.arange(0.7, 2.2, 0.3)) )
         ],
         [
-    #         array('d', [-2.5] + list(np.arange(-1.8, 5.6, 0.4)) + [8] ),
-            array('d', list(np.arange(0, 5.6, 0.4)) + [8] ),
-
+            array('d', negSide + list(np.arange(0, 5.6, 0.4)) + [8] ),
             array('d', [0.3] + list(np.arange(0.5, 2.1, 0.3)) + [2.1] )
         ],
         [
-    #         array('d', [-2.5] + list(np.arange(-1.8, 7.6, 0.4)) + [8] ),
-            array('d', list(np.arange(0, 7.6, 0.4)) + [8] ),
-
+            array('d', negSide + list(np.arange(0, 7.6, 0.4)) + [8] ),
             array('d', list(np.linspace(0.3, 2.0, 10)) )
         ]
 
     ]
     binning['B_pt'] = {'Low': array('d', list(np.arange(10, 75, 2)) ), 'Mid': array('d', list(np.arange(14, 90, 2)) ), 'High': array('d', list(np.arange(18, 110, 2)))}[category.name]
+
     binning['B_eta'] = array('d', list(np.arange(-1.9, 1.91, 0.05)) )
+    binning['mu_eta'] = array('d', list(np.arange(-1.6, 1.61, 0.05)) )
+
     binning['specQ2'] = array('d', list(np.arange(0, 11.4, 0.2)))
 
     if args.unblinded:
@@ -644,6 +644,9 @@ def createHistograms(category):
             eff[0] *= f
             eff[1] += np.square(df/f)
         eff[1] = eff[0] * np.sqrt(eff[1])
+        if n in corrScaleFactors.keys():
+            eff[0] *= corrScaleFactors[n]
+            print 'Using scale factor from a posteriori selection: {:.3f}'.format(corrScaleFactors[n])
         nTotExp = nGenExp*eff[0]
         print 'N tot expected (before weights): {:.2f}k'.format(1e-3*nTotExp)
 
@@ -1277,6 +1280,9 @@ def createHistograms(category):
             eff[0] *= f
             eff[1] += np.square(df/f)
         eff[1] = eff[0] * np.sqrt(eff[1])
+        if n+'_tk' in corrScaleFactors.keys():
+            eff[0] *= corrScaleFactors[n+'_tk']
+            print 'Using scale factor from a posteriori selection: {:.3f}'.format(corrScaleFactors[n+'_tk'])
         nTotExp = nGenExp*eff[0]
 
         sel = {}
