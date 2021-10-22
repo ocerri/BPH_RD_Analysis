@@ -1,0 +1,91 @@
+# - tag: pythiaProcess
+#   title: 'Pythia process'
+#   nuisance:
+#     - rgx{pythiaProcess.*}
+
+- tag: formFactors
+  title: 'Form factors'
+  nuisance:
+    - rgx{B2DstCLN.*}
+
+- tag: templateB2DstHc
+  title: $B\to D^* H_c$ template
+  nuisance:
+    - BmDstmHcBr
+    - BpDstmHcBr
+    - antiB0DstmHcBr
+    - rgx{BrB02DstD.*}
+    - rgx{DstmD.*}
+
+- tag: BpTspectrum
+  title: B mesons $p_T$
+  nuisance:
+    - rgx{B0pT.*}
+    - rgx{BpPt.*}
+
+- tag: softTracksModeling
+  title: Soft tracks modeling
+  nuisance:
+    - rgx{softTrk.*}
+    - rgx{tkPVfrac.*}
+
+- tag: brB2DstMuNu
+  title: $B \to D^{*}\mu\nu$ branching fraction
+  nuisance:
+    - muBr
+
+- tag: control2signalTransfer
+  title: 'Control to signal region transfer factors'
+  nuisance:
+    - B2DstHcTransferFactor
+    - trkEff
+
+- tag: overallNorm
+  title: 'Overall normalization'
+  nuisance:
+    - rgx{overallNorm.*}
+
+- tag: shapeDstst
+  title: $D^{**}$ resonances shapes
+  nuisance:
+   - D2420_10Width
+   - D2460_1StWidth
+   - DstPiPiWidth
+   - fDststWide
+
+
+- tag: B2DststMuNuBranchingFractions
+  title: $B\to D^{**}(D^* + n\pi)\mu\nu$ branching fractions
+  nuisance:
+    - DstPiBr
+    - DstPiPiBr
+
+- tag: brB2DststTauNu
+  title: $B \to D^{**}\tau\nu$ branching fraction
+  nuisance:
+    - TauDstPiBr
+
+
+
+# LHCb breakdown
+#
+#   Simulated sample size
+#   Misidentified µ template
+#   B0 → D∗+(τ−/µ−)ν form factors
+#   B → D∗+Hc(→ µνX0)X shape corrections
+#   B(B → D∗∗τ−ντ )/B(B → D∗∗µ−νµ) 0.5
+#   B → D∗∗(→ D∗ππ)µν shape corrections 0.4
+#   Corrections to simulation
+#   Combinatorial background shape
+#   B → D∗∗(→ D∗+π)µ−νµ form factors
+#   B → D∗+(Ds → τν)X fraction 0.1
+# Total model uncertainty 2.8
+#
+#
+#   Simulated sample size
+#   Hardware trigger efficiency
+#   Particle identification efficiencies
+#   Form-factors
+# Total normalization uncertainty 0.9
+#
+# Total systematic uncertainty 3.0

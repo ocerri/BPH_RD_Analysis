@@ -70,6 +70,7 @@ for s in MC_samples:
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
 filesLocMap['data'] = join(RDloc, '*_B2DstMu_210917_CAND.root')
+filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_211014_CAND.root')
 
 def getTLVfromField(ev, n, idx, mass):
     v = rt.TLorentzVector()
@@ -378,7 +379,8 @@ def makeSelection(inputs):
 
             N_acc += 1
 
-            aux = (evEx.q2, evEx.Est_mu, evEx.M2_miss, evEx.U_miss,
+            aux = (ev.runNum, ev.lumiNum, ev.eventNum, ev.LumiBlock,
+                   evEx.q2, evEx.Est_mu, evEx.M2_miss, evEx.U_miss,
                    evEx.q2_coll, evEx.Est_mu_coll, evEx.M2_miss_coll,
                    ev.mu_charge[j], evEx.mu_pt, evEx.mu_eta, evEx.mu_phi, ev.trgMu_sigdxy_BS[idxTrg],
                    ev.mu_dca_vtxDst[j], ev.mu_sigdca_vtxDst[j],
@@ -394,6 +396,7 @@ def makeSelection(inputs):
                    evEx.pis_pt, evEx.pis_eta, evEx.pis_phi,
                    ev.pval_D0pis[j],
                    evEx.mass_piK, evEx.mass_D0pis, evEx.mass_D0pismu,
+                   evEx.mass_D0pis - evEx.mass_piK,
                    evEx.mass_D0pismu_muASpi, evEx.mass_D0pismu_muASK,
                    evEx.D0pismu_eta, evEx.D0pismu_phi,
                    ev.pval_D0pismu[j], ev.chi2_D0pismu[j],
@@ -505,7 +508,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
     print n, catName
     if 'data' in n:
         loc = join(root,'cmsRD/skimmed/B2DstMu'+ n.replace('data', ''))
-        out = re.search('21[01][1-9][0-3][0-9]', filepath)
+        out = re.search('21[01][0-9][0-3][0-9]', filepath)
         if out is None:
             print filepath
             raise
@@ -566,7 +569,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         N_cand_in = min(maxEvents, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
 
-        leafs_names = ['q2', 'Est_mu', 'M2_miss', 'U_miss',
+        leafs_names = ['runNum', 'lumiNum', 'eventNum', 'lumiBlock',
+                       'q2', 'Est_mu', 'M2_miss', 'U_miss',
                        'q2_coll', 'Est_mu_coll', 'M2_miss_coll',
                        'mu_charge', 'mu_pt', 'mu_eta', 'mu_phi', 'mu_sigdxy',
                        'mu_dca_vtxDst', 'mu_sigdca_vtxDst',
@@ -582,6 +586,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'pis_pt', 'pis_eta', 'pis_phi',
                        'pval_D0pis',
                        'mass_piK', 'mass_D0pis', 'mass_D0pismu',
+                       'deltaM_DstD',
                        'mass_D0pismu_muASpi', 'mass_D0pismu_muASK',
                        'D0pismu_eta', 'D0pismu_phi',
                        'pval_D0pismu', 'chi2_D0pismu',
@@ -664,8 +669,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
             print ' '
 
             start = time.time()
-            if args.parallelType == 'pool' or len(inputs) < 15:
-                p = Pool(min(20,len(inputs)))
+            if args.parallelType == 'pool' or len(inputs) < 40:
+                p = Pool(min(15,len(inputs)))
                 outputs = p.map(makeSelection, inputs)
             elif args.parallelType == 'jobs':
                 tmpDir = 'tmp/B2DstMu_skimCAND_' + n
@@ -852,7 +857,8 @@ if __name__ == "__main__":
 
         for idx in skip:
             for cn in args.cat:
-                for n, fp in file_loc.iteritems():
+                for iFile, (n, fp) in enumerate(file_loc.iteritems()):
+                    print '>>>> Sample {}/{}'.format(iFile+1, len(file_loc.keys()))
                     for trkSelectionFlag in trackControlFlag:
                         create_dSet(n, fp, categories[cn], skipCut=idx, applyCorrections=args.applyCorr, trkControlRegion=trkSelectionFlag, maxEvents=args.maxEvents)
 

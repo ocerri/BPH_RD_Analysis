@@ -51,24 +51,13 @@ args = parser.parse_args()
 #############################################################################
 ####                          Datset declaration                         ####
 #############################################################################
-MCloc = '../data/cmsMC_private/'
+MCloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/'
 MCend = '/ntuples_B2JpsiKst/out_CAND_*.root'
-RDloc = '../data/cmsRD/ParkingBPH*/'
+RDloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {
 'CP_general'    : MCloc+'CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'+MCend,
-
 'data'          : RDloc+'*2018*B2JpsiKst_210501_CAND.root',
-
-## OLD
-# 'n_PU0'         : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU0_10-2-3'+MCend,
-# 'n_PU20'        : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU20_10-2-3'+MCend,
-'old_PUc0'        : MCloc+'BP_Tag-Probe_B0_JpsiKst_Hardbbbar_evtgen_HELAMP_PUc0_10-2-3'+MCend,
-# 'n_PU35'        : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgen_SVV_PU35_10-2-3'+MCend,
-# 'fsr_PU20'      : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_Hardbbbar_PTFilter5_0p0-evtgenFSR_SVV_PU20_10-2-3'+MCend,
-# 's_PU0'         : MCloc+'BPH_Tag-Probe_B0_JpsiKst-mumuKpi-kp_13TeV-pythia8_SoftQCD_PTFilter5_0p0-evtgen_SVV_PU0_10-2-3'+MCend,
-#
-# 'data' : RDloc+'*2018*B2JpsiKst_200622_CAND.root'
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -82,7 +71,7 @@ def getTLVfromField(ev, n, idx, mass):
 class Container(object):
     pass
 
-fBfield = rt.TFile.Open('../data/calibration/bFieldMap_2Dover3D.root', 'r')
+fBfield = rt.TFile.Open('/storage/af/group/rdst_analysis/BPhysics/data/calibration/bFieldMap_2Dover3D.root', 'r')
 hBfieldMapsRatio = fBfield.Get('bfieldMap')
 def get_bFieldCorr3D(phi, eta, verbose=False):
     if np.abs(eta) > 2.4:
@@ -258,7 +247,7 @@ def makeSelection(inputs):
                    ev.N_vertexes
                   )
             if not 'data' in n:
-                aux += (ev.MC_B_pt, ev.MC_B_eta,
+                aux += (ev.MC_B_pt, ev.MC_B_eta, ev.MC_B_phi,
                         ev.MC_idxCand == j,
                         ev.MC_mup_pt, ev.MC_mup_eta,
                         ev.MC_mum_pt, ev.MC_mum_eta,
@@ -300,7 +289,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
     print '\n' + 50*'-'
     print n, catName
     if 'data' in n:
-        loc = '../data/cmsRD/skimmed/B2JpsiKst'+ n.replace('data', '')
+        loc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/skimmed/B2JpsiKst'+ n.replace('data', '')
         out = re.search('21[01][1-9][0-3][0-9]', filepath)
         if out is None:
             print filepath
@@ -372,7 +361,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                         'N_vtx'
                       ]
         if not 'data' in n:
-            leafs_names += ['MC_B_pt', 'MC_B_eta',
+            leafs_names += ['MC_B_pt', 'MC_B_eta', 'MC_B_phi',
                             'MC_idxMatch',
                             'MC_mup_pt', 'MC_mup_eta',
                             'MC_mum_pt', 'MC_mum_eta',
@@ -477,7 +466,7 @@ def createSubmissionFile(tmpDir, njobs):
     fjob = open(tmpDir+'/job.sh', 'w')
     fjob.write('#!/bin/bash\n')
     fjob.write('source /cvmfs/cms.cern.ch/cmsset_default.sh; cd /storage/af/user/ocerri/CMSSW_10_2_3/; eval `scramv1 runtime -sh`\n')
-    fjob.write('cd /storage/af/user/ocerri/BPhysics/scripts\n')
+    fjob.write('cd '+os.path.dirname(os.path.abspath(__file__))+'\n')
     fjob.write('python B2JpsiKst_skimCAND_v1.py --function makeSel --tmpDir $1 --jN $2\n')
     os.system('chmod +x {}/job.sh'.format(tmpDir))
 
@@ -494,13 +483,15 @@ def createSubmissionFile(tmpDir, njobs):
     fsub.write('\n')
     fsub.write('WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT')
     fsub.write('\n')
+    fsub.write('+JobQueue="Short"')
+    fsub.write('\n')
     fsub.write('+MaxRuntime   = 3600')
     fsub.write('\n')
     fsub.write('+RunAsOwner = True')
     fsub.write('\n')
     fsub.write('+InteractiveUser = True')
     fsub.write('\n')
-    fsub.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/bbockelm/cms:rhel7"')
+    fsub.write('+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"')
     fsub.write('\n')
     fsub.write('+SingularityBindCVMFS = True')
     fsub.write('\n')

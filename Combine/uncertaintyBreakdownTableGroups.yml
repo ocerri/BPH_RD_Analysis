@@ -11,17 +11,13 @@
 - tag: templateB2DstHc
   title: $B\to D^* H_c$ template
   nuisance:
-    - BmDstmHcBr
-    - BpDstmHcBr
-    - antiB0DstmHcBr
-    - rgx{BrB02DstD.*}
-    - rgx{DstmD.*}
+    - rgx{brB[uds]_DstD.*}
+    - rgx{D[uds]MuBr}
 
 - tag: BpTspectrum
   title: B mesons $p_T$
   nuisance:
-    - rgx{B0pT.*}
-    - rgx{BpPt.*}
+    - rgx{B[ud]pT.*}
 
 - tag: softTracksModeling
   title: Soft tracks modeling
@@ -32,12 +28,12 @@
 - tag: brB2DstMuNu
   title: $B \to D^{*}\mu\nu$ branching fraction
   nuisance:
-    - muBr
+    - mutauNorm
 
 - tag: control2signalTransfer
   title: 'Control to signal region transfer factors'
   nuisance:
-    - B2DstHcTransferFactor
+    # - B2DstHcTransferFactor
     - trkEff
 
 - tag: overallNorm
@@ -48,9 +44,7 @@
 - tag: shapeDstst
   title: $D^{**}$ resonances shapes
   nuisance:
-   - D2420_10Width
-   - D2460_1StWidth
-   - DstPiPiWidth
+   - rgx{D.*_width}
    - fDststWide
 
 
@@ -59,11 +53,13 @@
   nuisance:
     - DstPiBr
     - DstPiPiBr
+    - DstKBr
+
 
 - tag: brB2DststTauNu
-  title: $B \to D^{**}\tau\nu$ branching fraction
+  title: $R(D_{(s)}^{(**)})$
   nuisance:
-    - TauDstPiBr
+    - RDs_stst
 
 
 

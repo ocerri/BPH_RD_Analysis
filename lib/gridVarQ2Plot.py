@@ -298,8 +298,18 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 h_dr.GetXaxis().SetLabelSize(0.22)
                 h_dr.GetXaxis().SetTickSize(0.07)
                 if pullsRatio:
-                    h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
-                    h_dr.GetYaxis().SetNdivisions(402)
+                    if pulls_ylim == 'auto':
+                        ymin = h_dr.GetMinimum()
+                        ymax = h_dr.GetMaximum()
+                        d = np.max(np.abs([ymin-1, ymax-1]))
+                        if d < 0.5:
+                            h_dr.GetYaxis().SetRangeUser(1 - 1.2*d , 1 + 1.2*d)
+                        else:
+                            d = 0.1 * (ymax - ymin)
+                            h_dr.GetYaxis().SetRangeUser(ymin - d , ymax + d)
+                    else:
+                        h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
+                        h_dr.GetYaxis().SetNdivisions(402)
                 else:
                     h_dr.SetLineWidth(1)
                     ax = h_dr.GetYaxis()
@@ -545,7 +555,23 @@ def plot_SingleCategory(CMS_lumi,
         h_dr.GetXaxis().SetLabelSize(0.22)
         h_dr.GetXaxis().SetTickSize(0.07)
         if pullsRatio:
-            h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
+            if pulls_ylim == 'auto':
+                aux = []
+                for i in range(1, h_dr.GetNbinsX()+1):
+                    if h_dr.GetBinContent(i) != 1 and h_dr.GetBinContent(i) != 0:
+                        aux.append(h_dr.GetBinContent(i) + h_dr.GetBinError(i))
+                        aux.append(h_dr.GetBinContent(i) - h_dr.GetBinError(i))
+                        # print h_dr.GetBinContent(i)
+                if len(aux) == 0: aux.append(1)
+                ymin, ymax = np.percentile(aux, 12), np.percentile(aux, 88)
+                d = np.max(np.abs([ymin-1, ymax-1]))
+                if d < 0.2:
+                    h_dr.GetYaxis().SetRangeUser(1 - 1.1*d , 1 + 1.1*d)
+                else:
+                    d = 0.2 * (ymax - ymin)
+                    h_dr.GetYaxis().SetRangeUser(ymin - d , ymax + d)
+            else:
+                h_dr.GetYaxis().SetRangeUser(pulls_ylim[0], pulls_ylim[1])
             h_dr.GetYaxis().SetNdivisions(402)
         else:
             h_dr.SetLineWidth(1)

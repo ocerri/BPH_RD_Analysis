@@ -133,6 +133,12 @@ if len(args.step) == 0:
     if args.cardTag == 'test' and not args.submit:
         args.step = ['clean'] + args.step
 
+    if not args.unblinded:
+        for s in args.step:
+            if 'uncBreakdown' in s:
+                args.step.remove(s)
+    print 'Running default steps: ' + ', '.join(args.step)
+
 schemeFF = args.schemeFF
 if not args.showPlots:
     rt.gROOT.SetBatch(True)
@@ -219,7 +225,8 @@ if not os.path.isdir(outdir):
 card_location = basedir + 'Combine/cards/{}.txt'.format(card_name)
 histo_file_dir = basedir + 'data/_root/histos4combine/'
 
-webFolder = '/storage/af/user/ocerri/public_html/BPH_RDst/Combine/' + card_name
+userName = basedir[basedir.find('/user/')+6:].split('/')[0]
+webFolder = '/storage/af/user/'+userName+'/public_html/BPH_RDst/Combine/' + card_name
 if not os.path.isdir(webFolder):
     os.makedirs(webFolder)
     os.system('cp '+webFolder+'/../index.php '+webFolder)
@@ -291,7 +298,7 @@ def loadDatasets(category, loadRD):
     'Bd_DstDu': DSetLoader('Bd_DstDu'),
     'Bu_DstDu': DSetLoader('Bu_DstDu'),
     'Bd_DstDd': DSetLoader('Bd_DstDd'),
-    'Bu_DstDd': DSetLoader('Bu_DstDd', candDir='ntuples_B2DstMu_tOC'),
+    'Bu_DstDd': DSetLoader('Bu_DstDd'),
     'Bd_DstDs': DSetLoader('Bd_DstDs'),
     'Bs_DstDs': DSetLoader('Bs_DstDs'),
     }
@@ -320,11 +327,16 @@ def loadDatasets(category, loadRD):
         lumi_tot = getLumiByTrigger(datasets_loc, category.trg, verbose=True)
 
     for k in dSet.keys():
-        sel = np.logical_and(dSet[k]['B_eta'] > 0, dSet[k]['B_eta'] < 0.4)
+        etaLim = [-1., 1.]
+        # sel = np.ones_like(dSet[k]).astype(np.bool)
+        sel = dSet[k]['M2_miss'] > 0.2
+        sel = np.logical_and(sel, np.logical_and(dSet[k]['B_eta'] > etaLim[0], dSet[k]['B_eta'] < etaLim[1]))
         dSet[k] = dSet[k][sel]
         corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
 
-        sel = np.logical_and(dSetTkSide[k]['B_eta'] > 0, dSetTkSide[k]['B_eta'] < 0.4)
+        # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
+        sel = dSetTkSide[k]['M2_miss'] > 0.2
+        sel = np.logical_and(sel, np.logical_and(dSetTkSide[k]['B_eta'] > etaLim[0], dSetTkSide[k]['B_eta'] < etaLim[1]))
         dSetTkSide[k] = dSetTkSide[k][sel]
         corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
 
@@ -554,7 +566,7 @@ def createHistograms(category):
     ########## Signal region
     ######################################################
     n_q2bins = len(binning['q2'])-1
-    negSide = [-2.5, -1.8, -1.4, -1.0, -0.6, -0.4, -0.2]
+    negSide = [-2.5, -1.5, -1.0, -0.6, -0.4, -0.2]
     binning['M2_miss'] = [
             array('d', negSide + [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
             array('d', negSide + [0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.5, 0.2)) + [8] ),
@@ -563,8 +575,8 @@ def createHistograms(category):
         ]
     binning['Est_mu'] = [
             array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.3] ),
+            array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.3] ),
             array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.2] ),
-            array('d', [0.3] + list(np.arange(0.5, 2.1, 0.05)) + [2.1] ),
             [24, 0.3, 2.0],
         ]
     binning['mu_pt'] = n_q2bins*[{'Low': array('d', list(np.arange(7.2, 9.2, 0.05))+[9.2] ),
@@ -594,7 +606,7 @@ def createHistograms(category):
 
     binning['mass_D0pismu'] = n_q2bins*[[50, 2.1, 5.28]]
 
-    negSide = [-2.5, -1.5, -0.8, -0.4, -0.2]
+    negSide = [-2.5, -1.0, -0.4, -0.2]
     binning_2D = [
         [
             array('d', negSide + [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
@@ -616,15 +628,25 @@ def createHistograms(category):
     ]
     binning['B_pt'] = {'Low': array('d', list(np.arange(10, 75, 2)) ), 'Mid': array('d', list(np.arange(14, 90, 2)) ), 'High': array('d', list(np.arange(18, 110, 2)))}[category.name]
 
-    binning['B_eta'] = array('d', list(np.arange(-1.9, 1.91, 0.05)) )
     binning['mu_eta'] = array('d', list(np.arange(-1.6, 1.61, 0.05)) )
+    binning['B_eta'] = array('d', list(np.arange(-1.9, 1.91, 0.05)) )
+    binning['K_eta'] = array('d', list(np.arange(-2.1, 2.11, 0.05)) )
+    binning['pi_eta'] = array('d', list(np.arange(-2.1, 2.11, 0.05)) )
+    binning['pis_eta'] = array('d', list(np.arange(-2.1, 2.11, 0.05)) )
 
-    binning['specQ2'] = array('d', list(np.arange(0, 11.4, 0.2)))
+    binning['specQ2'] = array('d', list(np.arange(-2, 11.4, 0.2)))
+
+    binning['mass_piK'] = [75, 1.81, 1.92]
+    binning['deltaM_DstD'] = [75, 0.1434, 0.1475]
 
     if args.unblinded:
         binning['MVA'] = array('d', list(np.arange(0., 0.83, 0.02)))
     else:
         binning['MVA'] = array('d', list(np.arange(0., 0.51, 0.03)))
+
+    additionalVariablesToPlot = ['B_pt', 'B_eta', 'specQ2']
+    additionalVariablesToPlot += ['mu_eta', 'K_eta', 'pi_eta', 'pis_eta']
+    additionalVariablesToPlot += ['mass_piK', 'deltaM_DstD']
 
 
     totalCounting = [0,0]
@@ -926,7 +948,7 @@ def createHistograms(category):
                                                           weights=w[sel_q2], scale_histo=scale,
                                                        )
         # Variables in the whole spectrum
-        for var in ['B_pt', 'B_eta', 'specQ2']:
+        for var in additionalVariablesToPlot:
             if not var in histo.keys():
                 histo[var] = {}
             for name_wVar, v_wVar in wVar.iteritems():
@@ -1396,7 +1418,7 @@ def createHistograms(category):
                     hUnrolled.SetBinError(i+1, histo[cat2D]['data'].GetBinError(ix, iy))
                 histo[catU]['data'] = hUnrolled
 
-        for var in ['B_pt', 'B_eta', 'specQ2']:
+        for var in additionalVariablesToPlot:
             varName = var
             if var == 'specQ2':
                 varName = 'q2'
@@ -1522,17 +1544,21 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux.SaveAs(webFolder+'/q2_norm_'+tag+'.png')
         outCanvas.append(cAux)
 
-    if 'B_eta' in hDic.keys():
-        print 'Creating B_eta'
-        hDic['B_eta']['data'].GetXaxis().SetTitle('B #eta')
-        hDic['B_eta']['data'].GetYaxis().SetTitle('Events')
-        cAux = plot_SingleCategory(CMS_lumi, hDic['B_eta'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
-                                   addText='Cat. '+catName, logy=False, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
-                                   min_y=1, tag=tag+'B_eta', legLoc=[0.44, 0.23, 0.63, 0.53])
-        cAux.SaveAs(outdir+'/fig/B_eta_'+tag+'.png')
-        cAux.SaveAs(webFolder+'/B_eta_'+tag+'.png')
-        outCanvas.append(cAux)
+    for var in ['B_eta', 'mu_eta', 'K_eta', 'pi_eta', 'pis_eta','mass_piK','deltaM_DstD']:
+        if var in hDic.keys():
+            print 'Creating '+var
+            title = var.replace('_eta', ' #eta').replace('st', '*').replace('_', ' ')
+            hDic[var]['data'].GetXaxis().SetTitle(title)
+            hDic[var]['data'].GetYaxis().SetTitle('Events')
+            cAux = plot_SingleCategory(CMS_lumi, hDic[var],
+                                       draw_pulls=True, pullsRatio=True, pulls_ylim='auto',
+                                       scale_dic=scale_dic,
+                                       addText='Cat. '+catName, logy=False, legBkg=True,
+                                       procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
+                                       min_y=1, tag=tag+var, legLoc=[0.77, 0.55, 0.94, 0.75])
+            cAux.SaveAs(outdir+'/fig/'+var+'_'+tag+'.png')
+            cAux.SaveAs(webFolder+'/'+var+'_'+tag+'.png')
+            outCanvas.append(cAux)
 
     # Draw control regions
     for k in np.sort([k for k in hDic.keys() if 'AddTk' in k]):
@@ -2644,8 +2670,60 @@ def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
 
     return
 
-
 ########################### -------- Fit Diagnostic ------------------ #########################
+
+def defineChannelMasking(histo):
+    channelMasks = ['AddTk_pm_mHad', 'specQ2', 'deltaM_DstD']
+    channelMasks += ['rgx{.*_pt.*}', 'rgx{.*_eta.*}', 'rgx{mass_.*}']
+
+    fitVar = args.signalRegProj1D if args.signalRegProj1D else 'Unrolled'
+    for v in ['Unrolled', 'M2_miss', 'Est_mu']:
+        if not v == fitVar:
+            channelMasks += ['rgx{'+v+'.*}']
+
+    if not args.unblinded:
+        channelMasks += [fitVar+'_q2bin2', fitVar+'_q2bin3']
+    if args.noLowq2:
+        channelMasks += [fitVar+'_q2bin0', fitVar+'_q2bin1']
+
+    hDic = histo.values()[0] if args.category == 'comb' else histo
+    triggeredMasks = []
+    masked = []
+    visible = []
+    for r in np.sort(hDic.keys()):
+        if r.startswith('h2'): continue
+        for mask in channelMasks:
+            pattern = mask
+            if mask.startswith('rgx'):
+                pattern = mask[4:-1]
+            if re.match(pattern, r):
+                masked.append(r)
+                triggeredMasks.append(mask)
+        if not r in masked:
+            visible.append(r)
+    for mask in channelMasks:
+        if not mask in triggeredMasks:
+            print '[WARNING] Mask "'+mask+'" not matching any region'
+            channelMasks.remove(mask)
+    print 'Masked regions:', len(masked)
+    print 'Visible regions {}: '.format(len(visible)) + ', '.join(visible)
+
+
+    aux = []
+    for cm in channelMasks:
+        if cm.startswith('rgx{'):
+            if args.category == 'comb':
+                aux.append('rgx{mask_.*_' + cm[4:])
+            else:
+                aux.append('rgx{mask_' + cm[4:])
+        else:
+            if args.category == 'comb':
+                aux.append('rgx{mask_.*_' + cm + '}')
+            else:
+                aux.append('mask_' + cm)
+    channelMaskingStr = ','.join(['{}=1'.format(c) for c in aux])
+
+    return channelMaskingStr
 
 def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, rLimits=[0.1, 0.7], seed=6741, strategy=1):
     cmd = 'cd ' + out + '; '
@@ -2692,7 +2770,6 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
     else:
         c, d, u, _ = arr['limit']
         print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-d, 100*(u-d)*0.5/c)
-
 
 def getPostfitHistos(tag, out, forceRDst, histo_prefit):
     runName = tag + ('_RDstFixed' if forceRDst else '')
@@ -3051,7 +3128,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     cmd = cmd.replace(cmd[idx: idx + 15], 'r={:.4f},{:.4f}'.format(*rLims))
     print ' '
 
-    groupsDefFile = '/storage/user/ocerri/BPhysics/Combine/uncertaintyBreakdownTableGroups.yml'
+    groupsDefFile = os.path.join(basedir, '/Combine/uncertaintyBreakdownTableGroups.yml')
     groups = yaml.load(open(groupsDefFile, 'r'))
     frozenNuisance = []
     firstToRun = ''
@@ -3464,7 +3541,7 @@ jdlTemplate = '\n'.join([
               'JobPrio           = -1',
               'WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT',
               '+MaxRuntime       = 1200',
-              '+JobQueue         = ' + ('"Normal"' if ('fitDiag' in args.step and args.category == 'comb') else '"Short"'),
+              '+JobQueue         = ' + ('"Normal"' if ('fitDiag' in args.step) else '"Short"'),
               '+RunAsOwner       = True',
               '+InteractiveUser  = True',
               '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"',
@@ -3541,7 +3618,7 @@ if __name__ == "__main__":
                     present = True
                 else:
                     print 'Waiting for ' + c
-                    time.sleep(30)
+                    time.sleep(60)
             histo[c] = loadHisto4CombineFromRoot(histo_file_dir, card_name.replace('comb', c))
     else:
         loadShapeVar = 'card' in args.step
@@ -3615,40 +3692,6 @@ if __name__ == "__main__":
             biasToysScan(card_location.replace('.txt', '_fitRegionsOnly.txt'), biasOut, args.seed, args.nToys)
         if (not args.runBiasToys) or both:
             collectBiasToysResults(biasOut, args.toysRDst)
-
-    ################### Define combine auxiliary variables ###################
-    globalChannelMasking = ['AddTk_pm_mHad', 'B_pt', 'B_eta', 'specQ2']
-    mAux = ['mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt', 'mass_D0pismu']
-    if args.signalRegProj1D:
-        mAux += ['Unrolled']
-        if args.signalRegProj1D == 'Est_mu': mAux += ['M2_miss']
-        elif args.signalRegProj1D == 'M2_miss': mAux += ['Est_mu']
-    else:
-        mAux += ['M2_miss', 'Est_mu']
-    for n in mAux:
-        for i in range(len(binning['q2'])-1):
-            globalChannelMasking.append(n+'_q2bin'+str(i))
-
-    if args.signalRegProj1D:
-        if not args.unblinded:
-            globalChannelMasking += [args.signalRegProj1D+'_q2bin2', args.signalRegProj1D+'_q2bin3']
-        if args.noLowq2:
-            globalChannelMasking += [args.signalRegProj1D+'_q2bin0', args.signalRegProj1D+'_q2bin1']
-    else:
-        if not args.unblinded:
-            globalChannelMasking += ['Unrolled_q2bin2', 'Unrolled_q2bin3']
-        if args.noLowq2:
-            globalChannelMasking += ['Unrolled_q2bin0', 'Unrolled_q2bin1']
-
-    if args.category == 'comb':
-        aux = []
-        for cm in globalChannelMasking:
-            aux.append('rgx{mask_.*_' + cm + '}')
-        globalChannelMaskingStr = ','.join(['{}=1'.format(c) for c in aux])
-    else:
-        globalChannelMaskingStr = ','.join(['mask_{}=1'.format(c) for c in globalChannelMasking])
-
-    #######################################################################
 
     if 'scan' in args.step:
         print '-----> Running likelyhood scan'
@@ -3734,6 +3777,7 @@ if __name__ == "__main__":
 
     if 'fitDiag' in args.step:
         print '-----> Running fit diagnostic'
+        globalChannelMaskingStr = defineChannelMasking(histo)
         runFitDiagnostic(args.cardTag, card_location, outdir,
                          strategy=0 if args.category == 'comb' else 1,
                          forceRDst=args.forceRDst, maskStr=globalChannelMaskingStr,
