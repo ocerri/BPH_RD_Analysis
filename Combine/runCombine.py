@@ -3663,11 +3663,11 @@ if __name__ == "__main__":
             present = False
             while not present:
                 n = len(glob(os.path.join(histo_file_dir, card_name.replace('comb', c)) + '_*.root'))
-                if n>5:
+                if n>9:
                     present = True
                 else:
                     print 'Waiting for ' + c
-                    time.sleep(60)
+                    time.sleep(120)
             histo[c] = loadHisto4CombineFromRoot(histo_file_dir, card_name.replace('comb', c))
     else:
         loadShapeVar = 'card' in args.step
