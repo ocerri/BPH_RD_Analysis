@@ -30,7 +30,7 @@ import root_numpy as rtnp
 from progressBar import ProgressBar
 from categoriesDef import categories as categoriesDef
 from analysis_utilities import drawOnCMSCanvas, getEff, DSetLoader
-from pT_calibration_reader import pTCalReader
+from pT_calibration_reader import pTCalReader as kinCalReader
 from histo_utilities import create_TH1D, create_TH2D, std_color_list, make_ratio_plot
 from gridVarQ2Plot import plot_gridVarQ2, plot_SingleCategory, getControlXtitle, getControlSideText
 from lumi_utilities import getLumiByTrigger
@@ -62,7 +62,7 @@ parser.add_argument ('--asimov', default=False, action='store_true', help='Use A
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
-parser.add_argument ('--calBpT', default='poly', choices=['ratio', 'poly', 'none'], help='Form factor scheme to use.')
+parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
 
 
 availableSteps = ['clean', 'histos', 'preFitPlots', 'shapeVarPlots',
@@ -332,6 +332,12 @@ def loadDatasets(category, loadRD):
         # sel = np.ones_like(dSet[k]).astype(np.bool)
         sel = dSet[k]['M2_miss'] > 0.2
         sel = np.logical_and(sel, np.logical_and(dSet[k]['B_eta'] > etaLim[0], dSet[k]['B_eta'] < etaLim[1]))
+        #removeDups
+        if k == 'mu':
+            selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
+                                    np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
+            sel = np.logical_and(sel, selDups)
+
         dSet[k] = dSet[k][sel]
         corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
 
@@ -476,52 +482,40 @@ def createHistograms(category):
     #     raise
         return muonSF, up, down
 
-    if args.calBpT == 'ratio':
-        print 'Using ratio B pT calibration'
-        calFile = 'pwWeights_{}_v20.txt'.format(category.name)
-    elif args.calBpT == 'poly':
-        print 'Using polinomial B pT calibration'
-        calFile = 'polyCoeffWeights_{}_v20.pkl'.format(category.name)
-
     if args.calBpT == 'none':
         print 'Not using any B pT calibration'
-    else:
-        cal_pT_Bd = pTCalReader(calibration_file=dataDir+'/calibration/Bd_pTspectrum/'+calFile)
-        # cal_pT_Bu = pTCalReader(calibration_file=dataDir+'/calibration/Bu_pTspectrum/'+calFile)
+    elif args.calBpT == 'poly':
+        cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v0.pkl')
 
-    def computePtWeights(ds, var, tag, cal_pT):
-        if cal_pT.kind == 'poly':
+    cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v0.pkl')
+
+
+    def computeKinCalWeights(ds, var, tag, kinCal):
+        if kinCal.kind == 'poly':
             # The denominator (sum of weights) for this weights is not known but it cancel out in the ratio
-            w = cal_pT.getWeights(ds[var], shape=0)
+            w = kinCal.getWeights(ds[var], shape=0)
             if np.sum(w==0):
                 print np.sum(w==0)
                 raise
 
             varDic = {}
-            for iShape in range(1, cal_pT.nVar+1):
-                varDic[tag+'_lam{}Down'.format(iShape)] = cal_pT.getWeights(ds[var], shape= -iShape, scale=1.)/w
-                varDic[tag+'_lam{}Up'.format(iShape)] = cal_pT.getWeights(ds[var], shape= iShape, scale=1.)/w
+            for iShape in range(1, kinCal.nVar+1):
+                varDic[tag+'_lam{}Down'.format(iShape)] = kinCal.getWeights(ds[var], shape= -iShape, scale=1.)/w
+                varDic[tag+'_lam{}Up'.format(iShape)] = kinCal.getWeights(ds[var], shape= iShape, scale=1.)/w
 
             return w, varDic
-        elif cal_pT.kind == 'ratio':
-            w = cal_pT.f['C'](ds[var])
+        elif kinCal.kind == 'ratio':
+            w = kinCal.f['C'](ds[var])
             if np.sum(w==0):
                 print np.sum(w==0)
                 raise
-            up = cal_pT.f['Up'](ds[var])/w
-            down = cal_pT.f['Down'](ds[var])/w
+            up = kinCal.f['Up'](ds[var])/w
+            down = kinCal.f['Down'](ds[var])/w
             return w, up, down
         else:
             print 'Unknown calibration'
             raise
 
-    # pWeightsEta = pickle.load(open(dataDir+'/calibration/B0pTspectrum/etaWeights_poly_{}.p'.format(category.name), 'rb'))
-    # def computeB0etaWeights(ds):
-    #     w = np.polyval(p=pWeightsEta, x=ds['B_eta'])
-    #     return np.clip(w, a_min=0.5, a_max=1.5)
-
-    # def fSoftTrackEff(x, a=0.6, tau=0.8):
-    #     return np.where(x<0.1, np.ones_like(x), 1 - a*np.exp(-x/tau))
 
     parsSoftTracks = {'s':[0.2, 0.15], 'w':[0.9, 0.05]}
     def betaSoftTrackEff(w=0.9, s=0.2):
@@ -731,14 +725,18 @@ def createHistograms(category):
             ############################
             # B phase space corrections
             ############################
-            # weights['etaB'] = computeB0etaWeights(ds)
+            print 'Including B eta corrections'
+            cname = 'B_eta'+category.name
+            weights[cname], auxVarDic = computeKinCalWeights(ds, 'MC_B_eta', cname, cal_eta_B)
+            wVar.update(auxVarDic)
+
             if (not args.calBpT == 'none') and (n in samples_Bd):
                 print 'Including Bd pT corrections'
                 cname = 'BdpT'+category.name
                 if cal_pT_Bd.kind == 'ratio':
-                    weights[cname], wVar[cname+'Up'], wVar[cname+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bd)
+                    weights[cname], wVar[cname+'Up'], wVar[cname+'Down'] = computeKinCalWeights(ds, 'MC_B_pt', None, cal_pT_Bd)
                 else:
-                    weights[cname], auxVarDic = computePtWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
+                    weights[cname], auxVarDic = computeKinCalWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
                     wVar.update(auxVarDic)
 
         ############################
@@ -1144,14 +1142,18 @@ def createHistograms(category):
             ############################
             # B phase space corrections
             ############################
-            # weights['etaB'] = computeB0etaWeights(ds)
+            print 'Including B eta corrections'
+            cname = 'B_eta'+category.name
+            weights[cname], auxVarDic = computeKinCalWeights(ds, 'MC_B_eta', cname, cal_eta_B)
+            wVar.update(auxVarDic)
+
             if (not args.calBpT == 'none') and (n in samples_Bd):
                 print 'Including Bd pT corrections'
                 cname = 'BdpT'+category.name
                 if cal_pT_Bd.kind == 'ratio':
-                    weights[cname], wVar[cname+'Up'], wVar[cname+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bd)
+                    weights[cname], wVar[cname+'Up'], wVar[cname+'Down'] = computeKinCalWeights(ds, 'MC_B_pt', None, cal_pT_Bd)
                 else:
-                    weights[cname], auxVarDic = computePtWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
+                    weights[cname], auxVarDic = computeKinCalWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
                     wVar.update(auxVarDic)
 
             # Correct the amount of random tracks from PV
@@ -1321,6 +1323,8 @@ def createHistograms(category):
             nTotSel = float(np.sum(sel[k]))
             # print 'N tot selected {}: {:.0f}'.format(k, nTotSel)
             nExp = nTotExp * nTotSel / sel[k].shape[0]
+            if n == 'dataSS_DstMu' and '_mm_' in k:
+                nExp *= 0.1
             # print 'N tot expected {} (before weights): {:.0f}'.format(k, nExp)
             nAux = nTotExp * np.sum(weightsCentral[sel[k]]) / sel[k].shape[0]
             # print 'N tot expected {} (after weights): {:.0f}'.format(k, nAux)
@@ -2153,7 +2157,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     else:
         card += brScaleSys('muBr', ['mu', 'tau'], relUnc=1.4/50.5)
 
-    card += brScaleSys('DstPiBr', ['Bu_MuDstPi', 'Bd_MuDstPi', 'Bu_TauDstPi', 'Bd_TauDstPi'], relUnc=0.4/6.0)
+    card += brScaleSys('DstPiBr', ['Bu_MuDstPi', 'Bd_MuDstPi', 'Bu_TauDstPi', 'Bd_TauDstPi'], relUnc=2*0.4/6.0)
     card += brScaleSys('DstPiPiBr', ['Bu_MuDstPiPi', 'Bd_MuDstPiPi', 'Bu_TauDstPiPi', 'Bd_TauDstPiPi'], relUnc=0.3/0.96)
     card += brScaleSys('DstKBr', ['Bs_MuDstK', 'Bs_TauDstK'], relUnc=1.5/5.9)
 
@@ -2196,6 +2200,15 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # Soft track efficiency
     card += 'softTrkEff_w shape' + mcProcStr*nCat + '\n'
     card += 'softTrkEff_s shape' + mcProcStr*nCat + '\n'
+
+    # B eta uncertainty
+    names = []
+    for k in histo.values()[0].keys():
+        if k.startswith(samples_Bd[0]+'__B_eta'+category.name) and k.endswith('Up'):
+            names.append(k[len(samples_Bd[0]) + 2:-2])
+    for ii, n in enumerate(sorted(names)):
+        card += n + ' shape' + mcProcStr*nCat + '\n'
+        if ii == 2: break
 
     # B pT uncertainty
     if not args.calBpT == 'none':
@@ -2840,7 +2853,7 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
             for n, h in histo_prefit[c][regName].iteritems():
                 if '__' in n:
                     continue
-                if 'data' in n:
+                if n == 'data':
                     histo_postfit[c][regName]['data'] = h.Clone(h.GetName() + '_data')
                 else:
                     h_post = h.Clone(h.GetName() + '_postfit')

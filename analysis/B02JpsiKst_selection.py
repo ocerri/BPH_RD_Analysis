@@ -54,11 +54,15 @@ def category_selection(j, ev, evEx, cat, saveTrgMu=False):
             evEx.trgMu_eta = evEx.mup_eta
             evEx.trgMu_sigdxy = ev.trgMu_sigdxy_BS[int(ev.mup_isTrg[j])]
             evEx.otherMu_pt = evEx.mum_pt
+            evEx.otherMu_eta = evEx.mum_eta
+            evEx.otherMu_phi = evEx.mum_phi
         elif passed[1]:
             evEx.trgMu_pt = evEx.mum_pt
             evEx.trgMu_eta = evEx.mum_eta
             evEx.trgMu_sigdxy = ev.trgMu_sigdxy_BS[int(ev.mum_isTrg[j])]
             evEx.otherMu_pt = evEx.mup_pt
+            evEx.otherMu_eta = evEx.mup_eta
+            evEx.otherMu_phi = evEx.mup_phi
         else:
             evEx.trgMu_pt = -1
             evEx.trgMu_eta = -999999999
