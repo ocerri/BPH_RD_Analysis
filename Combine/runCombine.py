@@ -77,7 +77,7 @@ availableSteps = ['clean', 'histos', 'preFitPlots', 'shapeVarPlots',
                   'uncBreakdownScan', 'uncBreakdownTable',
                   'externalize',
                   'impacts', 'GoF']
-defaultPipelineSingle = ['histos', 'card', 'workspace', 'scan', 'fitDiag', 'postFitPlots', 'uncBreakdownScan', 'GoF']
+defaultPipelineSingle = ['histos', 'card', 'workspace', 'scan', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
 defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'uncBreakdownTable', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
 # histos preFitPlots shapeVarPlots card workspace scan fitDiag postFitPlots uncBreakdownScan GoF
 parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
@@ -179,11 +179,12 @@ processOrder = [
     'Bs_MuDstK', 'Bs_TauDstK',
     'Bd_DstDu', 'Bu_DstDu',
     'Bd_DstDd', 'Bu_DstDd',
-    'Bd_DstDs', 'Bs_DstDs'
+    'Bd_DstDs', 'Bs_DstDs',
+    'dataSS_DstMu'
 ]
 
 
-samples_Bd = [p  for p in processOrder if not (p[:2] == 'Bu' or p[:2] == 'Bs')]
+samples_Bd = [p  for p in processOrder if not (p[:2] == 'Bd' or p in ['tau', 'mu'])]
 samples_Bu = [p  for p in processOrder if p[:2] == 'Bu']
 samples_Bs = [p  for p in processOrder if p[:2] == 'Bs']
 
@@ -264,7 +265,7 @@ def runCommandSafe(command, printCommand=True):
 def cleanPreviousResults():
     os.system('rm -v '+card_location.replace('.txt', '*'))
 
-    os.system('rm -v '+histo_file_dir+os.path.basename(card_location).replace('.txt', '_*'))
+    os.system('rm '+histo_file_dir+os.path.basename(card_location).replace('.txt', '_*'))
 
     os.system('rm -rf '+outdir)
     os.system('mkdir -p ' + outdir + '/fig')
@@ -314,9 +315,14 @@ def loadDatasets(category, loadRD):
         dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType)))
         dSetTkSide[n] = rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType))
 
+    dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
+    locRD = dataDir+'/skimmed/B2DstMu_SS_211014_{}'.format(category.name)
+    dSet['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
+    dSetTkSide['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
+
+
     if loadRD:
-        print 'Loading data datasets'
-        dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
+        print 'Loading real data datasets'
         lumi_tot = 0
 
         creation_date = '210917'
@@ -655,87 +661,90 @@ def createHistograms(category):
         ds = dSet[n]
         if n == 'data': continue
         print '\n----------->', n, '<-------------'
-        sMC = MCsample[n]
-
-        nTotSelected = ds['q2'].shape[0]
-        print 'N tot selected: {:.1f}k'.format(1e-3*nTotSelected)
-        totalCounting[1] += 1e-3*nTotSelected
-        nGenExp = sMC.effMCgen['xsec'][0] * expectedLumi[category.name] * RDoMC_normRatio
-        eff = [1, 0]
-        for f, df in [sMC.effMCgen['effGEN'], decayBR[n], sMC.effCand['effCAND'], sMC.getSkimEff(category.name+'_'+mcType)]:
-            eff[0] *= f
-            eff[1] += np.square(df/f)
-        eff[1] = eff[0] * np.sqrt(eff[1])
-        if n in corrScaleFactors.keys():
-            eff[0] *= corrScaleFactors[n]
-            print 'Using scale factor from a posteriori selection: {:.3f}'.format(corrScaleFactors[n])
-        nTotExp = nGenExp*eff[0]
-        print 'N tot expected (before weights): {:.2f}k'.format(1e-3*nTotExp)
-
         wVar = {}
         weights = {}
+        if n == 'dataSS_DstMu':
+            nTotSelected = ds['q2'].shape[0]
+            nTotExp = ds['q2'].shape[0]
+        else:
+            sMC = MCsample[n]
 
-        print 'Including pileup reweighting'
-        weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
+            nTotSelected = ds['q2'].shape[0]
+            print 'N tot selected: {:.1f}k'.format(1e-3*nTotSelected)
+            totalCounting[1] += 1e-3*nTotSelected
+            nGenExp = sMC.effMCgen['xsec'][0] * expectedLumi[category.name] * RDoMC_normRatio
+            eff = [1, 0]
+            for f, df in [sMC.effMCgen['effGEN'], decayBR[n], sMC.effCand['effCAND'], sMC.getSkimEff(category.name+'_'+mcType)]:
+                eff[0] *= f
+                eff[1] += np.square(df/f)
+            eff[1] = eff[0] * np.sqrt(eff[1])
+            if n in corrScaleFactors.keys():
+                eff[0] *= corrScaleFactors[n]
+                print 'Using scale factor from a posteriori selection: {:.3f}'.format(corrScaleFactors[n])
+            nTotExp = nGenExp*eff[0]
+        print 'N tot expected (before weights): {:.2f}k'.format(1e-3*nTotExp)
 
-        print 'Including trigger corrections'
-        nameSF = 'trg{}SF'.format(category.trg)
-        weights[nameSF], wSfUp, wSfDw = computeTrgSF(ds, hTriggerSF)
-        auxOnes = np.ones_like(wSfUp)
-        # for i_eta in range(1, hTriggerSF.GetNbinsZ()+1):
-        #     c_eta = hTriggerSF.GetZaxis().GetBinCenter(i_eta)
-        #     w_eta = hTriggerSF.GetZaxis().GetBinWidth(i_eta)
-        # for i_ip in range(1, hTriggerSF.GetNbinsY()+1):
-        #     c_ip = hTriggerSF.GetYaxis().GetBinCenter(i_ip)
-        #     w_ip = hTriggerSF.GetYaxis().GetBinWidth(i_ip)
-        #     if c_ip + 0.5*w_ip <= category.minIP:
-        #         continue
-        for i_pt in range(1, hTriggerSF.GetNbinsX()+2):
-            if i_pt > hTriggerSF.GetNbinsX() and category.name == 'High':
-                sel = ds['mu_pt'] > hTriggerSF.GetXaxis().GetXmax()
-            else:
-                c_pt = hTriggerSF.GetXaxis().GetBinCenter(i_pt)
-                w_pt = hTriggerSF.GetXaxis().GetBinWidth(i_pt)
-                if (c_pt + 0.5*w_pt <= category.min_pt) or (c_pt - 0.5*w_pt >= category.max_pt):
-                    continue
+        if not 'data' in n:
+            print 'Including pileup reweighting'
+            weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
 
-                sel = np.abs(ds['mu_pt'] - c_pt) < w_pt
-            # sel = np.logical_and(sel, np.abs(ds['mu_sigdxy'] - c_ip) < w_ip)
-            # sel = np.logical_and(sel, np.abs(ds['mu_eta'] - c_eta) < w_eta)
-            # binName = '_pt{}ip{}eta{}'.format(i_pt, i_ip, i_eta)
-            # print 'Trg SF', i_pt, i_ip, i_eta, '-> selected {}'.format(np.sum(sel))
-            # binName = '_pt{}ip{}'.format(i_pt, i_ip)
-            binName = '_pt{}'.format(i_pt)
-            wVar[nameSF+binName+'Up'] = np.where(sel, wSfUp, auxOnes)
-            wVar[nameSF+binName+'Down'] = np.where(sel, wSfDw, auxOnes)
+            print 'Including trigger corrections'
+            nameSF = 'trg{}SF'.format(category.trg)
+            weights[nameSF], wSfUp, wSfDw = computeTrgSF(ds, hTriggerSF)
+            auxOnes = np.ones_like(wSfUp)
+            # for i_eta in range(1, hTriggerSF.GetNbinsZ()+1):
+            #     c_eta = hTriggerSF.GetZaxis().GetBinCenter(i_eta)
+            #     w_eta = hTriggerSF.GetZaxis().GetBinWidth(i_eta)
+            # for i_ip in range(1, hTriggerSF.GetNbinsY()+1):
+            #     c_ip = hTriggerSF.GetYaxis().GetBinCenter(i_ip)
+            #     w_ip = hTriggerSF.GetYaxis().GetBinWidth(i_ip)
+            #     if c_ip + 0.5*w_ip <= category.minIP:
+            #         continue
+            for i_pt in range(1, hTriggerSF.GetNbinsX()+2):
+                if i_pt > hTriggerSF.GetNbinsX() and category.name == 'High':
+                    sel = ds['mu_pt'] > hTriggerSF.GetXaxis().GetXmax()
+                else:
+                    c_pt = hTriggerSF.GetXaxis().GetBinCenter(i_pt)
+                    w_pt = hTriggerSF.GetXaxis().GetBinWidth(i_pt)
+                    if (c_pt + 0.5*w_pt <= category.min_pt) or (c_pt - 0.5*w_pt >= category.max_pt):
+                        continue
 
-        print 'Including muon ID corrections'
-    #     weights['muonIdSF'], wVar['muonIdSFUp'], wVar['muonIdSFDown'] = computeMuonIDSF(ds)
-        weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
+                    sel = np.abs(ds['mu_pt'] - c_pt) < w_pt
+                # sel = np.logical_and(sel, np.abs(ds['mu_sigdxy'] - c_ip) < w_ip)
+                # sel = np.logical_and(sel, np.abs(ds['mu_eta'] - c_eta) < w_eta)
+                # binName = '_pt{}ip{}eta{}'.format(i_pt, i_ip, i_eta)
+                # print 'Trg SF', i_pt, i_ip, i_eta, '-> selected {}'.format(np.sum(sel))
+                # binName = '_pt{}ip{}'.format(i_pt, i_ip)
+                binName = '_pt{}'.format(i_pt)
+                wVar[nameSF+binName+'Up'] = np.where(sel, wSfUp, auxOnes)
+                wVar[nameSF+binName+'Down'] = np.where(sel, wSfDw, auxOnes)
 
-        print 'Including soft track pT corrections'
-        l = ['K_pt', 'pi_pt', 'pis_pt']
-        weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
-        for mod in [+1, -1]:
-            varName = 'Up' if mod > 0 else 'Down'
-            w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
-            wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
-            s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
-            wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
+            print 'Including muon ID corrections'
+            weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
+
+            print 'Including soft track pT corrections'
+            l = ['K_pt', 'pi_pt', 'pis_pt']
+            weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
+            for mod in [+1, -1]:
+                varName = 'Up' if mod > 0 else 'Down'
+                w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
+                wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
+                s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
+                wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
 
 
-        ############################
-        # B phase space corrections
-        ############################
-        # weights['etaB'] = computeB0etaWeights(ds)
-        if (not args.calBpT == 'none') and (n in samples_Bd):
-            print 'Including Bd pT corrections'
-            cname = 'BdpT'+category.name
-            if cal_pT_Bd.kind == 'ratio':
-                weights[cname], wVar[cname+'Up'], wVar[cname+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bd)
-            else:
-                weights[cname], auxVarDic = computePtWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
-                wVar.update(auxVarDic)
+            ############################
+            # B phase space corrections
+            ############################
+            # weights['etaB'] = computeB0etaWeights(ds)
+            if (not args.calBpT == 'none') and (n in samples_Bd):
+                print 'Including Bd pT corrections'
+                cname = 'BdpT'+category.name
+                if cal_pT_Bd.kind == 'ratio':
+                    weights[cname], wVar[cname+'Up'], wVar[cname+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bd)
+                else:
+                    weights[cname], auxVarDic = computePtWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
+                    wVar.update(auxVarDic)
 
         ############################
         # Form factor correction
@@ -1068,70 +1077,90 @@ def createHistograms(category):
         ds = dSetTkSide[n]
         if n == 'data': continue
         print '\n----------->', n, '<-------------'
-        sMC = MCsample[n]
         wVar = {}
         weights = {}
+        if n == 'dataSS_DstMu':
+            nTotExp = ds['q2'].shape[0]
+        else:
+            sMC = MCsample[n]
 
-        print 'Including pileup reweighting'
-        weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
+            nGenExp = sMC.effMCgen['xsec'][0] * expectedLumi[category.name] * RDoMC_normRatio
+            eff = [1, 0]
+            for f, df in [sMC.effMCgen['effGEN'],
+                          decayBR[n],
+                          sMC.effCand['effCAND'],
+                          sMC.getSkimEff(category.name+'_trkCtrl_'+mcType),
+                         ]:
+                eff[0] *= f
+                eff[1] += np.square(df/f)
+            eff[1] = eff[0] * np.sqrt(eff[1])
+            if n+'_tk' in corrScaleFactors.keys():
+                eff[0] *= corrScaleFactors[n+'_tk']
+                print 'Using scale factor from a posteriori selection: {:.3f}'.format(corrScaleFactors[n+'_tk'])
+            nTotExp = nGenExp*eff[0]
 
-        print 'Including trigger corrections'
-        nameSF = 'trg{}SF'.format(category.trg)
-        weights[nameSF], wSfUp, wSfDw = computeTrgSF(ds, hTriggerSF)
-        auxOnes = np.ones_like(wSfUp)
-        # for i_eta in range(1, hTriggerSF.GetNbinsZ()+1):
-        #     c_eta = hTriggerSF.GetZaxis().GetBinCenter(i_eta)
-        #     w_eta = hTriggerSF.GetZaxis().GetBinWidth(i_eta)
-        # for i_ip in range(1, hTriggerSF.GetNbinsY()+1):
-        #     c_ip = hTriggerSF.GetYaxis().GetBinCenter(i_ip)
-        #     w_ip = hTriggerSF.GetYaxis().GetBinWidth(i_ip)
-        #     if c_ip + 0.5*w_ip <= category.minIP:
-        #         continue
-        for i_pt in range(1, hTriggerSF.GetNbinsX()+2):
-            if i_pt > hTriggerSF.GetNbinsX() and category.name == 'High':
-                sel = ds['mu_pt'] > hTriggerSF.GetXaxis().GetXmax()
-            else:
-                c_pt = hTriggerSF.GetXaxis().GetBinCenter(i_pt)
-                w_pt = hTriggerSF.GetXaxis().GetBinWidth(i_pt)
-                if (c_pt + 0.5*w_pt <= category.min_pt) or (c_pt - 0.5*w_pt >= category.max_pt):
-                    continue
+            print 'Including pileup reweighting'
+            weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
 
-                sel = np.abs(ds['mu_pt'] - c_pt) < w_pt
-            # sel = np.logical_and(sel, np.abs(ds['mu_sigdxy'] - c_ip) < w_ip)
-            # sel = np.logical_and(sel, np.abs(ds['mu_eta'] - c_eta) < w_eta)
-            # binName = '_pt{}ip{}eta{}'.format(i_pt, i_ip, i_eta)
-            # print 'Trg SF', i_pt, i_ip, i_eta, '-> selected {}'.format(np.sum(sel))
-            # binName = '_pt{}ip{}'.format(i_pt, i_ip)
-            binName = '_pt{}'.format(i_pt)
-            wVar[nameSF+binName+'Up'] = np.where(sel, wSfUp, auxOnes)
-            wVar[nameSF+binName+'Down'] = np.where(sel, wSfDw, auxOnes)
+            print 'Including trigger corrections'
+            nameSF = 'trg{}SF'.format(category.trg)
+            weights[nameSF], wSfUp, wSfDw = computeTrgSF(ds, hTriggerSF)
+            auxOnes = np.ones_like(wSfUp)
+            # for i_eta in range(1, hTriggerSF.GetNbinsZ()+1):
+            #     c_eta = hTriggerSF.GetZaxis().GetBinCenter(i_eta)
+            #     w_eta = hTriggerSF.GetZaxis().GetBinWidth(i_eta)
+            # for i_ip in range(1, hTriggerSF.GetNbinsY()+1):
+            #     c_ip = hTriggerSF.GetYaxis().GetBinCenter(i_ip)
+            #     w_ip = hTriggerSF.GetYaxis().GetBinWidth(i_ip)
+            #     if c_ip + 0.5*w_ip <= category.minIP:
+            #         continue
+            for i_pt in range(1, hTriggerSF.GetNbinsX()+2):
+                if i_pt > hTriggerSF.GetNbinsX() and category.name == 'High':
+                    sel = ds['mu_pt'] > hTriggerSF.GetXaxis().GetXmax()
+                else:
+                    c_pt = hTriggerSF.GetXaxis().GetBinCenter(i_pt)
+                    w_pt = hTriggerSF.GetXaxis().GetBinWidth(i_pt)
+                    if (c_pt + 0.5*w_pt <= category.min_pt) or (c_pt - 0.5*w_pt >= category.max_pt):
+                        continue
 
-        print 'Including muon ID corrections'
-        weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
+                    sel = np.abs(ds['mu_pt'] - c_pt) < w_pt
+                # sel = np.logical_and(sel, np.abs(ds['mu_sigdxy'] - c_ip) < w_ip)
+                # sel = np.logical_and(sel, np.abs(ds['mu_eta'] - c_eta) < w_eta)
+                # binName = '_pt{}ip{}eta{}'.format(i_pt, i_ip, i_eta)
+                # print 'Trg SF', i_pt, i_ip, i_eta, '-> selected {}'.format(np.sum(sel))
+                # binName = '_pt{}ip{}'.format(i_pt, i_ip)
+                binName = '_pt{}'.format(i_pt)
+                wVar[nameSF+binName+'Up'] = np.where(sel, wSfUp, auxOnes)
+                wVar[nameSF+binName+'Down'] = np.where(sel, wSfDw, auxOnes)
 
-        print 'Including soft track pT corrections'
-        l = ['K_pt', 'pi_pt', 'pis_pt', 'tkPt_0', 'tkPt_1']
-        weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
-        for mod in [+1, -1]:
-            varName = 'Up' if mod > 0 else 'Down'
-            w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
-            wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
-            s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
-            wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
+            print 'Including muon ID corrections'
+            weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
-        ############################
-        # B phase space corrections
-        ############################
-        # weights['etaB'] = computeB0etaWeights(ds)
-        if (not args.calBpT == 'none') and (n in samples_Bd):
-            print 'Including Bd pT corrections'
-            cname = 'BdpT'+category.name
-            if cal_pT_Bd.kind == 'ratio':
-                weights[cname], wVar[cname+'Up'], wVar[cname+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bd)
-            else:
-                weights[cname], auxVarDic = computePtWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
-                wVar.update(auxVarDic)
+            print 'Including soft track pT corrections'
+            l = ['K_pt', 'pi_pt', 'pis_pt', 'tkPt_0', 'tkPt_1']
+            weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
+            for mod in [+1, -1]:
+                varName = 'Up' if mod > 0 else 'Down'
+                w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
+                wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
+                s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
+                wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
 
+            ############################
+            # B phase space corrections
+            ############################
+            # weights['etaB'] = computeB0etaWeights(ds)
+            if (not args.calBpT == 'none') and (n in samples_Bd):
+                print 'Including Bd pT corrections'
+                cname = 'BdpT'+category.name
+                if cal_pT_Bd.kind == 'ratio':
+                    weights[cname], wVar[cname+'Up'], wVar[cname+'Down'] = computePtWeights(ds, 'MC_B_pt', None, cal_pT_Bd)
+                else:
+                    weights[cname], auxVarDic = computePtWeights(ds, 'MC_B_pt', cname, cal_pT_Bd)
+                    wVar.update(auxVarDic)
+
+            # Correct the amount of random tracks from PV
+            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=2.5)
 
         ############################
         # Form factor correction
@@ -1283,33 +1312,14 @@ def createHistograms(category):
         if n == 'Bs_DstDs': #6
             pass
 
-        # Correct the amount of random tracks from PV
-        weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=2.5)
-
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
         for w in weights.values():
             weightsCentral *= w
         wVar[''] = np.ones_like(weightsCentral)
 
-        nGenExp = sMC.effMCgen['xsec'][0] * expectedLumi[category.name] * RDoMC_normRatio
-        eff = [1, 0]
-        for f, df in [sMC.effMCgen['effGEN'],
-                      decayBR[n],
-                      sMC.effCand['effCAND'],
-                      sMC.getSkimEff(category.name+'_trkCtrl_'+mcType),
-                     ]:
-            eff[0] *= f
-            eff[1] += np.square(df/f)
-        eff[1] = eff[0] * np.sqrt(eff[1])
-        if n+'_tk' in corrScaleFactors.keys():
-            eff[0] *= corrScaleFactors[n+'_tk']
-            print 'Using scale factor from a posteriori selection: {:.3f}'.format(corrScaleFactors[n+'_tk'])
-        nTotExp = nGenExp*eff[0]
-
         sel = {}
         scale = {}
-
         latexTableString = {}
         for k, selFun in sideSelecton.iteritems():
             sel[k] = selFun(ds)
@@ -1469,7 +1479,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                    draw_pulls=True, pullsRatio=False,
                                    addText='Cat. '+catName+', {:.1f} <  q^{{2}}  < {:.1f} GeV^{{2}}'.format(q2_l, q2_h),
                                    logy=True, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=1,
                                    tag=tag+'Unrolled_q2bin'+str(i_q2),
                                    legLoc=[0.15, 0.5, 0.25, 0.8],
@@ -1494,7 +1503,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         print 'Creating MVA'
         cAux = plot_SingleCategory(CMS_lumi, hDic['MVA'], draw_pulls=True, scale_dic=scale_dic,
                                    addText='Cat. '+catName, logy=True, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=1, tag=tag+'MVA', legLoc=[0.2, 0.1, 0.4, 0.4])
         cAux.SaveAs(outdir+'/fig/MVA_'+tag+'.png')
         cAux.SaveAs(webFolder+'/MVA_'+tag+'.png')
@@ -1506,7 +1514,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         hDic['B_pt']['data'].GetYaxis().SetTitle('Events')
         cAux = plot_SingleCategory(CMS_lumi, hDic['B_pt'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
                                    addText='Cat. '+catName, logy=False, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=1, tag=tag+'B_pt', legLoc=[0.65, 0.4, 0.9, 0.75])
         cAux.SaveAs(outdir+'/fig/B_pt_'+tag+'.png')
         cAux.SaveAs(webFolder+'/B_pt_'+tag+'.png')
@@ -1516,7 +1523,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux = plot_SingleCategory(CMS_lumi, hDic['B_pt'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
                                    density=True,
                                    addText='Cat. '+catName, logy=False, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=0, tag=tag+'B_pt', legLoc=[0.65, 0.4, 0.9, 0.75])
         cAux.SaveAs(outdir+'/fig/B_pt_norm_'+tag+'.png')
         cAux.SaveAs(webFolder+'/B_pt_norm_'+tag+'.png')
@@ -1528,7 +1534,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         hDic['specQ2']['data'].GetYaxis().SetTitle('Events')
         cAux = plot_SingleCategory(CMS_lumi, hDic['specQ2'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
                                    addText='Cat. '+catName, logy=False, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=1, tag=tag+'specQ2', legLoc=[0.75, 0.4, 0.93, 0.75])
         cAux.SaveAs(outdir+'/fig/q2_'+tag+'.png')
         cAux.SaveAs(webFolder+'/q2_'+tag+'.png')
@@ -1538,7 +1543,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux = plot_SingleCategory(CMS_lumi, hDic['specQ2'], draw_pulls=True, pullsRatio=True, scale_dic=scale_dic,
                                    density=True,
                                    addText='Cat. '+catName, logy=False, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=0, tag=tag+'specQ2', legLoc=[0.75, 0.4, 0.93, 0.75])
         cAux.SaveAs(outdir+'/fig/q2_norm_'+tag+'.png')
         cAux.SaveAs(webFolder+'/q2_norm_'+tag+'.png')
@@ -1554,11 +1558,41 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                        draw_pulls=True, pullsRatio=True, pulls_ylim='auto',
                                        scale_dic=scale_dic,
                                        addText='Cat. '+catName, logy=False, legBkg=True,
-                                       procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                        min_y=1, tag=tag+var, legLoc=[0.77, 0.55, 0.94, 0.75])
             cAux.SaveAs(outdir+'/fig/'+var+'_'+tag+'.png')
             cAux.SaveAs(webFolder+'/'+var+'_'+tag+'.png')
             outCanvas.append(cAux)
+
+            if var.endswith('eta'):
+                h = hDic[var]['data']
+                nbins = h.GetNbinsX()
+                xmin = h.GetBinCenter(1) - 0.5*h.GetBinWidth(1)
+                xmax = h.GetBinCenter(nbins) + 0.5*h.GetBinWidth(nbins)
+                if nbins%2 != 0 or np.abs(xmax+xmin) > 1e-3:
+                    continue
+                title = title.replace('#eta', '|#eta|')
+                hDicAux = {}
+                for k, h in hDic[var].iteritems():
+                    hDicAux[k] = rt.TH1D(h.GetName()+'abs', h.GetTitle(), int(nbins/2), 0, xmax)
+                    for ib in range(1, int(nbins/2)+1):
+                        c = h.GetBinContent(int(nbins/2) + ib) + h.GetBinContent(int(nbins/2) + 1 - ib)
+                        dc = np.hypot(h.GetBinError(int(nbins/2) + ib), h.GetBinError(int(nbins/2) + 1 - ib))
+                        hDicAux[k].SetBinContent(ib, c)
+                        hDicAux[k].SetBinError(ib, dc)
+                hDicAux['data'].GetXaxis().SetTitle(title)
+                hDicAux['data'].GetYaxis().SetTitle('Events')
+                cAux = plot_SingleCategory(CMS_lumi, hDicAux,
+                                           draw_pulls=True, pullsRatio=True, pulls_ylim='auto',
+                                           scale_dic=scale_dic,
+                                           addText='Cat. '+catName, logy=False, legBkg=True,
+                                           min_y=1, tag=tag+var, legLoc=[0.77, 0.55, 0.94, 0.75])
+                cAux.SaveAs(outdir+'/fig/'+var+'abs_'+tag+'.png')
+                cAux.SaveAs(webFolder+'/'+var+'abs_'+tag+'.png')
+                outCanvas.append(cAux)
+
+
+
+
 
     # Draw control regions
     for k in np.sort([k for k in hDic.keys() if 'AddTk' in k]):
@@ -1569,6 +1603,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux = plot_SingleCategory(CMS_lumi, hDic[k], scale_dic=scale_dic,
                                    xtitle=getControlXtitle(k),
                                    addText='Cat. '+catName + ', ' + getControlSideText(k),
+                                   procOrder = ['tau', 'DstHc', 'dataSS_DstMu', 'mu', 'Dstst'],
                                    tag=k, legLoc=legLoc,
                                    draw_pulls=True
                                    )
@@ -1664,7 +1699,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                    draw_pulls=True, pullsRatio=True,
                                    addText='Cat. '+catName+', {:.1f} <  q^{{2}}  < {:.1f} GeV^{{2}}'.format(q2_l, q2_h),
                                    logy=False, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=1,
                                    tag=tag+'mu_pt_q2bin'+str(i_q2),
                                    legLoc=[0.7, 0.5, 0.9, 0.75],
@@ -1687,7 +1721,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                draw_pulls=True, pullsRatio=True,
                                addText='Cat. '+catName,
                                logy=False, legBkg=True,
-                               procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                min_y=0,
                                max_y='data',
                                pulls_ylim=[0.85, 1.15],
@@ -1715,7 +1748,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                        draw_pulls=True, pullsRatio=False,
                                        addText='Cat. '+catName+', {:.1f} <  q^{{2}}  < {:.1f} GeV^{{2}}'.format(q2_l, q2_h),
                                        logy=False, legBkg=True,
-                                       procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                        min_y=1,
                                        tag=tag+n+'_pt_q2bin'+str(i_q2),
                                        legLoc=[0.7, 0.4, 0.9, 0.75],
@@ -1737,7 +1769,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                    draw_pulls=True, pullsRatio=True,
                                    addText='Cat. '+catName,
                                    logy=False, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=0,
                                    max_y='data',
                                    pulls_ylim=[0.85, 1.15],
@@ -1764,7 +1795,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                    draw_pulls=True, pullsRatio=False,
                                    addText='Cat. '+catName+', {:.1f} <  q^{{2}}  < {:.1f} GeV^{{2}}'.format(q2_l, q2_h),
                                    logy=False, legBkg=True,
-                                   procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                    min_y=1,
                                    tag='mass_D0pismu_q2bin'+str(i_q2),
                                    legLoc=[0.16, 0.45, 0.33, 0.8],
@@ -1786,7 +1816,6 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                draw_pulls=True, pullsRatio=True,
                                addText='Cat. '+catName,
                                logy=False, legBkg=True,
-                               procOrder = ['tau', 'DstD', 'Dstst', 'mu'],
                                min_y=0,
                                max_y='data',
                                pulls_ylim=[0.85, 1.15],
@@ -2082,8 +2111,19 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ########## Scale systematics uncertainties
     ######################################################
     #### pp -> bb cros-section * luminosity
-    # card += 'overallNorm'+category.trg+' lnN' + ' 1.1'*nProc*nCat + '\n'
-    card += 'overallNorm'+category.trg+' rateParam * * 1.\n'
+    card += 'overallMcNorm'+category.trg+' rateParam * mu 1.\n'
+    card += 'overallMcNorm'+category.trg+' rateParam * tau 1.\n'
+    card += 'overallMcNorm'+category.trg+' rateParam * B[usd]_* 1.\n'
+
+    #### Combinatorial background norm
+    val = ' 1.30'
+    aux = ''
+    for n in processes:
+        if n == 'dataSS_DstMu':
+            aux += val
+        else:
+            aux += ' -'
+    card += 'normDataSS'+category.trg+' lnN' + aux*nCat + '\n'
 
     #### Tracking efficiency uncertainty
     card += 'trkEff lnN'
@@ -2130,32 +2170,22 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
 
     card += brScaleSys('Bs_DstDsBr', ['Bs_DstDs'], relUnc=0.5) #They have not been observed so we variate them alltogether like this
 
-
-
-    ############ Transfer factor uncertainty of B -> D*D samples from control region to signal region
-    # val = ' 1.10'
-    # aux = ''
-    # for n in processes:
-    #     if n.startswith('DstmD') or n.endswith('Hc'):
-    #         aux += val
-    #     else:
-    #         aux += ' -'
-    # card += 'B2DstHcTransferFactor lnN' + aux*nCat + '\n'
-
-
     card += 60*'-'+'\n'
-
 
     ######################################################
     ########## Shape systematics uncertainties
     ######################################################
+    mcProcStr = ''
+    for p in processes:
+        if 'data' in p: mcProcStr += ' -'
+        else: mcProcStr += ' 1.'
 
     nameSF = 'trg{}SF'.format(category.trg)
     counter = 0
     for k in histo.values()[0].keys():
         if k.startswith(processOrder[0]+'__'+nameSF + '_pt') and k.endswith('Up'):
             n = k[k.find('__')+2:-2]
-            card += n+' shape' + ' 1.'*nProc*nCat + '\n'
+            card += n+' shape' + mcProcStr*nCat + '\n'
             counter += 1
     print 'Trigger SF unc', counter
 
@@ -2164,17 +2194,13 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     aux = ''
     for c in categories:
         if c.startswith('AddTk_'):
-            aux += ' 1.'*nProc
+            aux += mcProcStr
         else: aux += ' -'*nProc
     card += 'tkPVfrac'+category.name+' shape' + aux + '\n'
 
     # Soft track efficiency
-    aux = ''
-    for p in processes:
-        aux += ' 1.'
-    # card += 'softTrkEff shape' + aux*nCat + '\n'
-    card += 'softTrkEff_w shape' + aux*nCat + '\n'
-    card += 'softTrkEff_s shape' + aux*nCat + '\n'
+    card += 'softTrkEff_w shape' + mcProcStr*nCat + '\n'
+    card += 'softTrkEff_s shape' + mcProcStr*nCat + '\n'
 
     # B pT uncertainty
     if not args.calBpT == 'none':
@@ -2545,7 +2571,26 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
 
 ########################### -------- Likelihood scan ------------------ #########################
 
-def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=50, maskStr='', strategy=1, draw=True):
+def dumpNuisFromScan(tag, out):
+    print 'Dumping nuisances'
+    name = out+'higgsCombine{}.MultiDimFit.mH120.root'.format(tag)
+    df = pd.DataFrame(rtnp.root2array(name, treename='limit'))
+    aux = []
+    for v in df.columns:
+        if not v.startswith('trackedParam_'):
+            continue
+        aux.append([v[13:], df[v].iloc[0] ])
+
+    t = PrettyTable()
+    t.field_names = ['Parameter', 'Best fit']
+    for var, val in sorted(aux, key=lambda x: np.abs(x[1]), reverse=True):
+        t.add_row([var, '{:.2f}'.format(val)])
+
+    with open(webFolder+'/scanNuisanceOut_'+tag+'.txt', 'w') as dumpfile:
+        dumpfile.write('{}\n'.format(t))
+
+
+def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=50, maskStr='', strategy=1, draw=True, dumpNuis=False):
     if not out[-1] == '/': out += '/'
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit'
@@ -2561,11 +2606,15 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=5
     cmd += ' --setParameters r={:.2f}'.format(rVal)
     if maskStr:
         cmd += ','+maskStr
+    cmd += ' --trackParameters rgx{.*}'
     cmd += ' -n ' + tag
     cmd += ' --verbose -1'
     output = runCommandSafe(cmd)
     if args.verbose:
         print output
+
+    if dumpNuis:
+        dumpNuisFromScan(tag, out)
 
     if draw:
         json.dump({'r': 'R(D*)'}, open(out+'renameDicLikelihoodScan.json', 'w'))
@@ -3128,7 +3177,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     cmd = cmd.replace(cmd[idx: idx + 15], 'r={:.4f},{:.4f}'.format(*rLims))
     print ' '
 
-    groupsDefFile = os.path.join(basedir, '/Combine/uncertaintyBreakdownTableGroups.yml')
+    groupsDefFile = os.path.join(basedir, 'Combine/uncertaintyBreakdownTableGroups.yml')
     groups = yaml.load(open(groupsDefFile, 'r'))
     frozenNuisance = []
     firstToRun = ''
@@ -3719,15 +3768,15 @@ if __name__ == "__main__":
                         print 'Masking', kn
                         maskList.append('mask_'+kn+'=1')
             maskStr = ','.join(maskList)
-            fit_RDst, rDst_postFitRegion = runScan(args.cardTag+args.tagScan, card_location, outdir,
+            fit_RDst, rDst_postFitRegion = runScan(args.tagScan, card_location, outdir,
                                                    args.category.capitalize(),
                                                    maskStr=maskStr,
-                                                   rLimits=rLimits, strategy=0, draw=True)
+                                                   rLimits=rLimits, strategy=0, draw=True, dumpNuis=True)
         else:
-            fit_RDst, rDst_postFitRegion = runScan(args.cardTag+'Base', card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+            fit_RDst, rDst_postFitRegion = runScan('Base', card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                                    args.category.capitalize(),
                                                    rLimits=rLimits,
-                                                   strategy=0, draw=True)
+                                                   strategy=0, draw=True, dumpNuis=True)
     else:
         rDst_postFitRegion = args.RDstLims if len(args.RDstLims) == 2 else [0.15, 0.45]
         fit_RDst = SM_RDst
@@ -3738,7 +3787,7 @@ if __name__ == "__main__":
         else:
             print '-----> Running categories compatibility'
             categoriesCompatibility(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
-                                    rVal=SM_RDst, rLimits=[0.15, 0.45]
+                                    rVal=SM_RDst, rLimits=rDst_postFitRegion
                                     )
 
     if 'uncBreakdownTable' in args.step:

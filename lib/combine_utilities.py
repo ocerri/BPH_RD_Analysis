@@ -30,7 +30,7 @@ def loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=False, ver
         for n in [k.GetName() for k in tfReg.GetListOfKeys()]:
             if not loadShapeVar and '__' in n:
                 continue
-            key = 'data' if 'data' in n else n
+            key = 'data' if n == 'data_obs' else n
             histo[regionName][key] = copy.deepcopy(tfReg.Get(n))
     return histo
 

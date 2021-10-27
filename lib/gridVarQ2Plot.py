@@ -8,24 +8,24 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import tdrstyle
 tdrstyle.setTDRStyle()
 
-col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'Hc':rt.kGreen+1, 'BpDstst': rt.kOrange-3, 'B0Dstst': rt.kViolet-7, 'BsDstst':rt.kYellow-7, 'TauDstst':rt.kMagenta-9, 'JpsiKst':rt.kYellow-7}
+col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'DstHc':rt.kGreen+1, 'BuDstst': rt.kOrange-3, 'BdDstst': rt.kViolet-7, 'BsDstst':rt.kYellow-7, 'TauDstst':rt.kMagenta-9, 'JpsiKst':rt.kYellow-7, 'dataSS_DstMu': rt.kGray+1}
 
 label_dic = {'data' : 'Data',
              'mu'   : 'B#rightarrow D*#mu#nu',
              'tau'  : 'B#rightarrow D*#tau#nu',
-             'Hc'   : 'B_{(s)}#rightarrow D*H_{c}(#muX)',
-             'DstD'   : 'B_{(s)}#rightarrow D*H_{c}(#muX)',
-             'BpDstst': 'B^{+}#rightarrow D**#mu#nu',
-             'B0Dstst': 'B^{0}#rightarrow D**#mu#nu',
+             'DstHc'   : 'B_{(s)}#rightarrow D*H_{c}(#muX)',
+             'BuDstst': 'B^{+}#rightarrow D**#mu#nu',
+             'BdDstst': 'B^{0}#rightarrow D**#mu#nu',
              'BsDstst': 'B_{s}#rightarrow D_{s}**#mu#nu',
              'TauDstst': 'B_{(s)}#rightarrow D_{(s)}**#tau#nu',
+             'dataSS_DstMu' : 'SS D*#mu (data)',
              'JpsiKst': 'B#rightarrow J/#PsiK*',
             }
 
 fillStyleVar = [1, 3345, 3354, 1, 1, 1, 1, 1, 1]
 sampleDstst = {
-'BpDstst': ['Bu_MuDstPi', 'Bu_MuDstPiPi'],
-'B0Dstst': ['Bd_MuDstPi', 'Bd_MuDstPiPi'],
+'BuDstst': ['Bu_MuDstPi', 'Bu_MuDstPiPi'],
+'BdDstst': ['Bd_MuDstPi', 'Bd_MuDstPiPi'],
 'BsDstst': ['Bs_MuDstK'],
 'TauDstst': ['Bu_TauDstPi', 'Bd_TauDstPi', 'Bd_TauDstPiPi', 'Bu_TauDstPiPi', 'Bs_TauDstK'],
 }
@@ -42,19 +42,18 @@ def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name='', 
     if not background:
         leg.SetFillStyle(0)
     leg.AddEntry(h_list[0], label_dic['data'], 'lep')
-    for n in ['mu', 'tau', 'Hc', 'JpsiKst']:
+    for n in ['mu', 'tau', 'dataSS_DstMu', 'JpsiKst']:
         for h in h_list:
             if 'h_aux_'+n+cat_name == h.GetName():
                 leg.AddEntry(h, label_dic[n], 'f')
                 break
-    present = np.sum([n in h_dic.keys() for n in sampleDstHc])
-    if present:
-        h = rt.TH1D('hAuxLeg_DstD', 'hAuxLeg_DstD', 1, 0, 1)
+    if np.sum([n in h_dic.keys() for n in sampleDstHc]):
+        h = rt.TH1D('hAuxLeg_DstHc', 'hAuxLeg_DstHc', 1, 0, 1)
         h.SetLineWidth(0)
-        h.SetFillColor(col_dic['Hc'])
+        h.SetFillColor(col_dic['DstHc'])
         h.SetFillStyle(1)
         canvas.dnd.append(h)
-        leg.AddEntry(h, label_dic['DstD'], 'f')
+        leg.AddEntry(h, label_dic['DstHc'], 'f')
     for k, sampleList in sampleDstst.iteritems():
         present = np.sum([n in h_dic.keys() for n in sampleList])
         if not present: continue
@@ -84,7 +83,7 @@ def getControlSideText(k):
         else: raise
     return t + str(Q)
 
-def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=[1,5], max_y_shared=False, mergeDstst=True, mergeHc=True, pullsRatio=False, categoryText=None, cNameTag='', iq2_maskData=[]):
+def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pulls=False, pulls_ylim=[0.8, 1.2], logy=False, iPad_legend=[1,5], max_y_shared=False, mergeDstst=True, mergeDstHc=True, pullsRatio=False, categoryText=None, cNameTag='', iq2_maskData=[]):
     if not categoryText is None:
         cNameTag += categoryText
     canvas = rt.TCanvas('c_out'+cNameTag, 'c_out'+cNameTag, 50, 50, 2*600, 400*len(binning['q2'])-1)
@@ -178,16 +177,16 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 h = h_dic[procName].Clone('h_aux_'+procName+'_'+cat_name)
                 if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
                 h.SetLineWidth(0)
-                h.SetFillColor(col_dic['Hc'])
+                h.SetFillColor(col_dic['DstHc'])
                 h.SetFillStyle(1)
-                if not mergeHc: h.SetFillStyle(fillStyleVar[iproc])
+                if not mergeDstHc: h.SetFillStyle(fillStyleVar[iproc])
                 hh = h_list[-1]
                 if not hh.GetName() == 'h_aux_data_'+cat_name:
                     h.Add(hh)
                 h_list.append(h)
 
 
-            procOrder = ['Hc', 'tau', 'mu']
+            procOrder = ['dataSS_DstMu', 'tau', 'mu']
             for iProc, procName in enumerate(procOrder):
                 if not procName in h_dic.keys(): continue
                 h = h_dic[procName].Clone('h_aux_'+procName+'_'+cat_name)
@@ -221,9 +220,9 @@ def plot_gridVarQ2(CMS_lumi, binning, histo, scale_dic={}, min_y=1e-4, draw_pull
                 pad.SetLogy()
 
             if i_pad in iPad_legend:
-                loc=[0.6, 0.38, 0.92, 0.7]
+                loc=[0.65, 0.4, 0.94, 0.72]
                 if draw_pulls:
-                    loc=[0.6, 0.25, 0.92, 0.7]
+                    loc=[0.65, 0.3, 0.94, 0.75]
                 leg = createLegend(h_list, h_dic, canvas, loc=loc, cat_name='_'+cat_name)
                 leg.Draw()
                 canvas.dnd.append(leg)
@@ -355,14 +354,14 @@ def plot_SingleCategory(CMS_lumi,
                         pullsRatio=False,
                         logy=False,
                         mergeDstst=True,
-                        mergeHc=True,
+                        mergeDstHc=True,
                         tag='',
                         xtitle='',
                         addText='',
                         addTextPos=[0.17, 0.85],
                         legLoc=[0.65, 0.4, 0.9, 0.7],
                         legBkg=False,
-                        procOrder = ['tau', 'Hc', 'DstD', 'mu', 'Dstst'],
+                        procOrder = ['tau', 'dataSS_DstMu', 'DstHc', 'Dstst', 'mu'],
                         maskData=False,
                         figsize = [600, 450]
                         ):
@@ -411,15 +410,17 @@ def plot_SingleCategory(CMS_lumi,
     h_list = [h]
 
     for iProc, procName in enumerate(procOrder):
-        if procName == 'DstD':
+        if procName == 'DstHc':
             for iproc, pName in enumerate(sampleDstHc):
-                if not pName in h_dic.keys(): continue
+                if not pName in h_dic.keys():
+                    print '[WARNING]', procName, 'not found while plotting', tag
+                    continue
                 h = h_dic[pName].Clone('h_aux_'+pName+tag)
                 if pName in scale_dic.keys(): h.Scale(scale_dic[pName])
                 h.SetLineWidth(0)
-                h.SetFillColor(col_dic['Hc'])
+                h.SetFillColor(col_dic['DstHc'])
                 h.SetFillStyle(1)
-                if not mergeHc: h.SetFillStyle(fillStyleVar[iproc])
+                if not mergeDstHc: h.SetFillStyle(fillStyleVar[iproc])
                 h.Sumw2(0)
                 hh = h_list[-1]
                 if not hh.GetName() == 'h_aux_data_'+tag:
@@ -430,7 +431,9 @@ def plot_SingleCategory(CMS_lumi,
         elif procName == 'Dstst':
             for k, sampleList in sampleDstst.iteritems():
                 for iproc, procName in enumerate(sampleList):
-                    if not procName in h_dic.keys(): continue
+                    if not procName in h_dic.keys():
+                        print '[WARNING]', procName, 'not found while plotting', tag
+                        continue
                     h = h_dic[procName].Clone('h_aux'+'_'+procName+tag)
                     if procName in scale_dic.keys(): h.Scale(scale_dic[procName])
                     h.SetLineWidth(0)
@@ -442,7 +445,9 @@ def plot_SingleCategory(CMS_lumi,
                     if not hh.GetName() == 'h_aux_data'+tag:
                         h.Add(hh)
                     h_list.append(h)
-        elif not procName in h_dic.keys(): continue
+        elif not procName in h_dic.keys():
+            print '[WARNING]', procName, 'not found while plotting', tag
+            continue
         else:
             h = h_dic[procName].Clone('h_aux'+'_'+procName+tag)
             if procName in scale_dic.keys(): h.Scale(scale_dic[procName])

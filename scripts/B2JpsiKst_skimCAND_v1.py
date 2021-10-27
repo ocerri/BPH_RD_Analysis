@@ -123,6 +123,7 @@ def extractEventInfos(j, ev, corr=None):
 
     e.mass_mumu = compMass(e.mup_pt, e.mum_pt, e.mup_eta, e.mum_eta, e.mup_phi, e.mum_phi, m_mu, m_mu)
     e.Jpsi_pt = SumPt(e.mup_pt, e.mum_pt, e.mup_phi, e.mum_phi)
+    e.Jpsi_eta = ev.JpsiRefit_eta[j]
 
     e.K_eta = ev.KRefit_eta[j]
     e.K_phi = ev.KRefit_phi[j]
@@ -226,11 +227,11 @@ def makeSelection(inputs):
             N_acc += 1
 
             aux = (evEx.trgMu_pt, evEx.trgMu_eta, evEx.trgMu_sigdxy,
-                   evEx.otherMu_pt,
+                   evEx.otherMu_pt, evEx.otherMu_eta, evEx.otherMu_phi,
                    evEx.mum_pt, evEx.mum_eta, evEx.mum_phi, ev.mum_dxy_PV[j],
                    evEx.mup_pt, evEx.mup_eta, evEx.mup_phi, ev.mup_dxy_PV[j],
                    ev.pval_mumu[j], evEx.mass_mumu,
-                   evEx.Jpsi_pt, ev.cosT_Jpsi_PV[j],
+                   evEx.Jpsi_pt, evEx.Jpsi_eta, ev.cosT_Jpsi_PV[j],
                    evEx.K_pt, evEx.K_eta, evEx.K_phi, ev.K_sigdxy_PV[j],
                    evEx.pi_pt, evEx.pi_eta, evEx.pi_phi, ev.pi_sigdxy_PV[j],
                    ev.pval_piK[j], evEx.mass_piK, evEx.mass_Kpi, evEx.mass_KK,
@@ -295,7 +296,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
             print filepath
             raise
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
-        N_evts_per_job = 100000
+        N_evts_per_job = 70000
     else:
         d = os.path.dirname(filepath) + '/skimmed/'
         if not os.path.isdir(d):
@@ -342,11 +343,11 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         print n, ': Total number of candidate events =', N_cand_in
 
         leafs_names = [ 'trgMu_pt', 'trgMu_eta', 'trgMu_sigdxy',
-                        'otherMu_pt',
+                        'otherMu_pt', 'otherMu_eta', 'otherMu_phi',
                         'mum_pt', 'mum_eta', 'mum_phi', 'mum_dxy',
                         'mup_pt', 'mup_eta', 'mup_phi', 'mup_dxy',
                         'pval_mumu', 'mass_mumu',
-                        'Jpsi_pt', 'cosT_Jpsi_PV',
+                        'Jpsi_pt', 'Jpsi_eta', 'cosT_Jpsi_PV',
                         'K_pt','K_eta','K_phi', 'K_sigdxy_PV',
                         'pi_pt','pi_eta','pi_phi', 'pi_sigdxy_PV',
                         'pval_piK', 'mass_piK', 'mass_Kpi', 'mass_KK',
