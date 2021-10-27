@@ -5,12 +5,7 @@
 To activate the environment run: cd ~/work/CMSSW_10_2_13/src/; cmsenv; cd ~/BPH_RD_Analysis/Combine/
 
 ######## Release notes #########
-New from previous version:
-- Poly B0 calibrations
-- Use non corrected MC by default
-
-To do:
-- Add combinatorial and fake from data template (not sure thare are 0 events)
+- Added DstMu combinatorial
 """
 
 
@@ -184,7 +179,7 @@ processOrder = [
 ]
 
 
-samples_Bd = [p  for p in processOrder if not (p[:2] == 'Bd' or p in ['tau', 'mu'])]
+samples_Bd = [p  for p in processOrder if (p[:2] == 'Bd' or p in ['tau', 'mu'])]
 samples_Bu = [p  for p in processOrder if p[:2] == 'Bu']
 samples_Bs = [p  for p in processOrder if p[:2] == 'Bs']
 
