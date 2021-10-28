@@ -56,6 +56,7 @@ parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial 
 
 parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
+parser.add_argument ('--controlRegions', default=['p', 'm', 'pm', 'pp', 'mm'], choices=['none', 'p', 'm', 'pm', 'pp', 'mm'], help='Control regions to use', nargs='+')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--freeMuBr', default=True, help='Make muon branching fraction with a rate parameter (flat prior).')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
@@ -2055,6 +2056,9 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         if c.startswith('h2'): continue
         if fitRegionsOnly:
             if c == 'AddTk_pm_mHad': continue
+            if c.startswith('AddTk'):
+                if not c.split('_')[1] in args.controlRegions:
+                    continue
             if args.signalRegProj1D:
                 aux = c.startswith(args.signalRegProj1D)
             else:
@@ -2197,7 +2201,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         if c.startswith('AddTk_'):
             aux += mcProcStr
         else: aux += ' -'*nProc
-    card += 'tkPVfrac'+category.name+' shape' + aux + '\n'
+    if '1.' in aux:
+        card += 'tkPVfrac'+category.name+' shape' + aux + '\n'
 
     # Soft track efficiency
     card += 'softTrkEff_w shape' + mcProcStr*nCat + '\n'
@@ -2287,12 +2292,16 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ######################################################
 
     if not args.noMCstats:
-        card += 'AddTk_p_mHad autoMCStats 0 1 1\n'
-        card += 'AddTk_m_mHad autoMCStats 0 1 1\n'
-        # card += 'AddTk_pm_mHad autoMCStats 0 1 1\n'
-        card += 'AddTk_pm_mVis autoMCStats 0 1 1\n'
-        card += 'AddTk_pp_mHad autoMCStats 0 1 1\n'
-        card += 'AddTk_mm_mHad autoMCStats 0 1 1\n'
+        if 'p' in args.controlRegions:
+            card += 'AddTk_p_mHad autoMCStats 0 1 1\n'
+        if 'm' in args.controlRegions:
+            card += 'AddTk_m_mHad autoMCStats 0 1 1\n'
+        if 'pm' in args.controlRegions:
+            card += 'AddTk_pm_mVis autoMCStats 0 1 1\n'
+        if 'pp' in args.controlRegions:
+            card += 'AddTk_pp_mHad autoMCStats 0 1 1\n'
+        if 'mm' in args.controlRegions:
+            card += 'AddTk_mm_mHad autoMCStats 0 1 1\n'
 
         if args.useMVA:
             card += 'MVA autoMCStats 2 1 1\n'
@@ -2335,28 +2344,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             card += 'nuisance edit rename * ' + signalChannel+'_q2bin[23] ' + parName + ' ' + parName+'_sigReg'+category.name+'\n'
             card += 'nuisance edit drop * * ' + parName +'\n'
 
-    card += 60*'-'+'\n'
-
-    ######################################################
-    ########## Defining groups of systematics
-    ######################################################
-
-    # autoMCStats group = defined by default when using autoMCStats
-
-    # if len(FreeParFF):
-    #     aux_FF = ' '.join(['B2Dst'+schemeFF+n for n in FreeParFF])
-    #     card += 'B2DstFF group = ' + aux_FF + '\n'
-
-    # cardParts = card.split(60*'-'+'\n')
-    # scaleNuis = []
-    # for ln in cardParts[4].split('\n'):
-    #     scaleNuis.append(ln.split(' ')[0])
-    # shapeNuis = []
-    # for ln in cardParts[5].split('\n'):
-    #     if 'autoMCStats' in ln:
-    #         continue
-    #     shapeNuis.append(ln.split(' ')[0])
-    # card += 'allSys group = ' + ' '.join(scaleNuis+shapeNuis) + '\n'
+        card += 60*'-'+'\n'
 
     return card
 
@@ -2733,6 +2721,16 @@ def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
 
 def defineChannelMasking(histo):
     channelMasks = ['AddTk_pm_mHad', 'specQ2', 'deltaM_DstD']
+    if not 'p' in args.controlRegions:
+        channelMasks.append('AddTk_p_mHad')
+    if not 'm' in args.controlRegions:
+        channelMasks.append('AddTk_m_mHad')
+    if not 'pm' in args.controlRegions:
+        channelMasks.append('AddTk_pm_mVis')
+    if not 'pp' in args.controlRegions:
+        channelMasks.append('AddTk_pp_mHad')
+    if not 'mm' in args.controlRegions:
+        channelMasks.append('AddTk_mm_mHad')
     channelMasks += ['rgx{.*_pt.*}', 'rgx{.*_eta.*}', 'rgx{mass_.*}']
 
     fitVar = args.signalRegProj1D if args.signalRegProj1D else 'Unrolled'
@@ -2885,7 +2883,7 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
             for n, h in histo_prefit[regName].iteritems():
                 if '__' in n:
                     continue
-                if 'data' in n:
+                if n == 'data':
                     histo_postfit[regName]['data'] = h.Clone(h.GetName() + '_data')
                 else:
                     h_post = h.Clone(h.GetName() + '_postfit')
