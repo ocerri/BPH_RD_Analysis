@@ -1349,8 +1349,9 @@ def createHistograms(category):
             w = weightsCentral*v_wVar
 
             for k in sideVar.keys():
+                x = ds[sideVar[k]] - ds['mass_D0pis'] + 2.01027
                 histo[k][h_name] = create_TH1D(
-                                               ds[sideVar[k]][sel[k]],
+                                               x[sel[k]],
                                                name=h_name, title=h_name,
                                                binning=binning[k],
                                                opt='underflow',
@@ -1435,8 +1436,9 @@ def createHistograms(category):
 
         ds = dSetTkSide['data']
         for k in sideVar.keys():
+            x = ds[sideVar[k]] - ds['mass_D0pis'] + 2.01027
             histo[k]['data'] = create_TH1D(
-                                           ds[sideVar[k]][sideSelecton[k](ds)],
+                                           x[sideSelecton[k](ds)],
                                            name='data_obs', title='Data Obs',
                                            binning=binning[k],
                                            opt='underflow',
@@ -3392,13 +3394,13 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         cmd += ' --setParameters r={:.2f}'.format(rVal)
         if maskStr:
             cmd += ','+maskStr
-        cmd += ' --setParameterRanges r=0.1,0.6'
+        cmd += ' --setParameterRanges r=0,0.6'
         cmd += ' --verbose 1'
         runCommandSafe(cmd)
 
         # If running on Tier2 condor remmeber to add this line to CombineToolBase.py ln 11
         # ``source /cvmfs/cms.cern.ch/cmsset_default.sh``
-        print '----- RUnning all the fits'
+        print '----- Running all the fits'
         cmd = 'cd {}impactPlots;'.format(out)
         cmd += ' combineTool.py -M Impacts --doFits -m 0'
         cmd += ' --robustFit 1 --X-rtd MINIMIZER_analytic'
