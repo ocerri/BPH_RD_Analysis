@@ -30,7 +30,7 @@ from cebefo_style import Set_2D_colz_graphics
 from gridVarQ2Plot import col_dic, plot_gridVarQ2
 from progressBar import ProgressBar
 from categoriesDef import categories
-from B02JpsiKst_selection import candidate_selection, category_selection
+from Bd2JpsiKst_selection import candidate_selection, category_selection
 
 import argparse
 parser = argparse.ArgumentParser()

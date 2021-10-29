@@ -1,0 +1,81 @@
+imax *
+jmax *
+kmax *
+------------------------------------------------------------
+shapes * AddTk_m_mHad /storage/af/user/ocerri/BPH_RD_Analysis/data/_root/histos4combine/v2_1ctrl_mmid_CLN_blinded_AddTk_m_mHad.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Unrolled_q2bin0 /storage/af/user/ocerri/BPH_RD_Analysis/data/_root/histos4combine/v2_1ctrl_mmid_CLN_blinded_Unrolled_q2bin0.root $PROCESS $PROCESS__$SYSTEMATIC
+shapes * Unrolled_q2bin1 /storage/af/user/ocerri/BPH_RD_Analysis/data/_root/histos4combine/v2_1ctrl_mmid_CLN_blinded_Unrolled_q2bin1.root $PROCESS $PROCESS__$SYSTEMATIC
+------------------------------------------------------------
+bin AddTk_m_mHad Unrolled_q2bin0 Unrolled_q2bin1
+observation 16672 68988 122195
+------------------------------------------------------------
+bin AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad AddTk_m_mHad Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin0 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1 Unrolled_q2bin1
+process tau mu Bu_MuDstPi Bd_MuDstPi Bd_MuDstPiPi Bu_MuDstPiPi Bu_TauDstPi Bd_TauDstPi Bd_TauDstPiPi Bu_TauDstPiPi Bs_MuDstK Bs_TauDstK Bd_DstDu Bu_DstDu Bd_DstDd Bu_DstDd Bd_DstDs Bs_DstDs dataSS_DstMu tau mu Bu_MuDstPi Bd_MuDstPi Bd_MuDstPiPi Bu_MuDstPiPi Bu_TauDstPi Bd_TauDstPi Bd_TauDstPiPi Bu_TauDstPiPi Bs_MuDstK Bs_TauDstK Bd_DstDu Bu_DstDu Bd_DstDd Bu_DstDd Bd_DstDs Bs_DstDs dataSS_DstMu tau mu Bu_MuDstPi Bd_MuDstPi Bd_MuDstPiPi Bu_MuDstPiPi Bu_TauDstPi Bd_TauDstPi Bd_TauDstPiPi Bu_TauDstPiPi Bs_MuDstK Bs_TauDstK Bd_DstDu Bu_DstDu Bd_DstDd Bu_DstDd Bd_DstDs Bs_DstDs dataSS_DstMu
+process 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18
+rate 757.63 12395.52 625.69 832.69 1342.74 41.16 3.54 8.05 12.93 0.35 523.31 3.59 152.94 558.95 138.05 64.64 280.19 47.68 387.00 542.75 79789.61 2501.30 3952.01 119.38 48.99 0.46 0.74 0.04 0.00 471.62 0.03 1.81 15.00 103.86 0.74 509.34 32.98 28.00 6564.24 131167.98 5866.20 8194.75 706.78 303.98 14.23 32.60 0.64 0.30 5564.48 2.45 10.10 56.06 281.15 2.67 2112.96 85.47 55.00
+------------------------------------------------------------
+overallMcNormMu9_IP6 rateParam * mu 1.
+overallMcNormMu9_IP6 rateParam * tau 1.
+overallMcNormMu9_IP6 rateParam * B[usd]_* 1.
+normDataSSMu9_IP6 lnN - - - - - - - - - - - - - - - - - - 1.30 - - - - - - - - - - - - - - - - - - 1.30 - - - - - - - - - - - - - - - - - - 1.30
+trkEff lnN 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 1.021 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+mutauNorm rateParam * mu 1.
+mutauNorm rateParam * tau 1.
+DstPiBr lnN - - 1.13 1.13 - - 1.13 1.13 - - - - - - - - - - - - - 1.13 1.13 - - 1.13 1.13 - - - - - - - - - - - - - 1.13 1.13 - - 1.13 1.13 - - - - - - - - - - -
+DstPiPiBr lnN - - - - 1.31 1.31 - - 1.31 1.31 - - - - - - - - - - - - - 1.31 1.31 - - 1.31 1.31 - - - - - - - - - - - - - 1.31 1.31 - - 1.31 1.31 - - - - - - - - -
+DstKBr lnN - - - - - - - - - - 1.25 1.25 - - - - - - - - - - - - - - - - - 1.25 1.25 - - - - - - - - - - - - - - - - - 1.25 1.25 - - - - - - -
+RDs_stst lnN - - - - - - 1.30 1.30 1.30 1.30 - 1.30 - - - - - - - - - - - - - 1.30 1.30 1.30 1.30 - 1.30 - - - - - - - - - - - - - 1.30 1.30 1.30 1.30 - 1.30 - - - - - - -
+DuMuBr lnN - - - - - - - - - - - - 1.04 1.04 - - - - - - - - - - - - - - - - - 1.04 1.04 - - - - - - - - - - - - - - - - - 1.04 1.04 - - - - -
+DdMuBr lnN - - - - - - - - - - - - - - 1.02 1.02 - - - - - - - - - - - - - - - - - 1.02 1.02 - - - - - - - - - - - - - - - - - 1.02 1.02 - - -
+DsMuBr lnN - - - - - - - - - - - - - - - - 1.03 1.03 - - - - - - - - - - - - - - - - - 1.03 1.03 - - - - - - - - - - - - - - - - - 1.03 1.03 -
+Bs_DstDsBr lnN - - - - - - - - - - - - - - - - - 1.50 - - - - - - - - - - - - - - - - - - 1.50 - - - - - - - - - - - - - - - - - - 1.50 -
+------------------------------------------------------------
+trgMu9_IP6SF_pt5 shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+trgMu9_IP6SF_pt4 shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+trgMu9_IP6SF_pt6 shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+trgMu9_IP6SF_pt9 shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+trgMu9_IP6SF_pt8 shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+trgMu9_IP6SF_pt7 shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+tkPVfracMid shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+softTrkEff_w shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+softTrkEff_s shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+B_etaMid_lam1 shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+B_etaMid_lam2 shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+B_etaMid_lam3 shape 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. - 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. 1. -
+BdpTMid_lam1 shape 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - - 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - - 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - -
+BdpTMid_lam2 shape 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - - 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - - 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - -
+BdpTMid_lam3 shape 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - - 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - - 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - -
+BdpTMid_lam4 shape 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - - 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - - 1. 1. - 1. 1. - - 1. 1. - - - 1. - 1. - 1. - -
+B2DstCLNR0 shape 1. 1. - - - - - - - - - - - - - - - - - 1. 1. - - - - - - - - - - - - - - - - - 1. 1. - - - - - - - - - - - - - - - - -
+B2DstCLNeig1 shape 1. 1. - - - - - - - - - - - - - - - - - 1. 1. - - - - - - - - - - - - - - - - - 1. 1. - - - - - - - - - - - - - - - - -
+B2DstCLNeig2 shape 1. 1. - - - - - - - - - - - - - - - - - 1. 1. - - - - - - - - - - - - - - - - - 1. 1. - - - - - - - - - - - - - - - - -
+B2DstCLNeig3 shape 1. 1. - - - - - - - - - - - - - - - - - 1. 1. - - - - - - - - - - - - - - - - - 1. 1. - - - - - - - - - - - - - - - - -
+fDststWide shape - - 1. 1. - - 1. 1. - - - - - - - - - - - - - 1. 1. - - 1. 1. - - - - - - - - - - - - - 1. 1. - - 1. 1. - - - - - - - - - - -
+D2420_width shape - - 1. 1. - - 1. 1. - - - - - - - - - - - - - 1. 1. - - 1. 1. - - - - - - - - - - - - - 1. 1. - - 1. 1. - - - - - - - - - - -
+D2430_width shape - - 1. 1. - - 1. 1. - - - - - - - - - - - - - 1. 1. - - 1. 1. - - - - - - - - - - - - - 1. 1. - - 1. 1. - - - - - - - - - - -
+D2460_width shape - - 1. 1. - - 1. 1. - - - - - - - - - - - - - 1. 1. - - 1. 1. - - - - - - - - - - - - - 1. 1. - - 1. 1. - - - - - - - - - - -
+Dst2S_width shape - - - - 1. 1. - - 1. 1. - - - - - - - - - - - - - 1. 1. - - 1. 1. - - - - - - - - - - - - - 1. 1. - - 1. 1. - - - - - - - - -
+brBd_DstDuK shape - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - -
+brBd_DstDustK shape - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - -
+brBd_DstDust shape - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - -
+brBd_DstDuKst shape - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - -
+brBd_DstDdK shape - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - -
+brBd_DstDdstK shape - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - -
+brBd_DstDdst shape - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - -
+brBd_DstDd shape - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - -
+brBd_DstDdKst shape - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - -
+brBd_DstDs shape - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - -
+brBd_DstDsst shape - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - -
+brBd_DstDsst0 shape - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - -
+brBu_DstDuK shape - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - -
+brBu_DstDustK shape - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - -
+brBu_DstDuKst shape - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - -
+brBu_DstDu shape - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - -
+brBu_DstDdK shape - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - -
+brBu_DstDdstK shape - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - -
+brBu_DstDdKst shape - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - - - - - - - - - - - - - - - - - 1. - - -
+------------------------------------------------------------
+AddTk_m_mHad autoMCStats 0 1 1
+Unrolled_q2bin0 autoMCStats 0 1 1
+Unrolled_q2bin1 autoMCStats 0 1 1
+------------------------------------------------------------

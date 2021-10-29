@@ -3570,6 +3570,10 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
     plt.legend(loc='upper right')
     plt.xlabel('Test statistic (algo {})'.format(algo))
     plt.ylabel('Probability / {:.1f}'.format(0.5*(center[2]-center[1])))
+    text = 'Cat. '+args.category.capitalize()
+    if fixRDst:
+        text += ' , R(D*) fixed'
+    plt.text(0.04, 0.93, text, transform = plt.gca().transAxes)
     plt.savefig(out + 'fig/resultsGoF'+tag+'.png')
     plt.savefig(webFolder + '/resultsGoF'+tag+'.png')
 
