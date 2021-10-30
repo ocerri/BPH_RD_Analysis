@@ -67,20 +67,26 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
             plt.ylabel('POI')
             plt.grid()
         if np.all(nll_l[:-1] >= nll_l[1:]) and np.all(nll_u[:-1] <= nll_u[1:]):
-            if len(r_l) > 1:
+            if len(r_l) > 2:
                 f_l = interp1d(nll_l, r_l, 'quadratic', fill_value='extrapolate')
                 l = f_l(0.5)
                 l2 = f_l(2)
             else:
                 print '[WARNING] Minimum at lower bound'
-                l, l2 = c, c
-            if len(r_u) > 1:
+                if len(r_l):
+                    l, l2 = r_l[0], r_l[0]
+                else:
+                    l, l2 = c, c
+            if len(r_u) > 2:
                 f_u = interp1d(nll_u, r_u, 'quadratic', fill_value='extrapolate')
                 u = f_u(0.5)
                 u2 = f_u(2.0)
             else:
                 print '[WARNING] Minimum at upper bound'
-                u, u2 = c, c
+                if len(r_u):
+                    u, u2 = r_u[-1], r_u[-1]
+                else:
+                    u, u2 = c, c
 
         else:
             if not np.all(nll_l[:-1] >= nll_l[1:]):

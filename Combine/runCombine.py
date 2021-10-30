@@ -133,6 +133,9 @@ if len(args.step) == 0:
         for s in args.step:
             if 'uncBreakdown' in s:
                 args.step.remove(s)
+
+    if args.submit and not args.category == 'comb':
+        args.step.append('shapeVarPlots')
     print 'Running default steps: ' + ', '.join(args.step)
 
 schemeFF = args.schemeFF
@@ -278,8 +281,8 @@ def loadDatasets(category, loadRD):
     #They all have to be produced with the same pileup
     MCsample = {
     ######## Signals
-    'mu': DSetLoader('Bd_MuNuDst', candDir='ntuples_B2DstMu_wOC'),
     'tau': DSetLoader('Bd_TauNuDst'),
+    'mu': DSetLoader('Bd_MuNuDst', candDir='ntuples_B2DstMu_wOC'),
     ######## D** background
     'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi'),
     'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi'),
@@ -423,7 +426,7 @@ def createHistograms(category):
     ########## Load calibrations
     ######################################################
     from pileup_utilities import pileupReweighter
-    skimmedFile_loc = MCsample['mu'].skimmed_dir + '/{}_{}.root'.format(category.name, mcType)
+    skimmedFile_loc = MCsample['tau'].skimmed_dir + '/{}_{}.root'.format(category.name, mcType)
     puReweighter = pileupReweighter(skimmedFile_loc, 'hAllNTrueIntMC', trg=category.trg)
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data'
@@ -519,22 +522,36 @@ def createHistograms(category):
 
 
     parsSoftTracks = {'s':[0.2, 0.15], 'w':[0.9, 0.05]}
-    def betaSoftTrackEff(w=0.9, s=0.2):
+    def fSoftTrackEff(x, w, s):
+        # Model beta
         x = [0, 3.5, 1.5]
         yLin = x[2]*(1 - w)/x[1] + w
         y = [w, 1., yLin + s*(1-yLin) ]
-        return np.polyfit(x, y, 2)
+        beta = np.polyfit(x, y, 2)
 
-    def fSoftTrackEff(x, beta):
         sel = np.logical_or(x < 0.2, x > 3.5)
         return np.where(sel, np.ones_like(x), np.polyval(beta, x))
 
-    def weightsSoftTrackEff(ds, ptList, w, s):
-        beta = betaSoftTrackEff(w, s)
-        w = fSoftTrackEff(ds[ptList[0]], beta)
-        for v in ptList[1:]:
-            w *= fSoftTrackEff(ds[v], beta)
-        return w
+    softPtUnc= [[0.5, 0.6, 0.10],
+                [0.6, 0.7, 0.07],
+                [0.7, 0.8, 0.05],
+                [0.8, 0.9, 0.04],
+                [0.9, 1.0, 0.03],
+                [1.0, 1.2, 0.02]]
+    def binnnedSoftTrackEff(x, bin, size):
+        sel = np.logical_or(x < softPtUnc[bin][0], x > softPtUnc[bin][1])
+        return np.where(sel, np.ones_like(x), 1+size*softPtUnc[bin][2])
+
+    def weightsSoftTrackEff(ds, ptList, w=None, s=None, bin=None, size=None):
+        if w is None or s is None:
+            weight = binnnedSoftTrackEff(ds[ptList[0]], bin, size)
+            for v in ptList[1:]:
+                weight *= binnnedSoftTrackEff(ds[v], bin, size)
+        else:
+            weight = fSoftTrackEff(ds[ptList[0]], w, s)
+            for v in ptList[1:]:
+                weight *= fSoftTrackEff(ds[v], w, s)
+        return weight
 
 
     if args.useMVA:
@@ -713,14 +730,19 @@ def createHistograms(category):
             weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
             print 'Including soft track pT corrections'
-            l = ['K_pt', 'pi_pt', 'pis_pt']
-            weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
-            for mod in [+1, -1]:
-                varName = 'Up' if mod > 0 else 'Down'
-                w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
-                wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
-                s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
-                wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
+            # l = ['K_pt', 'pi_pt', 'pis_pt']
+            # weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
+            # for mod in [+1, -1]:
+            #     varName = 'Up' if mod > 0 else 'Down'
+            #     w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
+            #     wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
+            #     s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
+            #     wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
+            partList = ['K_pt', 'pi_pt', 'pis_pt']
+            for nBin in range(len(softPtUnc)):
+                refPt = '{:.0f}'.format(np.round(np.mean(softPtUnc[nBin][:-1])*1e3))
+                wVar['softTrkEff_'+refPt+'Up'] = weightsSoftTrackEff(ds, partList, bin=nBin, size=+1)
+                wVar['softTrkEff_'+refPt+'Down'] = weightsSoftTrackEff(ds, partList, bin=nBin, size=-1)
 
 
             ############################
@@ -1131,14 +1153,19 @@ def createHistograms(category):
             weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
             print 'Including soft track pT corrections'
-            l = ['K_pt', 'pi_pt', 'pis_pt', 'tkPt_0', 'tkPt_1']
-            weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
-            for mod in [+1, -1]:
-                varName = 'Up' if mod > 0 else 'Down'
-                w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
-                wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
-                s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
-                wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
+            # l = ['K_pt', 'pi_pt', 'pis_pt', 'tkPt_0', 'tkPt_1']
+            # weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
+            # for mod in [+1, -1]:
+            #     varName = 'Up' if mod > 0 else 'Down'
+            #     w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
+            #     wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
+            #     s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
+            #     wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
+            partList = ['K_pt', 'pi_pt', 'pis_pt', 'tkPt_0', 'tkPt_1']
+            for nBin in range(len(softPtUnc)):
+                refPt = '{:.0f}'.format(np.round(np.mean(softPtUnc[nBin][:-1])*1e3))
+                wVar['softTrkEff_'+refPt+'Up'] = weightsSoftTrackEff(ds, partList, bin=nBin, size=+1)
+                wVar['softTrkEff_'+refPt+'Down'] = weightsSoftTrackEff(ds, partList, bin=nBin, size=-1)
 
             ############################
             # B phase space corrections
@@ -2205,8 +2232,12 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         card += 'tkPVfrac'+category.name+' shape' + aux + '\n'
 
     # Soft track efficiency
-    card += 'softTrkEff_w shape' + mcProcStr*nCat + '\n'
-    card += 'softTrkEff_s shape' + mcProcStr*nCat + '\n'
+    # card += 'softTrkEff_w shape' + mcProcStr*nCat + '\n'
+    # card += 'softTrkEff_s shape' + mcProcStr*nCat + '\n'
+    for k in histo.values()[0].keys():
+        if k.startswith(processOrder[0]+'__softTrkEff') and k.endswith('Up'):
+            n = k[k.find('__')+2:-2]
+            card += n+' shape' + mcProcStr*nCat + '\n'
 
     # B eta uncertainty
     names = []
