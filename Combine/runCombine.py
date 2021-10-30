@@ -537,7 +537,9 @@ def createHistograms(category):
                 [0.7, 0.8, 0.05],
                 [0.8, 0.9, 0.04],
                 [0.9, 1.0, 0.03],
-                [1.0, 1.2, 0.02]]
+                [1.0, 1.2, 0.02],
+                [1.2, 2.0, 0.01],
+                ]
     def binnnedSoftTrackEff(x, bin, size):
         sel = np.logical_or(x < softPtUnc[bin][0], x > softPtUnc[bin][1])
         return np.where(sel, np.ones_like(x), 1+size*softPtUnc[bin][2])
