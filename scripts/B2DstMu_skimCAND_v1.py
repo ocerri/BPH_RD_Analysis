@@ -40,6 +40,24 @@ rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
 
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument ('--function', type=str, default='main', help='Function to perform')
+parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
+parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'serial'], default='jobs', help='Function to perform')
+parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
+parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
+parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
+# parser.add_argument ('--trkControlRegion', default=False, action='store_true', help='Track control region selection')
+parser.add_argument ('--region', type=str, default='all', choices=['signal', 'trkControl', 'all'], help='Region to skim: signal (0 tracks) or track control (1+)')
+parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
+parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
+######## Arguments not for user #####################
+parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
+parser.add_argument ('--jN', type=int, default=None, help='Job number')
+args = parser.parse_args()
+
 #############################################################################
 ####                          Datset declaration                         ####
 #############################################################################
@@ -799,24 +817,6 @@ def createSubmissionFile(tmpDir, njobs):
         fsub.close()
 
 if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument ('--function', type=str, default='main', help='Function to perform')
-    parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
-    parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'serial'], default='jobs', help='Function to perform')
-    parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
-    parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
-    parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
-    # parser.add_argument ('--trkControlRegion', default=False, action='store_true', help='Track control region selection')
-    parser.add_argument ('--region', type=str, default='all', choices=['signal', 'trkControl', 'all'], help='Region to skim: signal (0 tracks) or track control (1+)')
-    parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
-    parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
-    ######## Arguments not for user #####################
-    parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
-    parser.add_argument ('--jN', type=int, default=None, help='Job number')
-    args = parser.parse_args()
-
     if args.function == 'main':
         file_loc = {}
         nCount = 0
