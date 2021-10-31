@@ -332,10 +332,16 @@ def loadDatasets(category, loadRD):
         lumi_tot = getLumiByTrigger(datasets_loc, category.trg, verbose=True)
 
     for k in dSet.keys():
-        etaLim = [-1., 1.]
+        addCuts = [
+            ['B_eta', -1., 1.],
+            ['K_pt', 1., 1e3],
+            ['pi_pt', 1., 1e3],
+            ['pis_pt', 1., 1e3],
+                  ]
         # sel = np.ones_like(dSet[k]).astype(np.bool)
         sel = dSet[k]['M2_miss'] > 0.2
-        sel = np.logical_and(sel, np.logical_and(dSet[k]['B_eta'] > etaLim[0], dSet[k]['B_eta'] < etaLim[1]))
+        for var, low, high in addCuts:
+            sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
         #removeDups
         if k == 'mu':
             selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
@@ -347,7 +353,8 @@ def loadDatasets(category, loadRD):
 
         # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
         sel = dSetTkSide[k]['M2_miss'] > 0.2
-        sel = np.logical_and(sel, np.logical_and(dSetTkSide[k]['B_eta'] > etaLim[0], dSetTkSide[k]['B_eta'] < etaLim[1]))
+        for var, low, high in addCuts:
+            sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
         dSetTkSide[k] = dSetTkSide[k][sel]
         corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
 
@@ -489,7 +496,7 @@ def createHistograms(category):
     if args.calBpT == 'none':
         print 'Not using any B pT calibration'
     elif args.calBpT == 'poly':
-        cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v0.pkl')
+        cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v1.pkl')
 
     cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v0.pkl')
 

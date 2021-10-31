@@ -33,7 +33,7 @@ sys.path.append('../analysis')
 from analysis_utilities import getEff
 from progressBar import ProgressBar
 from categoriesDef import categories
-from B02DstMu_selection import candidate_selection, trigger_selection
+from B2DstMu_selection import candidate_selection, trigger_selection
 
 import ROOT as rt
 rt.gErrorIgnoreLevel = rt.kError
@@ -261,7 +261,7 @@ def extractEventInfos(j, ev, corr=None):
             continue
         phi = ev.tksAdd_phi[jj]
         pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 2e-3)
-        if pt < 0.5:
+        if pt < 1.0:
             continue
         #Avoid tracks duplicates
         duplicate = False

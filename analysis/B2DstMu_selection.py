@@ -42,7 +42,7 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
         if not ev.pval_piK[j] > 0.1:
             return False
     if not (2 in skipCut):
-        if not e.K_pt > 0.8:
+        if not e.K_pt > 1.0:
             return False
     if not (3 in skipCut):
         if not abs(e.K_eta) < 2.4:
@@ -64,7 +64,7 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
         return False
 
     if not (4 in skipCut):
-        if not e.pi_pt > 0.8:
+        if not e.pi_pt > 1.0:
             return False
     if not (5 in skipCut):
         if not abs(e.pi_eta) < 2.4:
@@ -77,7 +77,7 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
         if not ev.sigdxy_vtxD0_PV[j] > 2:
             return False
     if not (8 in skipCut):
-        if not e.pis_pt > 0.5:
+        if not e.pis_pt > 1.0:
             return False
     if not (9 in skipCut):
         if not abs(e.pis_eta) < 2.4:
