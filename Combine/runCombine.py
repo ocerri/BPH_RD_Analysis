@@ -334,9 +334,9 @@ def loadDatasets(category, loadRD):
     for k in dSet.keys():
         addCuts = [
             ['B_eta', -1., 1.],
-            ['K_pt', 1., 1e3],
-            ['pi_pt', 1., 1e3],
-            ['pis_pt', 1., 1e3],
+            # ['K_pt', 1., 1e3],
+            # ['pi_pt', 1., 1e3],
+            # ['pis_pt', 1., 1e3],
                   ]
         # sel = np.ones_like(dSet[k]).astype(np.bool)
         sel = dSet[k]['M2_miss'] > 0.2
@@ -787,11 +787,31 @@ def createHistograms(category):
         # Dstst resonance mix
         ############################
         if not re.search('DstPi\Z', n) is None:
-            print 'Including D**->D*Pi width variations'
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7, keepNorm=True)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55, keepNorm=True)
-            wVar['fDststWideUp'] = wNeuUp * wChUp
-            wVar['fDststWideDown'] = wNeuDw * wChDw
+            print 'Including D**->D*Pi branching ratio and width variations'
+            # _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7, keepNorm=True)
+            # _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55, keepNorm=True)
+            # wVar['fDststWideUp'] = wNeuUp * wChUp
+            # wVar['fDststWideDown'] = wNeuDw * wChDw
+
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10423}, 0.2/3.0)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413}, 0.14/1.40)
+            wVar['brB_D2420MuNuUp'] = wNeuUp * wChUp
+            wVar['brB_D2420MuNuDown'] = wNeuDw * wChDw
+
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55)
+            wVar['brB_D2430MuNuUp'] = wNeuUp * wChUp
+            wVar['brB_D2430MuNuDown'] = wNeuDw * wChDw
+
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 425}, 0.24/1.01)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415}, 0.06/0.34)
+            wVar['brB_D2460MuNuUp'] = wNeuUp * wChUp
+            wVar['brB_D2460MuNuDown'] = wNeuDw * wChDw
+
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, 0.5)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 511}, 0.5)
+            wVar['brB_DstPiMuNuUp'] = wNeuUp * wChUp
+            wVar['brB_DstPiMuNuDown'] = wNeuDw * wChDw
 
 
             w, wVar['D2420_widthUp'], wVar['D2420_widthDown'] = computeWidthVarWeights(ds,
@@ -1051,7 +1071,7 @@ def createHistograms(category):
         sel = np.logical_and(ds['N_goodAddTks'] == 1, ds['tkCharge_0'] > 0)
         return sel
     sideSelecton['AddTk_p_mHad'] = selfun__TkPlus
-    sideVar['AddTk_p_mHad'] = 'massHadTks'
+    sideVar['AddTk_p_mHad'] = 'massHadTks_DstMassConstraint'
     # sideVar['AddTk_p_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_p_mHad'] = [35, 2.13, 2.83]
 
@@ -1059,7 +1079,7 @@ def createHistograms(category):
         sel = np.logical_and(ds['N_goodAddTks'] == 1, ds['tkCharge_0'] < 0)
         return sel
     sideSelecton['AddTk_m_mHad'] = selfun__TkMinus
-    sideVar['AddTk_m_mHad'] = 'massHadTks'
+    sideVar['AddTk_m_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_m_mHad'] = [30, 2.1, 3.3]
 
 
@@ -1074,7 +1094,7 @@ def createHistograms(category):
 
 
     sideSelecton['AddTk_pm_mHad'] = selfun__TkPlusMinus
-    sideVar['AddTk_pm_mHad'] = 'massHadTks'
+    sideVar['AddTk_pm_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_pm_mHad'] = [30, 2.3, 3.75]
 
     def selfun__TkMinusMinus(ds):
@@ -1082,7 +1102,7 @@ def createHistograms(category):
         sel = np.logical_and(ds['massVisTks'] < 5.3, sel)
         return sel
     sideSelecton['AddTk_mm_mHad'] = selfun__TkMinusMinus
-    sideVar['AddTk_mm_mHad'] = 'massHadTks'
+    sideVar['AddTk_mm_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_mm_mHad'] = [15, 2.25, 3.6]
 
     def selfun__TkPlusPlus(ds):
@@ -1090,7 +1110,7 @@ def createHistograms(category):
         sel = np.logical_and(ds['massVisTks'] < 5.3, sel)
         return sel
     sideSelecton['AddTk_pp_mHad'] = selfun__TkPlusPlus
-    sideVar['AddTk_pp_mHad'] = 'massHadTks'
+    sideVar['AddTk_pp_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_pp_mHad'] = [15, 2.25, 3.75]
 
     print '---------> Fill control regions histograms'
@@ -1212,11 +1232,31 @@ def createHistograms(category):
         # Dstst resonance mix
         ############################
         if not re.search('DstPi\Z', n) is None:
-            print 'Including D**->D*Pi width variations'
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7, keepNorm=True)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55, keepNorm=True)
-            wVar['fDststWideUp'] = wNeuUp * wChUp
-            wVar['fDststWideDown'] = wNeuDw * wChDw
+            print 'Including D**->D*Pi branching ratio and width variations'
+            # _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7, keepNorm=True)
+            # _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55, keepNorm=True)
+            # wVar['fDststWideUp'] = wNeuUp * wChUp
+            # wVar['fDststWideDown'] = wNeuDw * wChDw
+
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10423}, 0.2/3.0)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413}, 0.14/1.40)
+            wVar['brB_D2420MuNuUp'] = wNeuUp * wChUp
+            wVar['brB_D2420MuNuDown'] = wNeuDw * wChDw
+
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55)
+            wVar['brB_D2430MuNuUp'] = wNeuUp * wChUp
+            wVar['brB_D2430MuNuDown'] = wNeuDw * wChDw
+
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 425}, 0.24/1.01)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415}, 0.06/0.34)
+            wVar['brB_D2460MuNuUp'] = wNeuUp * wChUp
+            wVar['brB_D2460MuNuDown'] = wNeuDw * wChDw
+
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, 0.5)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 511}, 0.5)
+            wVar['brB_DstPiMuNuUp'] = wNeuUp * wChUp
+            wVar['brB_DstPiMuNuDown'] = wNeuDw * wChDw
 
 
             w, wVar['D2420_widthUp'], wVar['D2420_widthDown'] = computeWidthVarWeights(ds,
@@ -1386,9 +1426,8 @@ def createHistograms(category):
             w = weightsCentral*v_wVar
 
             for k in sideVar.keys():
-                x = ds[sideVar[k]] - ds['mass_D0pis'] + 2.01027
                 histo[k][h_name] = create_TH1D(
-                                               x[sel[k]],
+                                               ds[sideVar[k]][sel[k]],
                                                name=h_name, title=h_name,
                                                binning=binning[k],
                                                opt='underflow',
@@ -1473,9 +1512,8 @@ def createHistograms(category):
 
         ds = dSetTkSide['data']
         for k in sideVar.keys():
-            x = ds[sideVar[k]] - ds['mass_D0pis'] + 2.01027
             histo[k]['data'] = create_TH1D(
-                                           x[sideSelecton[k](ds)],
+                                           ds[sideVar[k]][sideSelecton[k](ds)],
                                            name='data_obs', title='Data Obs',
                                            binning=binning[k],
                                            opt='underflow',
@@ -2199,7 +2237,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     else:
         card += brScaleSys('muBr', ['mu', 'tau'], relUnc=1.4/50.5)
 
-    card += brScaleSys('DstPiBr', ['Bu_MuDstPi', 'Bd_MuDstPi', 'Bu_TauDstPi', 'Bd_TauDstPi'], relUnc=2*0.4/6.0)
+    # card += brScaleSys('DstPiBr', ['Bu_MuDstPi', 'Bd_MuDstPi', 'Bu_TauDstPi', 'Bd_TauDstPi'], relUnc=2*0.4/6.0) # Moved to shape
     card += brScaleSys('DstPiPiBr', ['Bu_MuDstPiPi', 'Bd_MuDstPiPi', 'Bu_TauDstPiPi', 'Bd_TauDstPiPi'], relUnc=0.3/0.96)
     card += brScaleSys('DstKBr', ['Bs_MuDstK', 'Bs_TauDstK'], relUnc=1.5/5.9)
 
@@ -2292,10 +2330,12 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         if not re.search('DstPi\Z', p) is None:
             aux += ' 1.'
         else: aux += ' -'
-    card += 'fDststWide shape' + aux*nCat + '\n'
-    card += 'D2420_width shape' + aux*nCat + '\n'
-    card += 'D2430_width shape' + aux*nCat + '\n'
-    card += 'D2460_width shape' + aux*nCat + '\n'
+    # card += 'fDststWide shape' + aux*nCat + '\n'
+    auxList = ['brB_D2420MuNu','brB_D2430MuNu','brB_D2460MuNu','brB_DstPiMuNu']
+    auxList += ['D2420_width', 'D2430_width', 'D2460_width']
+    for shapeName in auxList:
+        card += shapeName+' shape' + aux*nCat + '\n'
+
 
     aux = ''
     for p in processes:

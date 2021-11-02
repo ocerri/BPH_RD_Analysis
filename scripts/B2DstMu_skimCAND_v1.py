@@ -531,13 +531,15 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
             print filepath
             raise
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
-        N_evts_per_job = 100000
+        # N_evts_per_job = 100000 # looser tracks
+        N_evts_per_job = 150000
     else:
         d = join(os.path.dirname(filepath),'skimmed/')
         if not os.path.isdir(d):
             os.makedirs(d)
         fskimmed_name = d + catName
-        N_evts_per_job = 30000
+        N_evts_per_job = 30000 # looser tracks
+        # N_evts_per_job = 40000
     if not skipCut == []:
         print 'Skipping cut(s)', skipCut
         if skipCut == 'all':
@@ -687,7 +689,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
             print ' '
 
             start = time.time()
-            if args.parallelType == 'pool' or len(inputs) < 40:
+            if args.parallelType == 'pool' or len(inputs) < 10:
                 p = Pool(min(15,len(inputs)))
                 outputs = p.map(makeSelection, inputs)
             elif args.parallelType == 'jobs':
