@@ -332,32 +332,32 @@ def loadDatasets(category, loadRD):
         datasets_loc = glob(dataDir + '/ParkingBPH*/*RDntuplizer_B2DstMu_{}_CAND.root'.format(creation_date))
         lumi_tot = getLumiByTrigger(datasets_loc, category.trg, verbose=True)
 
-    # for k in dSet.keys():
-    #     addCuts = [
-    #         ['B_eta', -1., 1.],
-    #         # ['K_pt', 1., 1e3],
-    #         # ['pi_pt', 1., 1e3],
-    #         # ['pis_pt', 1., 1e3],
-    #               ]
-    #     # sel = np.ones_like(dSet[k]).astype(np.bool)
-    #     sel = dSet[k]['M2_miss'] > 0.2
-    #     for var, low, high in addCuts:
-    #         sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
-    #     #removeDups
-    #     if k == 'mu':
-    #         selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
-    #                                 np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
-    #         sel = np.logical_and(sel, selDups)
-    #
-    #     dSet[k] = dSet[k][sel]
-    #     corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
-    #
-    #     # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
-    #     sel = dSetTkSide[k]['M2_miss'] > 0.2
-    #     for var, low, high in addCuts:
-    #         sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
-    #     dSetTkSide[k] = dSetTkSide[k][sel]
-    #     corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
+    for k in dSet.keys():
+        addCuts = [
+            ['B_eta', -1., 1.],
+            # ['K_pt', 1., 1e3],
+            # ['pi_pt', 1., 1e3],
+            # ['pis_pt', 1., 1e3],
+                  ]
+        # sel = np.ones_like(dSet[k]).astype(np.bool)
+        sel = dSet[k]['M2_miss'] > 0.2
+        for var, low, high in addCuts:
+            sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
+        #removeDups
+        if k == 'mu':
+            selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
+                                    np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
+            sel = np.logical_and(sel, selDups)
+
+        dSet[k] = dSet[k][sel]
+        corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
+
+        # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
+        sel = dSetTkSide[k]['M2_miss'] > 0.2
+        for var, low, high in addCuts:
+            sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
+        dSetTkSide[k] = dSetTkSide[k][sel]
+        corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
 
     return MCsample, dSet, dSetTkSide
 
@@ -2139,14 +2139,17 @@ def drawPrePostFitComparison(histoPre, histoPost, tag=''):
             hPre = histoPre[c][p].Clone()
             hPre.SetTitle('Prefit')
             hPre.SetLineColor(rt.kRed-4)
+            normPre = hPre.Integral()
             hPre.Scale(1./hPre.Integral(), 'width')
             hPre.Sumw2(0)
             hPre.GetXaxis().SetTitle(c)
+            hPre.GetYaxis().SetTitle('Normalized entries')
             hPost = histoPost[c][p].Clone()
             hPost.SetLineColor(rt.kAzure+1)
+            normPost = hPost.Integral()
             if hPost.Integral() != 0:
                 hPost.Scale(1./hPost.Integral(), 'width')
-            hPost.SetTitle('Postfit')
+            hPost.SetTitle('Postfit ({:.1f}%)'.format(100*normPost/float(normPre)))
             hPost.Sumw2(0)
 
             for i in range(1, hPre.GetNbinsX()+1):
@@ -2156,7 +2159,7 @@ def drawPrePostFitComparison(histoPre, histoPost, tag=''):
 
             can = make_ratio_plot([hPre, hPost],
                                  draw_opt='',
-                                 leg_pos=[0.65,0.75,0.8,0.92],
+                                 leg_pos=[0.6,0.8,0.8,0.92],
                                  marginTop=0.062,
                                  label = c+p+tag,
                                  ratio_bounds='auto')
