@@ -71,6 +71,7 @@ def getControlXtitle(k):
     if 'mHad' in k:
         return 'Total hadrons mass'
     else:
+        print 'No value set for key:', k
         raise
 
 def getControlSideText(k):

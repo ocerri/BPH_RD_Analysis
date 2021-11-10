@@ -48,7 +48,7 @@ parser = argparse.ArgumentParser(description='Script used to run combine on the 
                                  add_help=True
                                  )
 parser.add_argument ('--HELP', '-H', default=False, action='store_true', help='Print help message.')
-parser.add_argument ('--category', '-c', type=str, default='low', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
+parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit.')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
 parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
@@ -65,6 +65,7 @@ parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
 
+parser.add_argument ('--dumpWeightsTree', default=False, action='store_true', help='Dump tree with weights for skimmed events.')
 
 availableSteps = ['clean', 'histos', 'preFitPlots', 'shapeVarPlots',
                   'card', 'workspace',
@@ -73,7 +74,7 @@ availableSteps = ['clean', 'histos', 'preFitPlots', 'shapeVarPlots',
                   'uncBreakdownScan', 'uncBreakdownTable',
                   'externalize',
                   'impacts', 'GoF']
-defaultPipelineSingle = ['histos', 'card', 'workspace', 'scan', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
+defaultPipelineSingle = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
 defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'uncBreakdownTable', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
 # histos preFitPlots shapeVarPlots card workspace scan fitDiag postFitPlots uncBreakdownScan GoF
 parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
@@ -108,7 +109,7 @@ parser.add_argument ('--collectImpacts', default=False, action='store_true', hel
 parser.add_argument ('--subOnlyImpacts', default=False, action='store_true', help='Only submit impact fits, do not collect results')
 
 # Goodness Of Fit options
-parser.add_argument ('--algoGoF', type=str, default=['Sat', 'AD', 'KS'], choices=['Sat', 'AD', 'KS'], help='Algorithm to be used for the goodness of fit test', nargs='+')
+parser.add_argument ('--algoGoF', type=str, default=['Sat', 'KS'], choices=['Sat', 'AD', 'KS'], help='Algorithm to be used for the goodness of fit test', nargs='+')
 parser.add_argument ('--maskEvalGoF', type=str, default=[], nargs='+', help='Additional channels to mask during GoF evaluation')
 parser.add_argument ('--tagGoF', type=str, default='all')
 
@@ -331,32 +332,32 @@ def loadDatasets(category, loadRD):
         datasets_loc = glob(dataDir + '/ParkingBPH*/*RDntuplizer_B2DstMu_{}_CAND.root'.format(creation_date))
         lumi_tot = getLumiByTrigger(datasets_loc, category.trg, verbose=True)
 
-    for k in dSet.keys():
-        addCuts = [
-            ['B_eta', -1., 1.],
-            # ['K_pt', 1., 1e3],
-            # ['pi_pt', 1., 1e3],
-            # ['pis_pt', 1., 1e3],
-                  ]
-        # sel = np.ones_like(dSet[k]).astype(np.bool)
-        sel = dSet[k]['M2_miss'] > 0.2
-        for var, low, high in addCuts:
-            sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
-        #removeDups
-        if k == 'mu':
-            selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
-                                    np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
-            sel = np.logical_and(sel, selDups)
-
-        dSet[k] = dSet[k][sel]
-        corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
-
-        # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
-        sel = dSetTkSide[k]['M2_miss'] > 0.2
-        for var, low, high in addCuts:
-            sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
-        dSetTkSide[k] = dSetTkSide[k][sel]
-        corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
+    # for k in dSet.keys():
+    #     addCuts = [
+    #         ['B_eta', -1., 1.],
+    #         # ['K_pt', 1., 1e3],
+    #         # ['pi_pt', 1., 1e3],
+    #         # ['pis_pt', 1., 1e3],
+    #               ]
+    #     # sel = np.ones_like(dSet[k]).astype(np.bool)
+    #     sel = dSet[k]['M2_miss'] > 0.2
+    #     for var, low, high in addCuts:
+    #         sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
+    #     #removeDups
+    #     if k == 'mu':
+    #         selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
+    #                                 np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
+    #         sel = np.logical_and(sel, selDups)
+    #
+    #     dSet[k] = dSet[k][sel]
+    #     corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
+    #
+    #     # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
+    #     sel = dSetTkSide[k]['M2_miss'] > 0.2
+    #     for var, low, high in addCuts:
+    #         sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
+    #     dSetTkSide[k] = dSetTkSide[k][sel]
+    #     corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
 
     return MCsample, dSet, dSetTkSide
 
@@ -788,28 +789,25 @@ def createHistograms(category):
         ############################
         if not re.search('DstPi\Z', n) is None:
             print 'Including D**->D*Pi branching ratio and width variations'
-            # _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7, keepNorm=True)
-            # _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55, keepNorm=True)
-            # wVar['fDststWideUp'] = wNeuUp * wChUp
-            # wVar['fDststWideDown'] = wNeuDw * wChDw
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10423}, 0.2/3.0)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413}, 0.14/1.40)
+            infate = 3
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10423}, infate*0.2/3.0)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413}, infate*0.14/1.40)
             wVar['brB_D2420MuNuUp'] = wNeuUp * wChUp
             wVar['brB_D2420MuNuDown'] = wNeuDw * wChDw
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55)
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, infate*0.6/2.7)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, infate*0.45/1.55)
             wVar['brB_D2430MuNuUp'] = wNeuUp * wChUp
             wVar['brB_D2430MuNuDown'] = wNeuDw * wChDw
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 425}, 0.24/1.01)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415}, 0.06/0.34)
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 425}, infate*0.24/1.01)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415}, infate*0.06/0.34)
             wVar['brB_D2460MuNuUp'] = wNeuUp * wChUp
             wVar['brB_D2460MuNuDown'] = wNeuDw * wChDw
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, 0.5)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 511}, 0.5)
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, infate*0.5)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 511}, infate*0.5)
             wVar['brB_DstPiMuNuUp'] = wNeuUp * wChUp
             wVar['brB_DstPiMuNuDown'] = wNeuDw * wChDw
 
@@ -921,7 +919,6 @@ def createHistograms(category):
             _, x4_10u, x4_10d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 0}, 1.7/8.1)
             wVar['brBu_DstDuUp'] = x4_9u * x4_10u
             wVar['brBu_DstDuDown'] = x4_9d * x4_10d
-
         if n == 'Bu_DstDd': #5
             print 'Including Bu->D*Dd br variations'
             # 5.1-3
@@ -949,6 +946,18 @@ def createHistograms(category):
         evCountStr = '{:.2f} ({:.2f})'.format(1e-3*nTotExp*np.sum(weightsCentral)/nTotSelected, 1e-3*nTotSelected)
         eventCountingStr[n] = evCountStr
         wVar[''] = np.ones_like(weightsCentral)
+
+        if args.dumpWeightsTree and not 'data' in n:
+            print 'Dumping weights tree'
+            weightsDir = os.path.join(MCsample[n].skimmed_dir, 'weights')
+            if not os.path.isdir(weightsDir):
+                os.makedirs(weightsDir)
+
+            mcType = 'bare' if args.bareMC else 'corr'
+            auxName = category.name + '_' + mcType + '_' + card_name + '.root'
+
+            wDf = pd.DataFrame.from_dict({'central': weightsCentral*nTotExp/nTotSelected})
+            rtnp.array2root(wDf.to_records(), os.path.join(weightsDir, auxName), treename='weights', mode='RECREATE')
 
 
         if args.useMVA:
@@ -1071,7 +1080,7 @@ def createHistograms(category):
         sel = np.logical_and(ds['N_goodAddTks'] == 1, ds['tkCharge_0'] > 0)
         return sel
     sideSelecton['AddTk_p_mHad'] = selfun__TkPlus
-    sideVar['AddTk_p_mHad'] = 'massHadTks_DstMassConstraint'
+    sideVar['AddTk_p_mHad'] = 'massHadTks'
     # sideVar['AddTk_p_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_p_mHad'] = [35, 2.13, 2.83]
 
@@ -1079,7 +1088,8 @@ def createHistograms(category):
         sel = np.logical_and(ds['N_goodAddTks'] == 1, ds['tkCharge_0'] < 0)
         return sel
     sideSelecton['AddTk_m_mHad'] = selfun__TkMinus
-    sideVar['AddTk_m_mHad'] = 'massHadTks_DstMassConstraint'
+    sideVar['AddTk_m_mHad'] = 'massHadTks'
+    # sideVar['AddTk_m_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_m_mHad'] = [30, 2.1, 3.3]
 
 
@@ -1094,7 +1104,8 @@ def createHistograms(category):
 
 
     sideSelecton['AddTk_pm_mHad'] = selfun__TkPlusMinus
-    sideVar['AddTk_pm_mHad'] = 'massHadTks_DstMassConstraint'
+    sideVar['AddTk_pm_mHad'] = 'massHadTks'
+    # sideVar['AddTk_pm_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_pm_mHad'] = [30, 2.3, 3.75]
 
     def selfun__TkMinusMinus(ds):
@@ -1102,7 +1113,8 @@ def createHistograms(category):
         sel = np.logical_and(ds['massVisTks'] < 5.3, sel)
         return sel
     sideSelecton['AddTk_mm_mHad'] = selfun__TkMinusMinus
-    sideVar['AddTk_mm_mHad'] = 'massHadTks_DstMassConstraint'
+    sideVar['AddTk_mm_mHad'] = 'massHadTks'
+    # sideVar['AddTk_mm_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_mm_mHad'] = [15, 2.25, 3.6]
 
     def selfun__TkPlusPlus(ds):
@@ -1110,8 +1122,11 @@ def createHistograms(category):
         sel = np.logical_and(ds['massVisTks'] < 5.3, sel)
         return sel
     sideSelecton['AddTk_pp_mHad'] = selfun__TkPlusPlus
-    sideVar['AddTk_pp_mHad'] = 'massHadTks_DstMassConstraint'
+    sideVar['AddTk_pp_mHad'] = 'massHadTks'
+    # sideVar['AddTk_pp_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_pp_mHad'] = [15, 2.25, 3.75]
+
+    binning['tk_pt'] = [50, 0, 20]
 
     print '---------> Fill control regions histograms'
     for k in sideSelecton.keys():
@@ -1214,7 +1229,8 @@ def createHistograms(category):
                     wVar.update(auxVarDic)
 
             # Correct the amount of random tracks from PV
-            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=2.5)
+            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.3, centralVal=3.9)
+            print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
 
         ############################
         # Form factor correction
@@ -1233,28 +1249,25 @@ def createHistograms(category):
         ############################
         if not re.search('DstPi\Z', n) is None:
             print 'Including D**->D*Pi branching ratio and width variations'
-            # _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7, keepNorm=True)
-            # _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55, keepNorm=True)
-            # wVar['fDststWideUp'] = wNeuUp * wChUp
-            # wVar['fDststWideDown'] = wNeuDw * wChDw
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10423}, 0.2/3.0)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413}, 0.14/1.40)
+            infate = 3
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10423}, infate*0.2/3.0)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413}, infate*0.14/1.40)
             wVar['brB_D2420MuNuUp'] = wNeuUp * wChUp
             wVar['brB_D2420MuNuDown'] = wNeuDw * wChDw
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, 0.6/2.7)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, 0.45/1.55)
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20423}, infate*0.6/2.7)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413}, infate*0.45/1.55)
             wVar['brB_D2430MuNuUp'] = wNeuUp * wChUp
             wVar['brB_D2430MuNuDown'] = wNeuDw * wChDw
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 425}, 0.24/1.01)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415}, 0.06/0.34)
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 425}, infate*0.24/1.01)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415}, infate*0.06/0.34)
             wVar['brB_D2460MuNuUp'] = wNeuUp * wChUp
             wVar['brB_D2460MuNuDown'] = wNeuDw * wChDw
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, 0.5)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 511}, 0.5)
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, infate*0.5)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 511}, infate*0.5)
             wVar['brB_DstPiMuNuUp'] = wNeuUp * wChUp
             wVar['brB_DstPiMuNuDown'] = wNeuDw * wChDw
 
@@ -1367,7 +1380,6 @@ def createHistograms(category):
             _, x4_10u, x4_10d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 0}, 1.7/8.1)
             wVar['brBu_DstDuUp'] = x4_9u * x4_10u
             wVar['brBu_DstDuDown'] = x4_9d * x4_10d
-
         if n == 'Bu_DstDd': #5
             print 'Including Bu->D*Dd br variations'
             # 5.1-3
@@ -1392,6 +1404,18 @@ def createHistograms(category):
             weightsCentral *= w
         wVar[''] = np.ones_like(weightsCentral)
 
+        if args.dumpWeightsTree and not 'data' in n:
+            print 'Dumping weights tree'
+            weightsDir = os.path.join(MCsample[n].skimmed_dir, 'weights')
+            if not os.path.isdir(weightsDir):
+                os.makedirs(weightsDir)
+
+            mcType = 'bare' if args.bareMC else 'corr'
+            auxName = category.name + 'trkCtrl_' + mcType + '_' + card_name + '.root'
+
+            wDf = pd.DataFrame.from_dict({'central': weightsCentral*nTotExp/float(weightsCentral.shape[0]) })
+            rtnp.array2root(wDf.to_records(), os.path.join(weightsDir, auxName), treename='weights', mode='RECREATE')
+
         sel = {}
         scale = {}
         latexTableString = {}
@@ -1401,7 +1425,7 @@ def createHistograms(category):
             # print 'N tot selected {}: {:.0f}'.format(k, nTotSel)
             nExp = nTotExp * nTotSel / sel[k].shape[0]
             if n == 'dataSS_DstMu' and '_mm_' in k:
-                nExp *= 0.1
+                nExp *= 1e-3
             # print 'N tot expected {} (before weights): {:.0f}'.format(k, nExp)
             nAux = nTotExp * np.sum(weightsCentral[sel[k]]) / sel[k].shape[0]
             # print 'N tot expected {} (after weights): {:.0f}'.format(k, nAux)
@@ -1433,6 +1457,20 @@ def createHistograms(category):
                                                opt='underflow',
                                                weights=w[sel[k]], scale_histo=scale[k]
                                               )
+
+                if k.endswith('mHad'):
+                    nTk = 1 if ('_p_' in k or '_m_' in k) else 2
+                    for iTk in range(nTk):
+                        regName = k[6:-5]+'_tk_pt_'+str(iTk)
+                        if not regName in histo.keys():
+                            histo[regName] = {}
+                        histo[regName][h_name] = create_TH1D(
+                                                       ds['tkPt_'+str(iTk)][sel[k]],
+                                                       name=h_name, title=h_name,
+                                                       binning=binning['tk_pt'], opt='underflow',
+                                                       weights=w[sel[k]], scale_histo=scale[k]
+                                                      )
+
 
     s = ' & '.join(['{:.0f} ({:.0f})'.format(*totalCounting['AddTk_'+s+'_mHad']) for s in ['p', 'm', 'pp', 'pm', 'mm']]) + ' \\\\'
     eventCountingStr['tot'] += ' & ' + s
@@ -1518,6 +1556,15 @@ def createHistograms(category):
                                            binning=binning[k],
                                            opt='underflow',
                                           )
+
+            if k.endswith('mHad'):
+                nTk = 1 if ('_p_' in k or '_m_' in k) else 2
+                for iTk in range(nTk):
+                    regName = k[6:-5]+'_tk_pt_'+str(iTk)
+                    histo[regName]['data'] = create_TH1D(
+                                                   ds['tkPt_'+str(iTk)][sideSelecton[k](ds)],
+                                                   name='data_obs', title='Data Obs',
+                                                   binning=binning['tk_pt'], opt='underflow')
         print 'N observed data control regions: ' + ' & '.join(['{:.0f}'.format(histo['AddTk_'+s+'_mHad']['data'].Integral()) for s in ['p', 'm', 'pp', 'pm', 'mm']]) + ' \\\\'
 
     ######################################################
@@ -1624,7 +1671,9 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         cAux.SaveAs(webFolder+'/q2_norm_'+tag+'.png')
         outCanvas.append(cAux)
 
-    for var in ['B_eta', 'mu_eta', 'K_eta', 'pi_eta', 'pis_eta','mass_piK','deltaM_DstD']:
+    varsToPlot = ['B_eta', 'mu_eta', 'K_eta', 'pi_eta', 'pis_eta','mass_piK','deltaM_DstD']
+    varsToPlot += ['p_tk_pt_0', 'm_tk_pt_0', 'pp_tk_pt_0', 'pm_tk_pt_0', 'mm_tk_pt_0', 'pp_tk_pt_1', 'pm_tk_pt_1', 'mm_tk_pt_1']
+    for var in varsToPlot:
         if var in hDic.keys():
             print 'Creating '+var
             title = var.replace('_eta', ' #eta').replace('st', '*').replace('_', ' ')
@@ -2095,7 +2144,8 @@ def drawPrePostFitComparison(histoPre, histoPost, tag=''):
             hPre.GetXaxis().SetTitle(c)
             hPost = histoPost[c][p].Clone()
             hPost.SetLineColor(rt.kAzure+1)
-            hPost.Scale(1./hPost.Integral(), 'width')
+            if hPost.Integral() != 0:
+                hPost.Scale(1./hPost.Integral(), 'width')
             hPost.SetTitle('Postfit')
             hPost.Sumw2(0)
 
@@ -2195,23 +2245,24 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += 'overallMcNorm'+category.trg+' rateParam * B[usd]_* 1.\n'
 
     #### Combinatorial background norm
-    val = ' 1.30'
+    val = ' 1.50'
     aux = ''
     for n in processes:
         if n == 'dataSS_DstMu':
             aux += val
         else:
             aux += ' -'
-    card += 'normDataSS'+category.trg+' lnN' + aux*nCat + '\n'
+    # card += 'normDataSS'+category.trg+' lnN' + aux*nCat + '\n'
 
     #### Tracking efficiency uncertainty
+    uncVal = 1.03
     card += 'trkEff lnN'
     for c in categories:
         val = ''
         if re.match('AddTk_[pm]_', c):
-            val = ' 1.021'
+            val = ' {:.3}'.format(uncVal)
         elif re.match('AddTk_[pm]{2}_', c):
-            val = ' 1.042441' # 1.021^2
+            val = ' {:.3}'.format(uncVal**2)
         else:
             val = ' -'
         card += val*len(processes)
@@ -2232,10 +2283,11 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         return name + ' lnN' + aux*nCat + '\n'
 
     if args.freeMuBr:
-        card += 'mutauNorm rateParam * mu 1.\n'
-        card += 'mutauNorm rateParam * tau 1.\n'
+        pass
+        # card += 'mutauNorm rateParam * tau 1. 0.9,1.1\n'
+        # card += 'mutauNorm rateParam * mu 1. 0.9,1.1\n'
     else:
-        card += brScaleSys('muBr', ['mu', 'tau'], relUnc=1.4/50.5)
+        card += brScaleSys('brBd_DstMuNu', ['mu', 'tau'], relUnc=1.2/50.6)
 
     # card += brScaleSys('DstPiBr', ['Bu_MuDstPi', 'Bd_MuDstPi', 'Bu_TauDstPi', 'Bd_TauDstPi'], relUnc=2*0.4/6.0) # Moved to shape
     card += brScaleSys('DstPiPiBr', ['Bu_MuDstPiPi', 'Bd_MuDstPiPi', 'Bu_TauDstPiPi', 'Bd_TauDstPiPi'], relUnc=0.3/0.96)
@@ -2905,8 +2957,12 @@ def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, 
         else:
             print 'R(D*) value fixed to', arr['limit'][0]
     else:
-        c, d, u, _ = arr['limit']
-        print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-d, 100*(u-d)*0.5/c)
+        try:
+            c, d, u, _ = arr['limit']
+            print 'R(D*) = {:.3f} +{:.3f}/-{:.3f} [{:.1f} %]'.format(c, u-c, c-d, 100*(u-d)*0.5/c)
+        except:
+            print '[ERROR] Limit output format not recognized'
+            print arr['limit']
 
 def getPostfitHistos(tag, out, forceRDst, histo_prefit):
     runName = tag + ('_RDstFixed' if forceRDst else '')
@@ -2993,6 +3049,8 @@ def getPostfitHistos(tag, out, forceRDst, histo_prefit):
             n = il
         elif not lab.startswith('prop_bin') and not (n is None) and nRateParamX is None:
             nRateParamX = il + 1
+    if n is None:
+        n = il
 
     nR = None
     nRateParamY = None
@@ -3646,7 +3704,8 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
     fig = plt.figure(figsize=(8,6))
     content, center, _ = plt.hist(s_toys, weights=np.ones_like(s_toys)/float(len(s_toys)),
                                   alpha=0.7, label='Toys ({:.0f})'.format(float(len(s_toys))))
-    plt.plot([s_obs, s_obs], [0, np.max(content)], 'm--', label='Observed\np-val {:.1f}%'.format(100*p_val))
+    nDigits = '3' if s_obs < 1 else '1'
+    plt.plot([s_obs, s_obs], [0, np.max(content)], 'm--', label=('Obs: {:.'+nDigits+'f}\np-val {:.1f}%').format(s_obs, 100*p_val))
     plt.legend(loc='upper right')
     plt.xlabel('Test statistic (algo {})'.format(algo))
     plt.ylabel('Probability / {:.1f}'.format(0.5*(center[2]-center[1])))
@@ -3872,6 +3931,9 @@ if __name__ == "__main__":
     else:
         rDst_postFitRegion = args.RDstLims if len(args.RDstLims) == 2 else [0.15, 0.45]
         fit_RDst = SM_RDst
+    rDst_postFitRegion[0] = max(0, rDst_postFitRegion[0])
+    print '[INFO] R(D*) central value set to {:.3f}'.format(fit_RDst)
+    print '[INFO] R(D*) boundaries set to [{:.3f}, {:.3f}]'.format(*rDst_postFitRegion)
 
     if 'catComp' in args.step:
         if not args.category == 'comb':

@@ -22,6 +22,8 @@ def loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=False, ver
     histo = {}
     for fname in glob(histo_file_dir+'{}_*.root'.format(card_name)):
         regionName = os.path.basename(fname)[len(card_name)+1:-5]
+        if regionName.startswith('NoMCstats_'): continue
+        if regionName.startswith('_'): continue
         if verbose:
             print regionName
             print 'Loading histos from:', fname
@@ -68,7 +70,8 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
             plt.grid()
         if np.all(nll_l[:-1] >= nll_l[1:]) and np.all(nll_u[:-1] <= nll_u[1:]):
             if len(r_l) > 2:
-                f_l = interp1d(nll_l, r_l, 'quadratic', fill_value='extrapolate')
+                kind = 'linear' if 1 > np.max(nll_l) else 'quadratic'
+                f_l = interp1d(nll_l, r_l, kind, fill_value='extrapolate')
                 l = f_l(0.5)
                 l2 = f_l(2)
             else:
@@ -78,7 +81,8 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
                 else:
                     l, l2 = c, c
             if len(r_u) > 2:
-                f_u = interp1d(nll_u, r_u, 'quadratic', fill_value='extrapolate')
+                kind = 'linear' if 1 > np.max(nll_u) else 'quadratic'
+                f_u = interp1d(nll_u, r_u, kind, fill_value='extrapolate')
                 u = f_u(0.5)
                 u2 = f_u(2.0)
             else:
