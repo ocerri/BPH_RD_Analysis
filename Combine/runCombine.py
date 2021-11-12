@@ -1614,7 +1614,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
 
     print 'Creating signal region grid'
     cAux = plot_gridVarQ2(CMS_lumi, binning, hDic, draw_pulls=True,
-                          pullsRatio=True, pulls_ylim=[0.9, 1.1],
+                          pullsRatio=True, pulls_ylim=[0.7, 1.1],
                           scale_dic=scale_dic,
                           categoryText=catName, cNameTag=tag,
                           iq2_maskData=[] if args.unblinded else [2, 3])
@@ -1730,7 +1730,9 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                    addText='Cat. '+catName + ', ' + getControlSideText(k),
                                    procOrder = ['tau', 'DstHc', 'dataSS_DstMu', 'mu', 'Dstst'],
                                    tag=k, legLoc=legLoc,
-                                   draw_pulls=True
+                                   draw_pulls=True,
+                                   pullsRatio=True if 'prefit' in tag else False,
+                                   pulls_ylim='auto'
                                    )
         cAux.SaveAs(outdir+'/fig/'+k+'_'+tag+'.png')
         cAux.SaveAs(webFolder+'/'+k+'_'+tag+'.png')

@@ -25,10 +25,10 @@
     - rgx{softTrk.*}
     - rgx{tkPVfrac.*}
 
-- tag: brB2DstMuNu
-  title: $B \to D^{*}\mu\nu$ branching fraction
-  nuisance:
-    - mutauNorm
+# - tag: brB2DstMuNu
+#   title: $B \to D^{*}\mu\nu$ branching fraction
+#   nuisance:
+#     - mutauNorm
 
 - tag: control2signalTransfer
   title: 'Control to signal region transfer factors'

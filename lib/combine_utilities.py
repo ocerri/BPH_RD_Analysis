@@ -23,6 +23,8 @@ def loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=False, ver
     for fname in glob(histo_file_dir+'{}_*.root'.format(card_name)):
         regionName = os.path.basename(fname)[len(card_name)+1:-5]
         if regionName.startswith('NoMCstats_'): continue
+        if regionName.startswith('blinded_'): continue
+        if regionName.startswith('Asimov_'): continue
         if regionName.startswith('_'): continue
         if verbose:
             print regionName

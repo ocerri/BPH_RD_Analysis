@@ -45,11 +45,11 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
+parser.add_argument ('--skimTag', type=str, default='', help='Tag to append at the name of the skimmed files directory')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'serial'], default='jobs', help='Function to perform')
 parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
 parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
-# parser.add_argument ('--trkControlRegion', default=False, action='store_true', help='Track control region selection')
 parser.add_argument ('--region', type=str, default='all', choices=['signal', 'trkControl', 'all'], help='Region to skim: signal (0 tracks) or track control (1+)')
 parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
 parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
@@ -274,12 +274,17 @@ def extractEventInfos(j, ev, corr=None):
 
     p4_sumGoodTks = rt.TLorentzVector()
     for jj in range(idx_st, idx_stop):
+        pval = ev.tksAdd_pval[jj]
+        if pval < 0.1:
+            continue
+
         eta = ev.tksAdd_eta[jj]
         if np.abs(eta) >= 2.4:
             continue
         phi = ev.tksAdd_phi[jj]
         pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 2e-3)
-        if pt < 1.0:
+        # if pt < 1.0:
+        if pt < 0.8:
             continue
         #Avoid tracks duplicates
         duplicate = False
@@ -525,7 +530,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
     print '\n' + 50*'-'
     print n, catName
     if 'data' in n:
-        loc = join(root,'cmsRD/skimmed/B2DstMu'+ n.replace('data', ''))
+        loc = join(root,'cmsRD/skimmed'+args.skimTag+'/B2DstMu'+ n.replace('data', ''))
         out = re.search('21[01][0-9][0-3][0-9]', filepath)
         if out is None:
             print filepath
@@ -534,7 +539,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         # N_evts_per_job = 100000 # looser tracks
         N_evts_per_job = 150000
     else:
-        d = join(os.path.dirname(filepath),'skimmed/')
+        d = join(os.path.dirname(filepath),'skimmed'+args.skimTag+'/')
         if not os.path.isdir(d):
             os.makedirs(d)
         fskimmed_name = d + catName
