@@ -283,29 +283,27 @@ def loadDatasets(category, loadRD):
     #They all have to be produced with the same pileup
     MCsample = {
     ######## Signals
-    'tau': DSetLoader('Bd_TauNuDst'),
-    'mu': DSetLoader('Bd_MuNuDst', candDir='ntuples_B2DstMu_wOC'),
+    'tau': DSetLoader('Bd_TauNuDst', skimmedTag=args.skimmedTag),
+    'mu': DSetLoader('Bd_MuNuDst', candDir='ntuples_B2DstMu_wOC', skimmedTag=args.skimmedTag),
     ######## D** background
-    'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi'),
-    'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi'),
-    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi'),
-    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi'),
-    'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi'),
-    'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi'),
-    'Bd_TauDstPiPi': DSetLoader('Bd_TauNuDstPiPi'),
-    'Bu_TauDstPiPi': DSetLoader('Bu_TauNuDstPiPi'),
-    'Bs_MuDstK': DSetLoader('Bs_MuNuDstK'),
-    'Bs_TauDstK': DSetLoader('Bs_TauNuDstK'),
+    'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi', skimmedTag=args.skimmedTag),
+    'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi', skimmedTag=args.skimmedTag),
+    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi', skimmedTag=args.skimmedTag),
+    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi', skimmedTag=args.skimmedTag),
+    'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi', skimmedTag=args.skimmedTag),
+    'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi', skimmedTag=args.skimmedTag),
+    'Bd_TauDstPiPi': DSetLoader('Bd_TauNuDstPiPi', skimmedTag=args.skimmedTag),
+    'Bu_TauDstPiPi': DSetLoader('Bu_TauNuDstPiPi', skimmedTag=args.skimmedTag),
+    'Bs_MuDstK': DSetLoader('Bs_MuNuDstK', skimmedTag=args.skimmedTag),
+    'Bs_TauDstK': DSetLoader('Bs_TauNuDstK', skimmedTag=args.skimmedTag),
     ######## D*Hc background
-    'Bd_DstDu': DSetLoader('Bd_DstDu'),
-    'Bu_DstDu': DSetLoader('Bu_DstDu'),
-    'Bd_DstDd': DSetLoader('Bd_DstDd'),
-    'Bu_DstDd': DSetLoader('Bu_DstDd'),
-    'Bd_DstDs': DSetLoader('Bd_DstDs'),
-    'Bs_DstDs': DSetLoader('Bs_DstDs'),
+    'Bd_DstDu': DSetLoader('Bd_DstDu', skimmedTag=args.skimmedTag),
+    'Bu_DstDu': DSetLoader('Bu_DstDu', skimmedTag=args.skimmedTag),
+    'Bd_DstDd': DSetLoader('Bd_DstDd', skimmedTag=args.skimmedTag),
+    'Bu_DstDd': DSetLoader('Bu_DstDd', skimmedTag=args.skimmedTag),
+    'Bd_DstDs': DSetLoader('Bd_DstDs', skimmedTag=args.skimmedTag),
+    'Bs_DstDs': DSetLoader('Bs_DstDs', skimmedTag=args.skimmedTag),
     }
-
-    skimmed_tag = args.skimmedTag
 
     dSet = {}
     dSetTkSide = {}
@@ -315,11 +313,11 @@ def loadDatasets(category, loadRD):
         if not n in processOrder:
             print n, 'not declarted in processOrder'
             raise
-        dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + skimmed_tag + '/{}_{}.root'.format(category.name, mcType)))
-        dSetTkSide[n] = rtnp.root2array(s.skimmed_dir + skimmed_tag + '/{}_trkCtrl_{}.root'.format(category.name, mcType))
+        dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType)))
+        dSetTkSide[n] = rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType))
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
-    locRD = dataDir+'/skimmed'+skimmed_tag+'/B2DstMu_SS_211014_{}'.format(category.name)
+    locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_211014_{}'.format(category.name)
     dSet['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
     dSetTkSide['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
 
@@ -329,38 +327,41 @@ def loadDatasets(category, loadRD):
         lumi_tot = 0
 
         creation_date = '210917'
-        locRD = dataDir+'/skimmed'+skimmed_tag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
+        locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
         dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
         dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
         datasets_loc = glob(dataDir + '/ParkingBPH*/*RDntuplizer_B2DstMu_{}_CAND.root'.format(creation_date))
         lumi_tot = getLumiByTrigger(datasets_loc, category.trg, verbose=True)
 
-    for k in dSet.keys():
-        addCuts = [
-            ['B_eta', -1., 1.],
-            # ['K_pt', 1., 1e3],
-            # ['pi_pt', 1., 1e3],
-            # ['pis_pt', 1., 1e3],
-                  ]
-        # sel = np.ones_like(dSet[k]).astype(np.bool)
-        sel = dSet[k]['M2_miss'] > 0.2
-        for var, low, high in addCuts:
-            sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
-        #removeDups
-        if k == 'mu':
-            selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
-                                    np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
-            sel = np.logical_and(sel, selDups)
+    if args.dumpWeightsTree:
+        print 'Skipping on the flight cuts (if any).'
+    else:
+        for k in dSet.keys():
+            addCuts = [
+                ['B_eta', -1., 1.],
+                # ['K_pt', 1., 1e3],
+                # ['pi_pt', 1., 1e3],
+                # ['pis_pt', 1., 1e3],
+                      ]
+            # sel = np.ones_like(dSet[k]).astype(np.bool)
+            sel = dSet[k]['M2_miss'] > 0.2
+            for var, low, high in addCuts:
+                sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
+            #removeDups
+            if k == 'mu':
+                selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
+                                        np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
+                sel = np.logical_and(sel, selDups)
 
-        dSet[k] = dSet[k][sel]
-        corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
+            dSet[k] = dSet[k][sel]
+            corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
 
-        # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
-        sel = dSetTkSide[k]['M2_miss'] > 0.2
-        for var, low, high in addCuts:
-            sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
-        dSetTkSide[k] = dSetTkSide[k][sel]
-        corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
+            # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
+            sel = dSetTkSide[k]['M2_miss'] > 0.2
+            for var, low, high in addCuts:
+                sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
+            dSetTkSide[k] = dSetTkSide[k][sel]
+            corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
 
     return MCsample, dSet, dSetTkSide
 
@@ -955,8 +956,7 @@ def createHistograms(category):
         wVar[''] = np.ones_like(weightsCentral)
 
         if args.dumpWeightsTree and not 'data' in n:
-            print 'Dumping weights tree'
-            weightsDir = os.path.join(MCsample[n].skimmed_dir+args.skimmedTag, 'weights')
+            weightsDir = os.path.join(MCsample[n].skimmed_dir, 'weights')
             if not os.path.isdir(weightsDir):
                 os.makedirs(weightsDir)
 
@@ -964,6 +964,7 @@ def createHistograms(category):
             auxName = category.name + '_' + mcType + '_' + card_name + '.root'
 
             wDf = pd.DataFrame.from_dict({'central': weightsCentral*nTotExp/nTotSelected})
+            print 'Dumping weights tree in', os.path.join(weightsDir, auxName)
             rtnp.array2root(wDf.to_records(), os.path.join(weightsDir, auxName), treename='weights', mode='RECREATE')
 
 
@@ -1037,6 +1038,7 @@ def createHistograms(category):
     eventCountingStr['tot'] = evCountStr
 
     # Do the unrolling
+    print '\n\n########### Unrolling 2D histograms ###########'
     unrolledBins = []
     unrollingCutOff = 3
     for i_q2 in range(len(binning['q2'])-1):
@@ -1072,7 +1074,8 @@ def createHistograms(category):
                 hUnrolled.SetBinContent(i+1, h.GetBinContent(ix, iy))
                 hUnrolled.SetBinError(i+1, h.GetBinError(ix, iy))
             histo[nameU][n] = hUnrolled
-    pickle.dump(unrolledBins, open(outdir+'/unrolledBinsMap.pkl', 'wb'))
+    if not args.dumpWeightsTree:
+        pickle.dump(unrolledBins, open(outdir+'/unrolledBinsMap.pkl', 'wb'))
 
 
     ######################################################
@@ -1412,8 +1415,7 @@ def createHistograms(category):
         wVar[''] = np.ones_like(weightsCentral)
 
         if args.dumpWeightsTree and not 'data' in n:
-            print 'Dumping weights tree'
-            weightsDir = os.path.join(MCsample[n].skimmed_dir+args.skimmedTag, 'weights')
+            weightsDir = os.path.join(MCsample[n].skimmed_dir, 'weights')
             if not os.path.isdir(weightsDir):
                 os.makedirs(weightsDir)
 
@@ -1421,6 +1423,7 @@ def createHistograms(category):
             auxName = category.name + 'trkCtrl_' + mcType + '_' + card_name + '.root'
 
             wDf = pd.DataFrame.from_dict({'central': weightsCentral*nTotExp/float(weightsCentral.shape[0]) })
+            print 'Dumping weights tree in', os.path.join(weightsDir, auxName)
             rtnp.array2root(wDf.to_records(), os.path.join(weightsDir, auxName), treename='weights', mode='RECREATE')
 
         sel = {}
@@ -1478,13 +1481,15 @@ def createHistograms(category):
                                                        weights=w[sel[k]], scale_histo=scale[k]
                                                       )
 
+    if args.dumpWeightsTree:
+        print 'Exiting runCombine.py. To run further remove dumpWeightsTree option.'
+        exit()
 
     s = ' & '.join(['{:.0f} ({:.0f})'.format(*totalCounting['AddTk_'+s+'_mHad']) for s in ['p', 'm', 'pp', 'pm', 'mm']]) + ' \\\\'
     eventCountingStr['tot'] += ' & ' + s
     with open(outdir + '/eventCounting.txt', 'w') as f:
         for p in processOrder + ['tot']:
             f.write(p + '   ' + eventCountingStr[p] + '\n')
-
 
     ######################################################
     ########## Create total MC histograms and Pseudo data if necessary

@@ -112,6 +112,7 @@ class DSetLoader(object):
                  candDir='ntuples_B2DstMu',
                  # site_loc_conf = '/storage/cms/store/user/ocerri/',
                  sampleFile = '/storage/af/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml',
+                 skimmedTag = '',
                  loadSkim=None
                  ):
         samples = yaml.load(open(sampleFile))['samples']
@@ -139,7 +140,7 @@ class DSetLoader(object):
         res = glob(os.path.join(self.candLoc, self.full_name, self.candDir))
         if res:
             self.ntuples_dir = res[0]
-            self.skimmed_dir = os.path.join(self.ntuples_dir, 'skimmed')
+            self.skimmed_dir = os.path.join(self.ntuples_dir, 'skimmed') + skimmedTag
         else:
             self.ntuples_dir = ''
             self.skimmed_dir = ''
