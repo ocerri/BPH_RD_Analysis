@@ -11,7 +11,7 @@ import ROOT as rt
 rt.gErrorIgnoreLevel = rt.kFatal
 # rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 
-fileDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/CP_BdToDstarMuNu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen/ntuples_B2DstMu_wOC/'
+fileDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/CP_BdToDstDs_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen/ntuples_B2DstMu_211118'
 
 fileList = glob(fileDir + '/out_CAND_*.root')
 print 'Probing {} files'.format(len(fileList))
@@ -20,10 +20,12 @@ corrupted = []
 
 pb = ProgressBar(maxEntry=len(fileList))
 for i, fn in enumerate(fileList):
-    pb.show(i)
+    # pb.show(i)
+    print i, fn
     tree = rt.TChain('outA/Tevts')
     try:
         tree.Add(fn)
+        print 'Tree added to chain'
         for j in range(tree.GetEntry()):
             tree.GetEntry(j, 1)
             ev = tree
@@ -31,6 +33,7 @@ for i, fn in enumerate(fileList):
     except:
         print fn, 'corrupted'
         corrupted.append(fn)
+    print '\n'
 
 print 'Corrupted files found:', len(corrupted)
 
