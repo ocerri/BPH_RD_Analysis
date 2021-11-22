@@ -285,7 +285,7 @@ def extractEventInfos(j, ev, corr=None):
         phi = ev.tksAdd_phi[jj]
         pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 2e-3)
         # if pt < 1.0:
-        if pt < 0.8:
+        if pt < 0.5:
             continue
         #Avoid tracks duplicates
         duplicate = False

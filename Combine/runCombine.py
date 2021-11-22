@@ -281,28 +281,30 @@ corrScaleFactors = {}
 def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
+    candDir='ntuples_B2DstMu_211118'
+    print 'Using candDir=', candDir
     MCsample = {
     ######## Signals
-    'tau': DSetLoader('Bd_TauNuDst', skimmedTag=args.skimmedTag),
-    'mu': DSetLoader('Bd_MuNuDst', candDir='ntuples_B2DstMu_wOC', skimmedTag=args.skimmedTag),
+    'tau': DSetLoader('Bd_TauNuDst', candDir=candDir, skimmedTag=args.skimmedTag),
+    'mu': DSetLoader('Bd_MuNuDst', candDir=candDir, skimmedTag=args.skimmedTag),
     ######## D** background
-    'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi', skimmedTag=args.skimmedTag),
-    'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi', skimmedTag=args.skimmedTag),
-    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi', skimmedTag=args.skimmedTag),
-    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi', skimmedTag=args.skimmedTag),
-    'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi', skimmedTag=args.skimmedTag),
-    'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi', skimmedTag=args.skimmedTag),
-    'Bd_TauDstPiPi': DSetLoader('Bd_TauNuDstPiPi', skimmedTag=args.skimmedTag),
-    'Bu_TauDstPiPi': DSetLoader('Bu_TauNuDstPiPi', skimmedTag=args.skimmedTag),
-    'Bs_MuDstK': DSetLoader('Bs_MuNuDstK', skimmedTag=args.skimmedTag),
-    'Bs_TauDstK': DSetLoader('Bs_TauNuDstK', skimmedTag=args.skimmedTag),
+    'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bd_TauDstPiPi': DSetLoader('Bd_TauNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bu_TauDstPiPi': DSetLoader('Bu_TauNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bs_MuDstK': DSetLoader('Bs_MuNuDstK', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bs_TauDstK': DSetLoader('Bs_TauNuDstK', candDir=candDir, skimmedTag=args.skimmedTag),
     ######## D*Hc background
-    'Bd_DstDu': DSetLoader('Bd_DstDu', skimmedTag=args.skimmedTag),
-    'Bu_DstDu': DSetLoader('Bu_DstDu', skimmedTag=args.skimmedTag),
-    'Bd_DstDd': DSetLoader('Bd_DstDd', skimmedTag=args.skimmedTag),
-    'Bu_DstDd': DSetLoader('Bu_DstDd', skimmedTag=args.skimmedTag),
-    'Bd_DstDs': DSetLoader('Bd_DstDs', skimmedTag=args.skimmedTag),
-    'Bs_DstDs': DSetLoader('Bs_DstDs', skimmedTag=args.skimmedTag),
+    'Bd_DstDu': DSetLoader('Bd_DstDu', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bu_DstDu': DSetLoader('Bu_DstDu', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bd_DstDd': DSetLoader('Bd_DstDd', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bu_DstDd': DSetLoader('Bu_DstDd', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bd_DstDs': DSetLoader('Bd_DstDs', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bs_DstDs': DSetLoader('Bs_DstDs', candDir=candDir, skimmedTag=args.skimmedTag),
     }
 
     dSet = {}
@@ -336,32 +338,33 @@ def loadDatasets(category, loadRD):
     if args.dumpWeightsTree:
         print 'Skipping on the flight cuts (if any).'
     else:
-        for k in dSet.keys():
-            addCuts = [
-                ['B_eta', -1., 1.],
-                # ['K_pt', 1., 1e3],
-                # ['pi_pt', 1., 1e3],
-                # ['pis_pt', 1., 1e3],
-                      ]
-            # sel = np.ones_like(dSet[k]).astype(np.bool)
-            sel = dSet[k]['M2_miss'] > 0.2
-            for var, low, high in addCuts:
-                sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
-            #removeDups
-            if k == 'mu':
-                selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
-                                        np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
-                sel = np.logical_and(sel, selDups)
-
-            dSet[k] = dSet[k][sel]
-            corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
-
-            # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
-            sel = dSetTkSide[k]['M2_miss'] > 0.2
-            for var, low, high in addCuts:
-                sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
-            dSetTkSide[k] = dSetTkSide[k][sel]
-            corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
+        pass
+        # for k in dSet.keys():
+        #     addCuts = [
+        #         ['B_eta', -1., 1.],
+        #         # ['K_pt', 1., 1e3],
+        #         # ['pi_pt', 1., 1e3],
+        #         # ['pis_pt', 1., 1e3],
+        #               ]
+        #     # sel = np.ones_like(dSet[k]).astype(np.bool)
+        #     sel = dSet[k]['M2_miss'] > 0.2
+        #     for var, low, high in addCuts:
+        #         sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
+        #     #removeDups
+        #     if k == 'mu':
+        #         selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
+        #                                 np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
+        #         sel = np.logical_and(sel, selDups)
+        #
+        #     dSet[k] = dSet[k][sel]
+        #     corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
+        #
+        #     # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
+        #     sel = dSetTkSide[k]['M2_miss'] > 0.2
+        #     for var, low, high in addCuts:
+        #         sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
+        #     dSetTkSide[k] = dSetTkSide[k][sel]
+        #     corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
 
     return MCsample, dSet, dSetTkSide
 
@@ -587,7 +590,7 @@ def createHistograms(category):
 
     histo = {}
     eventCountingStr = {}
-    RDoMC_normRatio = 1
+    data_to_MC_prescale = 0.8
 
     ######################################################
     ########## Signal region
@@ -693,7 +696,7 @@ def createHistograms(category):
             nTotSelected = ds['q2'].shape[0]
             print 'N tot selected: {:.1f}k'.format(1e-3*nTotSelected)
             totalCounting[1] += 1e-3*nTotSelected
-            nGenExp = sMC.effMCgen['xsec'][0] * expectedLumi[category.name] * RDoMC_normRatio
+            nGenExp = sMC.effMCgen['xsec'][0] * expectedLumi[category.name] * data_to_MC_prescale
             eff = [1, 0]
             for f, df in [sMC.effMCgen['effGEN'], decayBR[n], sMC.effCand['effCAND'], sMC.getSkimEff(category.name+'_'+mcType)]:
                 eff[0] *= f
@@ -847,22 +850,23 @@ def createHistograms(category):
         # Hc mix variations
         ############################
         # From https://www.overleaf.com/read/ykppfynnfxdt
+        inflateRate = 1.5
         if n == 'Bd_DstDu': #1
             print 'Including Bd->D*Du br variations'
             # 1.1
             _, wVar['brBd_DstDuKUp'], wVar['brBd_DstDuKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421,
                                                                                          'MC_StrangeDstSisPdgId': 321},
-                                                                                    0.21/2.47)
+                                                                                    inflateRate*0.21/2.47)
             # 1.3, 1.5-8
-            _, x1_3u, x1_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 321}, 0.9/10.6)
-            _, x1_5u, x1_5d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 311}, 0.47/5.4)
+            _, x1_3u, x1_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 321}, inflateRate*0.9/10.6)
+            _, x1_5u, x1_5d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 311}, inflateRate*0.47/5.4)
             wVar['brBd_DstDustKUp'] = x1_3u * x1_5u
             wVar['brBd_DstDustKDown'] = x1_3d * x1_5d
 
             # 1.7-10
             _, wVar['brBd_DstDustUp'], wVar['brBd_DstDustDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413,
                                                                                            'MC_StrangeDstSisPdgId': 0},
-                                                                                      0.4/5.4)
+                                                                                      inflateRate*0.4/5.4)
 
             # Correlate all K* decays (1.2, 1.4, 1.6-9)
             x1_2, x1_2u, x1_2d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421, 'MC_StrangeDstSisPdgId': 323}, 0.5, centralVal=4.)
@@ -875,19 +879,19 @@ def createHistograms(category):
             # 2.1-2
             _, wVar['brBd_DstDdKUp'], wVar['brBd_DstDdKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411,
                                                                                          'MC_StrangeDstSisPdgId': 311},
-                                                                                    0.25/3.2)
+                                                                                    inflateRate*0.25/3.2)
             # 2.5-8
             _, wVar['brBd_DstDdstKUp'], wVar['brBd_DstDdstKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413,
                                                                                              'MC_StrangeDstSisPdgId': 311},
-                                                                                        0.23/2.7)
+                                                                                        inflateRate*0.23/2.7)
             # 2.7-10
             _, wVar['brBd_DstDdstUp'], wVar['brBd_DstDdstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413,
                                                                                            'MC_StrangeDstSisPdgId': 0},
-                                                                                      0.2/2.6)
+                                                                                      inflateRate*0.2/2.6)
             # 2.11, 2.12
             _, wVar['brBd_DstDdUp'], wVar['brBd_DstDdDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411,
                                                                                        'MC_StrangeDstSisPdgId': 0},
-                                                                                  1.5/6.1)
+                                                                                  inflateRate*1.5/6.1)
             # Correlate all K* decays (2.3-4, 2.6-9)
             x2_3, x2_3u, x2_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411, 'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.)
             x2_6, x2_6u, x2_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.)
@@ -897,19 +901,19 @@ def createHistograms(category):
         if n == 'Bd_DstDs': #3
             print 'Including Bd->D*Ds br variations'
             # 3.1
-            _, wVar['brBd_DstDsUp'], wVar['brBd_DstDsDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 431}, 1.1/8.0)
+            _, wVar['brBd_DstDsUp'], wVar['brBd_DstDsDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 431}, inflateRate*1.1/8.0)
             # 3.2
-            _, wVar['brBd_DstDsstUp'], wVar['brBd_DstDsstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 433}, 0.14/17.7)
+            _, wVar['brBd_DstDsstUp'], wVar['brBd_DstDsstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 433}, inflateRate*0.14/17.7)
             # 3.3
-            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, 0.7/1.5)
+            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.7/1.5)
         if n == 'Bu_DstDu': #4
             # 4.1
             _, wVar['brBu_DstDuKUp'], wVar['brBu_DstDuKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421,
                                                                                          'MC_StrangeDstSisPdgId': 311},
-                                                                                    0.4/3.8)
+                                                                                    inflateRate*0.4/3.8)
             # 4.3, 4.5-7
-            _, x4_3u, x4_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 311}, 1.2/9.2)
-            _, x4_5u, x4_5d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 321}, 1.2/8.8)
+            _, x4_3u, x4_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 311}, inflateRate*1.2/9.2)
+            _, x4_5u, x4_5d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 321}, inflateRate*1.2/8.8)
             wVar['brBu_DstDustKUp'] = x4_3u * x4_5u
             wVar['brBu_DstDustKDown'] = x4_3d * x4_5d
 
@@ -922,8 +926,8 @@ def createHistograms(category):
             wVar['brBu_DstDuKstDown'] = x4_2d * x4_4d * x4_6d
 
             # 4.9, 4.10
-            _, x4_9u, x4_9d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421, 'MC_StrangeDstSisPdgId': 0}, 0.5/3.9)
-            _, x4_10u, x4_10d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 0}, 1.7/8.1)
+            _, x4_9u, x4_9d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421, 'MC_StrangeDstSisPdgId': 0}, inflateRate*0.5/3.9)
+            _, x4_10u, x4_10d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 0}, inflateRate*1.7/8.1)
             wVar['brBu_DstDuUp'] = x4_9u * x4_10u
             wVar['brBu_DstDuDown'] = x4_9d * x4_10d
         if n == 'Bu_DstDd': #5
@@ -931,11 +935,11 @@ def createHistograms(category):
             # 5.1-3
             _, wVar['brBu_DstDdKUp'], wVar['brBu_DstDdKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411,
                                                                                          'MC_StrangeDstSisPdgId': 321},
-                                                                                    1.2/6.0)
+                                                                                    inflateRate*1.2/6.0)
             # 5.5-7
             _, wVar['brBu_DstDdstKUp'], wVar['brBu_DstDdstKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413,
                                                                                              'MC_StrangeDstSisPdgId': 321},
-                                                                                        0.6/4.4)
+                                                                                        inflateRate*0.6/4.4)
             # Correlate all K* decays (5.2-4, 5.6-8)
             x5_2, x5_2u, x5_2d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411, 'MC_StrangeDstSisPdgId': 323}, 0.5, centralVal=4.0)
             x5_6, x5_6u, x5_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 323}, 0.5, centralVal=4.0)
@@ -943,7 +947,10 @@ def createHistograms(category):
             wVar['brBu_DstDdKstUp'] = x5_2u * x5_6u
             wVar['brBu_DstDdKstDown'] = x5_2d * x5_6d
         if n == 'Bs_DstDs': #6
-            pass
+            x6_2_4, x6_2_4u, x6_2_4d = computeBrVarWeights(ds, {'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.0)
+            weights['brBs_DstDsKst'] = x6_2_4
+            wVar['brBs_DstDsKstUp'] = x6_2_4u
+            wVar['brBs_DstDsKstDown'] = x6_2_4d
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -1138,6 +1145,8 @@ def createHistograms(category):
 
     binning['tk_pt'] = [50, 0, 20]
 
+    binning['massTks_pipi'] = [60, 0.2, 2.]
+
     print '---------> Fill control regions histograms'
     for k in sideSelecton.keys():
         histo[k] = {}
@@ -1154,7 +1163,7 @@ def createHistograms(category):
         else:
             sMC = MCsample[n]
 
-            nGenExp = sMC.effMCgen['xsec'][0] * expectedLumi[category.name] * RDoMC_normRatio
+            nGenExp = sMC.effMCgen['xsec'][0] * expectedLumi[category.name] * data_to_MC_prescale
             eff = [1, 0]
             for f, df in [sMC.effMCgen['effGEN'],
                           decayBR[n],
@@ -1239,7 +1248,8 @@ def createHistograms(category):
                     wVar.update(auxVarDic)
 
             # Correct the amount of random tracks from PV
-            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.3, centralVal=3.9)
+            # weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.8, centralVal=3.9)
+            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.8, centralVal=1.)
             print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
 
         ############################
@@ -1314,80 +1324,84 @@ def createHistograms(category):
         # Hc mix variations
         ############################
         # From https://www.overleaf.com/read/ykppfynnfxdt
+        inflateRate = 1.5
         if n == 'Bd_DstDu': #1
             print 'Including Bd->D*Du br variations'
             # 1.1
             _, wVar['brBd_DstDuKUp'], wVar['brBd_DstDuKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421,
                                                                                          'MC_StrangeDstSisPdgId': 321},
-                                                                                    0.21/2.47)
+                                                                                    inflateRate*0.21/2.47)
             # 1.3, 1.5-8
-            _, x1_3u, x1_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 321}, 0.9/10.6)
-            _, x1_5u, x1_5d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 311}, 0.47/5.4)
+            _, x1_3u, x1_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 321}, inflateRate*0.9/10.6)
+            _, x1_5u, x1_5d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 311}, inflateRate*0.47/5.4)
             wVar['brBd_DstDustKUp'] = x1_3u * x1_5u
             wVar['brBd_DstDustKDown'] = x1_3d * x1_5d
 
             # 1.7-10
             _, wVar['brBd_DstDustUp'], wVar['brBd_DstDustDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413,
                                                                                            'MC_StrangeDstSisPdgId': 0},
-                                                                                      0.4/5.4)
+                                                                                      inflateRate*0.4/5.4)
 
             # Correlate all K* decays (1.2, 1.4, 1.6-9)
-            _, x1_2u, x1_2d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421, 'MC_StrangeDstSisPdgId': 323}, 0.5)
-            _, x1_4u, x1_4d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 323}, 0.5)
-            _, x1_6u, x1_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 313}, 0.5)
+            x1_2, x1_2u, x1_2d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421, 'MC_StrangeDstSisPdgId': 323}, 0.5, centralVal=4.)
+            x1_4, x1_4u, x1_4d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 323}, 0.5, centralVal=4.)
+            x1_6, x1_6u, x1_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.)
+            weights['brBd_DstDuKst'] = x1_2 * x1_4 * x1_6
             wVar['brBd_DstDuKstUp'] = x1_2u * x1_4u * x1_6u
             wVar['brBd_DstDuKstDown'] = x1_2d * x1_4d * x1_6d
         if n == 'Bd_DstDd': #2
             # 2.1-2
             _, wVar['brBd_DstDdKUp'], wVar['brBd_DstDdKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411,
                                                                                          'MC_StrangeDstSisPdgId': 311},
-                                                                                    0.25/3.2)
+                                                                                    inflateRate*0.25/3.2)
             # 2.5-8
             _, wVar['brBd_DstDdstKUp'], wVar['brBd_DstDdstKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413,
                                                                                              'MC_StrangeDstSisPdgId': 311},
-                                                                                        0.23/2.7)
+                                                                                        inflateRate*0.23/2.7)
             # 2.7-10
             _, wVar['brBd_DstDdstUp'], wVar['brBd_DstDdstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413,
                                                                                            'MC_StrangeDstSisPdgId': 0},
-                                                                                      0.2/2.6)
+                                                                                      inflateRate*0.2/2.6)
             # 2.11, 2.12
             _, wVar['brBd_DstDdUp'], wVar['brBd_DstDdDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411,
                                                                                        'MC_StrangeDstSisPdgId': 0},
-                                                                                  1.5/6.1)
+                                                                                  inflateRate*1.5/6.1)
             # Correlate all K* decays (2.3-4, 2.6-9)
-            _, x2_3u, x2_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411, 'MC_StrangeDstSisPdgId': 313}, 0.5)
-            _, x2_6u, x2_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 313}, 0.5)
+            x2_3, x2_3u, x2_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411, 'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.)
+            x2_6, x2_6u, x2_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.)
+            weights['brBd_DstDdKst'] = x2_3 * x2_6
             wVar['brBd_DstDdKstUp'] = x2_3u * x2_6u
             wVar['brBd_DstDdKstDown'] = x2_3u * x2_6u
         if n == 'Bd_DstDs': #3
             print 'Including Bd->D*Ds br variations'
             # 3.1
-            _, wVar['brBd_DstDsUp'], wVar['brBd_DstDsDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 431}, 1.1/8.0)
+            _, wVar['brBd_DstDsUp'], wVar['brBd_DstDsDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 431}, inflateRate*1.1/8.0)
             # 3.2
-            _, wVar['brBd_DstDsstUp'], wVar['brBd_DstDsstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 433}, 0.14/17.7)
+            _, wVar['brBd_DstDsstUp'], wVar['brBd_DstDsstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 433}, inflateRate*0.14/17.7)
             # 3.3
-            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, 0.7/1.5)
+            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.7/1.5)
         if n == 'Bu_DstDu': #4
             # 4.1
             _, wVar['brBu_DstDuKUp'], wVar['brBu_DstDuKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421,
                                                                                          'MC_StrangeDstSisPdgId': 311},
-                                                                                    0.4/3.8)
+                                                                                    inflateRate*0.4/3.8)
             # 4.3, 4.5-7
-            _, x4_3u, x4_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 311}, 1.2/9.2)
-            _, x4_5u, x4_5d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 321}, 1.2/8.8)
+            _, x4_3u, x4_3d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 311}, inflateRate*1.2/9.2)
+            _, x4_5u, x4_5d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 321}, inflateRate*1.2/8.8)
             wVar['brBu_DstDustKUp'] = x4_3u * x4_5u
             wVar['brBu_DstDustKDown'] = x4_3d * x4_5d
 
             # Correlate all K* decays (4.2, 4.4, 4.6-8)
-            _, x4_2u, x4_2d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421, 'MC_StrangeDstSisPdgId': 313}, 0.5)
-            _, x4_4u, x4_4d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 313}, 0.5)
-            _, x4_6u, x4_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 323}, 0.5)
+            x4_2, x4_2u, x4_2d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421, 'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.)
+            x4_4, x4_4u, x4_4d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.)
+            x4_6, x4_6u, x4_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 323}, 0.5, centralVal=4.)
+            weights['brBu_DstDuKst'] = x4_2 * x4_4 * x4_6
             wVar['brBu_DstDuKstUp'] = x4_2u * x4_4u * x4_6u
             wVar['brBu_DstDuKstDown'] = x4_2d * x4_4d * x4_6d
 
             # 4.9, 4.10
-            _, x4_9u, x4_9d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421, 'MC_StrangeDstSisPdgId': 0}, 0.5/3.9)
-            _, x4_10u, x4_10d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 0}, 1.7/8.1)
+            _, x4_9u, x4_9d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421, 'MC_StrangeDstSisPdgId': 0}, inflateRate*0.5/3.9)
+            _, x4_10u, x4_10d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 423, 'MC_StrangeDstSisPdgId': 0}, inflateRate*1.7/8.1)
             wVar['brBu_DstDuUp'] = x4_9u * x4_10u
             wVar['brBu_DstDuDown'] = x4_9d * x4_10d
         if n == 'Bu_DstDd': #5
@@ -1395,18 +1409,22 @@ def createHistograms(category):
             # 5.1-3
             _, wVar['brBu_DstDdKUp'], wVar['brBu_DstDdKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411,
                                                                                          'MC_StrangeDstSisPdgId': 321},
-                                                                                    1.2/6.0)
+                                                                                    inflateRate*1.2/6.0)
             # 5.5-7
             _, wVar['brBu_DstDdstKUp'], wVar['brBu_DstDdstKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413,
                                                                                              'MC_StrangeDstSisPdgId': 321},
-                                                                                        0.6/4.4)
+                                                                                        inflateRate*0.6/4.4)
             # Correlate all K* decays (5.2-4, 5.6-8)
-            _, x5_2u, x5_2d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411, 'MC_StrangeDstSisPdgId': 323}, 0.5)
-            _, x5_6u, x5_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 323}, 0.5)
+            x5_2, x5_2u, x5_2d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 411, 'MC_StrangeDstSisPdgId': 323}, 0.5, centralVal=4.0)
+            x5_6, x5_6u, x5_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 323}, 0.5, centralVal=4.0)
+            weights['brBu_DstDdKst'] = x5_2 * x5_6
             wVar['brBu_DstDdKstUp'] = x5_2u * x5_6u
             wVar['brBu_DstDdKstDown'] = x5_2d * x5_6d
         if n == 'Bs_DstDs': #6
-            pass
+            x6_2_4, x6_2_4u, x6_2_4d = computeBrVarWeights(ds, {'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.0)
+            weights['brBs_DstDsKst'] = x6_2_4
+            wVar['brBs_DstDsKstUp'] = x6_2_4u
+            wVar['brBs_DstDsKstDown'] = x6_2_4d
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -1480,6 +1498,18 @@ def createHistograms(category):
                                                        binning=binning['tk_pt'], opt='underflow',
                                                        weights=w[sel[k]], scale_histo=scale[k]
                                                       )
+
+                    if nTk == 2:
+                        regName = 'massTks_pipi_'+k[6:-5]
+                        if not regName in histo.keys():
+                            histo[regName] = {}
+                        histo[regName][h_name] = create_TH1D(
+                                                       ds['massTks_pipi'][sel[k]],
+                                                       name=h_name, title=h_name,
+                                                       binning=binning['massTks_pipi'], opt='underflow',
+                                                       weights=w[sel[k]], scale_histo=scale[k]
+                                                      )
+
 
     if args.dumpWeightsTree:
         print 'Exiting runCombine.py. To run further remove dumpWeightsTree option.'
@@ -1577,6 +1607,14 @@ def createHistograms(category):
                                                    ds['tkPt_'+str(iTk)][sideSelecton[k](ds)],
                                                    name='data_obs', title='Data Obs',
                                                    binning=binning['tk_pt'], opt='underflow')
+
+                if nTk == 2:
+                    regName = 'massTks_pipi_'+k[6:-5]
+                    histo[regName]['data'] = create_TH1D(
+                                                   ds['massTks_pipi'][sideSelecton[k](ds)],
+                                                   name='data_obs', title='Data Obs',
+                                                   binning=binning['massTks_pipi'], opt='underflow',
+                                                  )
         print 'N observed data control regions: ' + ' & '.join(['{:.0f}'.format(histo['AddTk_'+s+'_mHad']['data'].Integral()) for s in ['p', 'm', 'pp', 'pm', 'mm']]) + ' \\\\'
 
     ######################################################
@@ -1685,6 +1723,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
 
     varsToPlot = ['B_eta', 'mu_eta', 'K_eta', 'pi_eta', 'pis_eta','mass_piK','deltaM_DstD']
     varsToPlot += ['p_tk_pt_0', 'm_tk_pt_0', 'pp_tk_pt_0', 'pm_tk_pt_0', 'mm_tk_pt_0', 'pp_tk_pt_1', 'pm_tk_pt_1', 'mm_tk_pt_1']
+    varsToPlot += ['massTks_pipi_mm', 'massTks_pipi_pm', 'massTks_pipi_pp']
     for var in varsToPlot:
         if var in hDic.keys():
             print 'Creating '+var
@@ -2268,7 +2307,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # card += 'overallMcNormBs'+category.trg+' rateParam * Bs_* 1.\n'
 
     # Relax green unc
-    card += 'overallBToDstHc rateParam * B[dsu]_DstD[dsu] 1.\n'
+    # card += 'overallBToDstHc rateParam * B[dsu]_DstD[dsu] 1.\n'
 
 
     #### Combinatorial background norm
@@ -2433,7 +2472,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         out = ''
 
         for n in shapeNames:
-            type = 'shapeU' if 'Kst' in n else 'shape'
+            # type = 'shapeU' if 'Kst' in n else 'shape'
+            type = 'shape'
             out += 'br'+n+' ' + type + aux*nCat + '\n'
         return out
 
@@ -2442,7 +2482,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += brShapeSys(['Bd_DstDs'], ['Bd_DstDs', 'Bd_DstDsst', 'Bd_DstDsst0'])
     card += brShapeSys(['Bu_DstDu'], ['Bu_DstDuK', 'Bu_DstDustK', 'Bu_DstDuKst', 'Bu_DstDu'])
     card += brShapeSys(['Bu_DstDd'], ['Bu_DstDdK', 'Bu_DstDdstK', 'Bu_DstDdKst'])
-    # card += brShapeSys(['Bs_DstDs'], []) # Threated all together in scale sys above
+    card += brShapeSys(['Bs_DstDs'], ['Bs_DstDsKst']) # Threated all together in scale sys above
 
 
 
