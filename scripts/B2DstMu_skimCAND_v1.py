@@ -149,6 +149,8 @@ def insertOrdered(list, el):
         for il in range(len(list)):
             if list[il] < el:
                 break
+        else:
+            il += 1
         # list = list[:il] + [el] + list[il:]
         return il, list[:il] + [el] + list[il:]
 
