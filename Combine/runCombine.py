@@ -52,7 +52,7 @@ parser.add_argument ('--category', '-c', type=str, default='high', choices=['sin
 parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit.')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
 parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
-parser.add_argument ('--cardTag', '-v', default='test', help='Card name initial tag.')
+parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
 
 parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
@@ -291,7 +291,7 @@ def loadDatasets(category, loadRD):
     'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi_v2', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_TauDstPiPi': DSetLoader('Bd_TauNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
@@ -339,32 +339,32 @@ def loadDatasets(category, loadRD):
         print 'Skipping on the flight cuts (if any).'
     else:
         pass
-        # for k in dSet.keys():
-        #     addCuts = [
-        #         ['B_eta', -1., 1.],
-        #         # ['K_pt', 1., 1e3],
-        #         # ['pi_pt', 1., 1e3],
-        #         # ['pis_pt', 1., 1e3],
-        #               ]
-        #     # sel = np.ones_like(dSet[k]).astype(np.bool)
-        #     sel = dSet[k]['M2_miss'] > 0.2
-        #     for var, low, high in addCuts:
-        #         sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
-        #     #removeDups
-        #     if k == 'mu':
-        #         selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
-        #                                 np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
-        #         sel = np.logical_and(sel, selDups)
-        #
-        #     dSet[k] = dSet[k][sel]
-        #     corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
-        #
-        #     # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
-        #     sel = dSetTkSide[k]['M2_miss'] > 0.2
-        #     for var, low, high in addCuts:
-        #         sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
-        #     dSetTkSide[k] = dSetTkSide[k][sel]
-        #     corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
+        for k in dSet.keys():
+            addCuts = [
+                ['B_eta', -1., 1.],
+                # ['K_pt', 1., 1e3],
+                # ['pi_pt', 1., 1e3],
+                # ['pis_pt', 1., 1e3],
+                      ]
+            # sel = np.ones_like(dSet[k]).astype(np.bool)
+            sel = dSet[k]['M2_miss'] > 0.2
+            for var, low, high in addCuts:
+                sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
+            #removeDups
+            if k == 'mu':
+                selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
+                                        np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
+                sel = np.logical_and(sel, selDups)
+
+            dSet[k] = dSet[k][sel]
+            corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
+
+            # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
+            sel = dSetTkSide[k]['M2_miss'] > 0.2
+            for var, low, high in addCuts:
+                sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
+            dSetTkSide[k] = dSetTkSide[k][sel]
+            corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
 
     return MCsample, dSet, dSetTkSide
 
@@ -846,6 +846,16 @@ def createHistograms(category):
             uncN = 'Dst2S_width'
             weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.3)
 
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, 0.3, keepNorm=True)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, 0.3, keepNorm=True)
+            wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
+            wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
+
+            _, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, 0.5, keepNorm=True)
+            _, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, 0.5, keepNorm=True)
+            wVar['brNarrowDstst_DstPiPiUp'] = wD1Up * wD2Up
+            wVar['brNarrowDstst_DstPiPiDown'] = wD1Dw * wD2Dws
+
         ############################
         # Hc mix variations
         ############################
@@ -971,6 +981,9 @@ def createHistograms(category):
             auxName = category.name + '_' + mcType + '_' + card_name + '.root'
 
             wDf = pd.DataFrame.from_dict({'central': weightsCentral*nTotExp/nTotSelected})
+            for k, w in wVar.iteritems():
+                if k:
+                    wDf[k] = w*wDf['central']
             print 'Dumping weights tree in', os.path.join(weightsDir, auxName)
             rtnp.array2root(wDf.to_records(), os.path.join(weightsDir, auxName), treename='weights', mode='RECREATE')
 
@@ -1143,9 +1156,16 @@ def createHistograms(category):
     # sideVar['AddTk_pp_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_pp_mHad'] = [15, 2.25, 3.75]
 
-    binning['tk_pt'] = [50, 0, 20]
+    binning['m_tk_pt_0'] = [50, 0, 12]
+    binning['p_tk_pt_0'] = [50, 0, 15]
+    binning['mm_tk_pt_0'] = [30, 0, 10]
+    binning['mm_tk_pt_1'] = [30, 0, 8]
+    binning['pm_tk_pt_0'] = [50, 0, 15]
+    binning['pm_tk_pt_1'] = [50, 0, 15]
+    binning['pp_tk_pt_0'] = [50, 0, 15]
+    binning['pp_tk_pt_1'] = [50, 0, 10]
 
-    binning['massTks_pipi'] = [60, 0.2, 2.]
+    binning['massTks_pipi'] = [50, 0.25, 1.2]
 
     print '---------> Fill control regions histograms'
     for k in sideSelecton.keys():
@@ -1249,7 +1269,7 @@ def createHistograms(category):
 
             # Correct the amount of random tracks from PV
             # weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.8, centralVal=3.9)
-            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.8, centralVal=1.)
+            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=1., centralVal=2.)
             print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
 
         ############################
@@ -1317,7 +1337,17 @@ def createHistograms(category):
             print 'Including D**->D*PiPi width variations'
             widthMods = [[x, 2.640, 0.400] for x in [100413, 100423]]
             uncN = 'Dst2S_width'
-            weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.3)
+            weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.5)
+
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, 0.3, keepNorm=True)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, 0.3, keepNorm=True)
+            wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
+            wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
+
+            _, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, 0.5, keepNorm=True)
+            _, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, 0.5, keepNorm=True)
+            wVar['brNarrowDstst_DstPiPiUp'] = wD1Up * wD2Up
+            wVar['brNarrowDstst_DstPiPiDown'] = wD1Dw * wD2Dw
 
 
         ############################
@@ -1495,12 +1525,12 @@ def createHistograms(category):
                         histo[regName][h_name] = create_TH1D(
                                                        ds['tkPt_'+str(iTk)][sel[k]],
                                                        name=h_name, title=h_name,
-                                                       binning=binning['tk_pt'], opt='underflow',
+                                                       binning=binning[regName], opt='underflow',
                                                        weights=w[sel[k]], scale_histo=scale[k]
                                                       )
 
                     if nTk == 2:
-                        regName = 'massTks_pipi_'+k[6:-5]
+                        regName = 'mass_tks_pipi_'+k[6:-5]
                         if not regName in histo.keys():
                             histo[regName] = {}
                         histo[regName][h_name] = create_TH1D(
@@ -1606,10 +1636,10 @@ def createHistograms(category):
                     histo[regName]['data'] = create_TH1D(
                                                    ds['tkPt_'+str(iTk)][sideSelecton[k](ds)],
                                                    name='data_obs', title='Data Obs',
-                                                   binning=binning['tk_pt'], opt='underflow')
+                                                   binning=binning[regName], opt='underflow')
 
                 if nTk == 2:
-                    regName = 'massTks_pipi_'+k[6:-5]
+                    regName = 'mass_tks_pipi_'+k[6:-5]
                     histo[regName]['data'] = create_TH1D(
                                                    ds['massTks_pipi'][sideSelecton[k](ds)],
                                                    name='data_obs', title='Data Obs',
@@ -1723,7 +1753,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
 
     varsToPlot = ['B_eta', 'mu_eta', 'K_eta', 'pi_eta', 'pis_eta','mass_piK','deltaM_DstD']
     varsToPlot += ['p_tk_pt_0', 'm_tk_pt_0', 'pp_tk_pt_0', 'pm_tk_pt_0', 'mm_tk_pt_0', 'pp_tk_pt_1', 'pm_tk_pt_1', 'mm_tk_pt_1']
-    varsToPlot += ['massTks_pipi_mm', 'massTks_pipi_pm', 'massTks_pipi_pp']
+    varsToPlot += ['mass_tks_pipi_mm', 'mass_tks_pipi_pm', 'mass_tks_pipi_pp']
     for var in varsToPlot:
         if var in hDic.keys():
             print 'Creating '+var
@@ -1765,7 +1795,8 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                 cAux.SaveAs(outdir+'/fig/'+var+'abs_'+tag+'.png')
                 cAux.SaveAs(webFolder+'/'+var+'abs_'+tag+'.png')
                 outCanvas.append(cAux)
-
+        else:
+            print '[WARNING] ' + var + ' missing from histos dict'
 
 
 
@@ -2307,7 +2338,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # card += 'overallMcNormBs'+category.trg+' rateParam * Bs_* 1.\n'
 
     # Relax green unc
-    # card += 'overallBToDstHc rateParam * B[dsu]_DstD[dsu] 1.\n'
+    card += 'overallBToDstHc rateParam * B[dsu]_DstD[dsu] 1.\n'
 
 
     #### Combinatorial background norm
@@ -2461,7 +2492,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             aux += ' 1.'
         else: aux += ' -'
     card += 'Dst2S_width shape' + aux*nCat + '\n'
-
+    card += 'brDstst_DststPi shape' + aux*nCat + '\n'
+    card += 'brNarrowDstst_DstPiPi shape' + aux*nCat + '\n'
 
     # Hc mix composition
     def brShapeSys(relevantSamples=[], shapeNames=[]):
