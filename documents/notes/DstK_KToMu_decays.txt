@@ -1,0 +1,62 @@
+-511 --> 433 -413
+	433 --> 431 22
+		431 --> 323 -313
+			323 --> 111
+			-313 --> -321
+				-321 --> 13 -14
+	-413 --> -421 -211
+		-421 --> 321 -211
+			321 --> -13 14
+
+
+Best pair updated to mu:121 Dst:76 with candidate 0
+Mu dR=0.0293
+Mu dpt/pt=0.3148
+Dst dR=0.0005
+Dst dpt/pt=0.0136
+Relevant B meson found (idx: 89)
+Muons in decay tree: 0
+D* in decay tree: 0
+
+
+
+
+
+
+Recognized B(s) -> D* mu X in MC particle 40:
+521 --> -425 213
+	-425 --> -413 211
+		-413 --> -421 -211
+			-421 --> 321 -211
+				321 --> -13 14
+	213 --> 211 111
+		211 --> -13 14
+
+
+
+
+
+
+
+
+
+Recognized B(s) -> D* mu X in MC particle 31:
+511 --> -433 413
+	-433 --> -431 22
+		-431 --> 331 -213
+			331 --> 221
+				221 --> 111 111 111
+			-213 --> 111
+	413 --> 421 211
+		421 --> -321 211
+			-321 --> 13 -14
+
+
+Best pair updated to mu:112 Dst:66 with candidate 0
+Mu dR=0.0200
+Mu dpt/pt=0.1901
+Dst dR=0.0014
+Dst dpt/pt=0.0075
+Relevant B meson found (idx: 61)
+Muons in decay tree: 1
+D* in decay tree: 0

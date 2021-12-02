@@ -69,13 +69,15 @@ MCend = 'ntuples_B2DstMu_211118/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
-              'Bd_MuNuDstPiPi',  'Bu_MuNuDstPiPi',  'Bu_MuNuDstPiPi_v2',
+              'Bd_MuNuDstPiPi',  'Bu_MuNuDstPiPi',  'Bd_MuNuDstPiPi_v2',
               'Bu_TauNuDstPi',   'Bd_TauNuDstPi',
               'Bd_TauNuDstPiPi', 'Bu_TauNuDstPiPi',
               'Bs_MuNuDstK',     'Bs_TauNuDstK',
               'Bd_DstDu',        'Bd_DstDd',        'Bd_DstDs',
               'Bu_DstDu',        'Bu_DstDd',        'Bs_DstDs',
+              # Others
               'DstKu_KuToMu',
+              'Mu_Enriched'
               ]
 
 sampleFile = '/storage/af/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml'

@@ -97,7 +97,8 @@ parser.add_argument ('--runBiasAnalysis', default=False, action='store_true', he
 # Scan options
 parser.add_argument ('--scanStrategy', default=1, type=int, help='Minimizer strategy for the scan.')
 parser.add_argument ('--maskScan', type=str, default=[], nargs='+', help='Channels to mask during likelyhood scan. If this list is non empty, the full card is used (default is fitregionsOnly).')
-parser.add_argument ('--tagScan', type=str, default='')
+parser.add_argument ('--scanTag', type=str, default='')
+parser.add_argument ('--freezeParsScan', type=str, default=[], nargs='+')
 
 # Externalization options
 parser.add_argument ('--externPars', default=['B2DstCLNeig1', 'B2DstCLNeig2', 'B2DstCLNeig3'], type=str, help='Parameters to externalize.', nargs='+')
@@ -290,8 +291,8 @@ def loadDatasets(category, loadRD):
     ######## D** background
     'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi_v2', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi_v2', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_TauDstPiPi': DSetLoader('Bd_TauNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
@@ -338,7 +339,7 @@ def loadDatasets(category, loadRD):
     if args.dumpWeightsTree:
         print 'Skipping on the flight cuts (if any).'
     else:
-        pass
+        # pass
         for k in dSet.keys():
             addCuts = [
                 ['B_eta', -1., 1.],
@@ -431,7 +432,7 @@ def computeTksPVweights(ds, relScale=0.05, centralVal=0.39/0.10):
     exponent = selPdgID0.astype(np.int) + selPdgID1.astype(np.int)
     w = np.power(centralVal, exponent)
     up = np.power(centralVal*(1+relScale), exponent)/w
-    down = np.power(centralVal*(1-relScale), exponent)/w
+    down = np.power(centralVal*max(0, 1-relScale), exponent)/w
     return w, up, down
 
 def createHistograms(category):
@@ -851,10 +852,11 @@ def createHistograms(category):
             wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
             wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
 
-            _, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, 0.5, keepNorm=True)
-            _, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, 0.5, keepNorm=True)
-            wVar['brNarrowDstst_DstPiPiUp'] = wD1Up * wD2Up
-            wVar['brNarrowDstst_DstPiPiDown'] = wD1Dw * wD2Dws
+            _, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, 0.8, keepNorm=True)
+            wVar['brD2420_DstPiPiUp'], wVar['brD2420_DstPiPiDown'] = wD1Up, wD1Dw
+            _, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, 0.8, keepNorm=True)
+            wVar['brD2460_DstPiPiUp'], wVar['brD2460_DstPiPiDown'] = wD2Up, wD2Dw
+
 
         ############################
         # Hc mix variations
@@ -1120,7 +1122,7 @@ def createHistograms(category):
     sideSelecton['AddTk_m_mHad'] = selfun__TkMinus
     sideVar['AddTk_m_mHad'] = 'massHadTks'
     # sideVar['AddTk_m_mHad'] = 'massHadTks_DstMassConstraint'
-    binning['AddTk_m_mHad'] = [30, 2.1, 3.3]
+    binning['AddTk_m_mHad'] = [40, 2.1, 3.3]
 
 
     def selfun__TkPlusMinus(ds):
@@ -1136,7 +1138,7 @@ def createHistograms(category):
     sideSelecton['AddTk_pm_mHad'] = selfun__TkPlusMinus
     sideVar['AddTk_pm_mHad'] = 'massHadTks'
     # sideVar['AddTk_pm_mHad'] = 'massHadTks_DstMassConstraint'
-    binning['AddTk_pm_mHad'] = [30, 2.3, 3.75]
+    binning['AddTk_pm_mHad'] = [60, 2.3, 3.75]
 
     def selfun__TkMinusMinus(ds):
         sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == -2, ds['N_goodAddTks'] == 2)
@@ -1145,7 +1147,7 @@ def createHistograms(category):
     sideSelecton['AddTk_mm_mHad'] = selfun__TkMinusMinus
     sideVar['AddTk_mm_mHad'] = 'massHadTks'
     # sideVar['AddTk_mm_mHad'] = 'massHadTks_DstMassConstraint'
-    binning['AddTk_mm_mHad'] = [15, 2.25, 3.6]
+    binning['AddTk_mm_mHad'] = [20, 2.25, 3.6]
 
     def selfun__TkPlusPlus(ds):
         sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == +2, ds['N_goodAddTks'] == 2)
@@ -1154,18 +1156,19 @@ def createHistograms(category):
     sideSelecton['AddTk_pp_mHad'] = selfun__TkPlusPlus
     sideVar['AddTk_pp_mHad'] = 'massHadTks'
     # sideVar['AddTk_pp_mHad'] = 'massHadTks_DstMassConstraint'
-    binning['AddTk_pp_mHad'] = [15, 2.25, 3.75]
+    binning['AddTk_pp_mHad'] = [20, 2.25, 3.7]
 
-    binning['m_tk_pt_0'] = [50, 0, 12]
-    binning['p_tk_pt_0'] = [50, 0, 15]
-    binning['mm_tk_pt_0'] = [30, 0, 10]
-    binning['mm_tk_pt_1'] = [30, 0, 8]
-    binning['pm_tk_pt_0'] = [50, 0, 15]
-    binning['pm_tk_pt_1'] = [50, 0, 15]
-    binning['pp_tk_pt_0'] = [50, 0, 15]
-    binning['pp_tk_pt_1'] = [50, 0, 10]
+    binning['m_tk_pt_0'] = [50, 0.5, 12]
+    binning['p_tk_pt_0'] = [50, 0.5, 15]
+    binning['mm_tk_pt_0'] = [30, 0.5, 10]
+    binning['pm_tk_pt_0'] = [50, 0.5, 15]
+    binning['pp_tk_pt_0'] = [50, 0.5, 15]
+    binning['mm_tk_pt_1'] = [40, 0.5, 4]
+    binning['pm_tk_pt_1'] = [40, 0.5, 8]
+    binning['pp_tk_pt_1'] = [40, 0.5, 4]
 
     binning['massTks_pipi'] = [50, 0.25, 1.2]
+    binning['mass_DstPi_0'] = [50, 2.1, 3.3]
 
     print '---------> Fill control regions histograms'
     for k in sideSelecton.keys():
@@ -1269,7 +1272,7 @@ def createHistograms(category):
 
             # Correct the amount of random tracks from PV
             # weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.8, centralVal=3.9)
-            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=1., centralVal=2.)
+            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=3., centralVal=1.)
             print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
 
         ############################
@@ -1344,10 +1347,10 @@ def createHistograms(category):
             wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
             wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
 
-            _, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, 0.5, keepNorm=True)
-            _, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, 0.5, keepNorm=True)
-            wVar['brNarrowDstst_DstPiPiUp'] = wD1Up * wD2Up
-            wVar['brNarrowDstst_DstPiPiDown'] = wD1Dw * wD2Dw
+            _, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, 0.8, keepNorm=True)
+            wVar['brD2420_DstPiPiUp'], wVar['brD2420_DstPiPiDown'] = wD1Up, wD1Dw
+            _, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, 0.8, keepNorm=True)
+            wVar['brD2460_DstPiPiUp'], wVar['brD2460_DstPiPiDown'] = wD2Up, wD2Dw
 
 
         ############################
@@ -1540,6 +1543,17 @@ def createHistograms(category):
                                                        weights=w[sel[k]], scale_histo=scale[k]
                                                       )
 
+                        regName = 'mass_DstPi_0_'+k[6:-5]
+                        if not regName in histo.keys():
+                            histo[regName] = {}
+                        histo[regName][h_name] = create_TH1D(
+                                                       ds['tkMassHad_0'][sel[k]],
+                                                       name=h_name, title=h_name,
+                                                       binning=binning['mass_DstPi_0'], opt='underflow',
+                                                       weights=w[sel[k]], scale_histo=scale[k]
+                                                      )
+
+
 
     if args.dumpWeightsTree:
         print 'Exiting runCombine.py. To run further remove dumpWeightsTree option.'
@@ -1644,6 +1658,13 @@ def createHistograms(category):
                                                    ds['massTks_pipi'][sideSelecton[k](ds)],
                                                    name='data_obs', title='Data Obs',
                                                    binning=binning['massTks_pipi'], opt='underflow',
+                                                  )
+
+                    regName = 'mass_DstPi_0_'+k[6:-5]
+                    histo[regName]['data'] = create_TH1D(
+                                                   ds['tkMassHad_0'][sideSelecton[k](ds)],
+                                                   name='data_obs', title='Data Obs',
+                                                   binning=binning['mass_DstPi_0'], opt='underflow',
                                                   )
         print 'N observed data control regions: ' + ' & '.join(['{:.0f}'.format(histo['AddTk_'+s+'_mHad']['data'].Integral()) for s in ['p', 'm', 'pp', 'pm', 'mm']]) + ' \\\\'
 
@@ -1754,6 +1775,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
     varsToPlot = ['B_eta', 'mu_eta', 'K_eta', 'pi_eta', 'pis_eta','mass_piK','deltaM_DstD']
     varsToPlot += ['p_tk_pt_0', 'm_tk_pt_0', 'pp_tk_pt_0', 'pm_tk_pt_0', 'mm_tk_pt_0', 'pp_tk_pt_1', 'pm_tk_pt_1', 'mm_tk_pt_1']
     varsToPlot += ['mass_tks_pipi_mm', 'mass_tks_pipi_pm', 'mass_tks_pipi_pp']
+    varsToPlot += ['mass_DstPi_0_mm', 'mass_DstPi_0_pm', 'mass_DstPi_0_pp']
     for var in varsToPlot:
         if var in hDic.keys():
             print 'Creating '+var
@@ -2338,7 +2360,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # card += 'overallMcNormBs'+category.trg+' rateParam * Bs_* 1.\n'
 
     # Relax green unc
-    card += 'overallBToDstHc rateParam * B[dsu]_DstD[dsu] 1.\n'
+    # card += 'overallBToDstHc rateParam * B[dsu]_DstD[dsu] 1.\n'
 
 
     #### Combinatorial background norm
@@ -2493,7 +2515,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         else: aux += ' -'
     card += 'Dst2S_width shape' + aux*nCat + '\n'
     card += 'brDstst_DststPi shape' + aux*nCat + '\n'
-    card += 'brNarrowDstst_DstPiPi shape' + aux*nCat + '\n'
+    card += 'brD2420_DstPiPi shape' + aux*nCat + '\n'
+    card += 'brD2460_DstPiPi shape' + aux*nCat + '\n'
 
     # Hc mix composition
     def brShapeSys(relevantSamples=[], shapeNames=[]):
@@ -2810,6 +2833,8 @@ def dumpNuisFromScan(tag, out):
     for v in df.columns:
         if not v.startswith('trackedParam_'):
             continue
+        if v == 'CMS_th1x':
+            continue
         aux.append([v[13:], df[v].iloc[0] ])
 
     t = PrettyTable()
@@ -2821,7 +2846,7 @@ def dumpNuisFromScan(tag, out):
         dumpfile.write('{}\n'.format(t))
 
 
-def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=50, maskStr='', strategy=1, draw=True, dumpNuis=False):
+def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=30, maskStr='', strategy=1, freezePars=[], draw=True, dumpNuis=False):
     if not out[-1] == '/': out += '/'
     cmd = 'cd ' + out + '; '
     cmd += 'combine -M MultiDimFit'
@@ -2837,6 +2862,8 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=5
     cmd += ' --setParameters r={:.2f}'.format(rVal)
     if maskStr:
         cmd += ','+maskStr
+    if len(freezePars):
+        cmd += ' --freezeParameters ' + ','.join(freezePars)
     cmd += ' --trackParameters rgx{.*}'
     cmd += ' -n ' + tag
     cmd += ' --verbose -1'
@@ -3784,7 +3811,7 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 
     # Run the test stat toy distribution
     cmdToys = cmd.replace('-n Obs', '-n Toys')
-    cmdToys = cmdToys.replace('-t 0 -s 100', '-t 20 -s -1')
+    cmdToys = cmdToys.replace('-t 0 -s 100', '-t 10 -s -1')
     print cmdToys
 
     Nrep = 10
@@ -4020,10 +4047,16 @@ if __name__ == "__main__":
                         print 'Masking', kn
                         maskList.append('mask_'+kn+'=1')
             maskStr = ','.join(maskList)
-            fit_RDst, rDst_postFitRegion = runScan(args.tagScan, card_location, outdir,
+            fit_RDst, rDst_postFitRegion = runScan(args.scanTag, card_location, outdir,
                                                    args.category.capitalize(),
                                                    maskStr=maskStr,
                                                    rLimits=rLimits, strategy=0, draw=True, dumpNuis=True)
+        elif args.scanTag:
+            fit_RDst, rDst_postFitRegion = runScan(args.scanTag, card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+                                                   args.category.capitalize(),
+                                                   freezePars=args.freezeParsScan,
+                                                   rLimits=rLimits,
+                                                   strategy=0, draw=True, dumpNuis=True)
         else:
             fit_RDst, rDst_postFitRegion = runScan('Base', card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                                                    args.category.capitalize(),
