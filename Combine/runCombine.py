@@ -283,7 +283,7 @@ def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
     candDir='ntuples_B2DstMu_211118'
-    print 'Using candDir=', candDir
+    print 'Using candDir =', candDir
     MCsample = {
     ######## Signals
     'tau': DSetLoader('Bd_TauNuDst', candDir=candDir, skimmedTag=args.skimmedTag),
@@ -847,15 +847,21 @@ def createHistograms(category):
             uncN = 'Dst2S_width'
             weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.3)
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, 0.3, keepNorm=True)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, 0.3, keepNorm=True)
+            keepNorm=False
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, 1.0, keepNorm=keepNorm)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, 1.0, keepNorm=keepNorm)
             wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
             wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
 
-            _, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, 0.8, keepNorm=True)
+            _, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, 1.0, keepNorm=keepNorm)
             wVar['brD2420_DstPiPiUp'], wVar['brD2420_DstPiPiDown'] = wD1Up, wD1Dw
-            _, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, 0.8, keepNorm=True)
+            _, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, 1.0, keepNorm=keepNorm)
             wVar['brD2460_DstPiPiUp'], wVar['brD2460_DstPiPiDown'] = wD2Up, wD2Dw
+
+            _, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413, 'MC_munuSisterPdgId_1': 0}, 1.0, keepNorm=keepNorm)
+            wVar['brD2430_DstPiPiUp'], wVar['brD2430_DstPiPiDown'] = wUp, wDw
+            _, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 100413, 'MC_munuSisterPdgId_1': 0}, 1.0, keepNorm=keepNorm)
+            wVar['brDst2S_DstPiPiUp'], wVar['brDst2S_DstPiPiDown'] = wUp, wDw
 
 
         ############################
@@ -1271,8 +1277,8 @@ def createHistograms(category):
                     wVar.update(auxVarDic)
 
             # Correct the amount of random tracks from PV
-            # weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.8, centralVal=3.9)
-            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=3., centralVal=1.)
+            # weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=3., centralVal=1.)
+            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.05, centralVal=2.3)
             print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
 
         ############################
@@ -1342,15 +1348,21 @@ def createHistograms(category):
             uncN = 'Dst2S_width'
             weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.5)
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, 0.3, keepNorm=True)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, 0.3, keepNorm=True)
+            keepNorm=False
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, 1.0, keepNorm=keepNorm)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, 1.0, keepNorm=keepNorm)
             wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
             wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
 
-            _, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, 0.8, keepNorm=True)
+            _, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, 1.0, keepNorm=keepNorm)
             wVar['brD2420_DstPiPiUp'], wVar['brD2420_DstPiPiDown'] = wD1Up, wD1Dw
-            _, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, 0.8, keepNorm=True)
+            _, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, 1.0, keepNorm=keepNorm)
             wVar['brD2460_DstPiPiUp'], wVar['brD2460_DstPiPiDown'] = wD2Up, wD2Dw
+
+            _, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413, 'MC_munuSisterPdgId_1': 0}, 1.0, keepNorm=keepNorm)
+            wVar['brD2430_DstPiPiUp'], wVar['brD2430_DstPiPiDown'] = wUp, wDw
+            _, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 100413, 'MC_munuSisterPdgId_1': 0}, 1.0, keepNorm=keepNorm)
+            wVar['brDst2S_DstPiPiUp'], wVar['brDst2S_DstPiPiDown'] = wUp, wDw
 
 
         ############################
@@ -2288,7 +2300,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     for c in np.sort(histo.keys()):
         if c.startswith('h2'): continue
         if fitRegionsOnly:
-            if c == 'AddTk_pm_mHad': continue
+            # if c == 'AddTk_pm_mHad': continue
+            if c == 'AddTk_pm_mVis': continue
             if c.startswith('AddTk'):
                 if not c.split('_')[1] in args.controlRegions:
                     continue
@@ -2409,7 +2422,11 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         card += brScaleSys('brBd_DstMuNu', ['mu', 'tau'], relUnc=1.2/50.6)
 
     # card += brScaleSys('DstPiBr', ['Bu_MuDstPi', 'Bd_MuDstPi', 'Bu_TauDstPi', 'Bd_TauDstPi'], relUnc=2*0.4/6.0) # Moved to shape
-    card += brScaleSys('DstPiPiBr', ['Bu_MuDstPiPi', 'Bd_MuDstPiPi', 'Bu_TauDstPiPi', 'Bd_TauDstPiPi'], relUnc=0.3/0.96)
+
+    ## Temporary
+    # card += brScaleSys('DstPiPiBr', ['Bu_MuDstPiPi', 'Bd_MuDstPiPi', 'Bu_TauDstPiPi', 'Bd_TauDstPiPi'], relUnc=0.3/0.96)
+    card += brScaleSys('DstPiPiBr', ['Bu_MuDstPiPi', 'Bu_TauDstPiPi', 'Bd_TauDstPiPi'], relUnc=0.3/0.96)
+    ##
     card += brScaleSys('DstKBr', ['Bs_MuDstK', 'Bs_TauDstK'], relUnc=1.5/5.9)
 
     card += brScaleSys('RDs_stst', ['Bu_TauDstPi', 'Bd_TauDstPi', 'Bd_TauDstPiPi', 'Bu_TauDstPiPi', 'Bs_TauDstK'], relUnc=0.5)
@@ -2516,7 +2533,9 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += 'Dst2S_width shape' + aux*nCat + '\n'
     card += 'brDstst_DststPi shape' + aux*nCat + '\n'
     card += 'brD2420_DstPiPi shape' + aux*nCat + '\n'
+    card += 'brD2430_DstPiPi shape' + aux*nCat + '\n'
     card += 'brD2460_DstPiPi shape' + aux*nCat + '\n'
+    card += 'brDst2S_DstPiPi shape' + aux*nCat + '\n'
 
     # Hc mix composition
     def brShapeSys(relevantSamples=[], shapeNames=[]):
@@ -2553,7 +2572,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         if 'm' in args.controlRegions:
             card += 'AddTk_m_mHad autoMCStats 0 1 1\n'
         if 'pm' in args.controlRegions:
-            card += 'AddTk_pm_mVis autoMCStats 0 1 1\n'
+            card += 'AddTk_pm_mHad autoMCStats 0 1 1\n'
         if 'pp' in args.controlRegions:
             card += 'AddTk_pp_mHad autoMCStats 0 1 1\n'
         if 'mm' in args.controlRegions:
@@ -2980,13 +2999,13 @@ def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
 ########################### -------- Fit Diagnostic ------------------ #########################
 
 def defineChannelMasking(histo):
-    channelMasks = ['AddTk_pm_mHad', 'specQ2', 'deltaM_DstD']
+    channelMasks = ['AddTk_pm_mVis', 'specQ2', 'deltaM_DstD']
     if not 'p' in args.controlRegions:
         channelMasks.append('AddTk_p_mHad')
     if not 'm' in args.controlRegions:
         channelMasks.append('AddTk_m_mHad')
     if not 'pm' in args.controlRegions:
-        channelMasks.append('AddTk_pm_mVis')
+        channelMasks.append('AddTk_pm_mHad')
     if not 'pp' in args.controlRegions:
         channelMasks.append('AddTk_pp_mHad')
     if not 'mm' in args.controlRegions:
@@ -3946,7 +3965,7 @@ if __name__ == "__main__":
                     present = True
                 else:
                     print 'Waiting for ' + c
-                    time.sleep(120)
+                    time.sleep(60*5)
             histo[c] = loadHisto4CombineFromRoot(histo_file_dir, card_name.replace('comb', c))
     else:
         loadShapeVar = 'card' in args.step
