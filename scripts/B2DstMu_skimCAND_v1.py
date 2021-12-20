@@ -65,19 +65,19 @@ filesLocMap = {}
 
 root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples_B2DstMu_211118/out_CAND_*.root'
+MCend = 'ntuples_B2DstMu_mediumId/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
-              'Bd_MuNuDstPiPi',  'Bu_MuNuDstPiPi',  'Bd_MuNuDstPiPi_v2',
+              'Bd_MuNuDstPiPi_v2',  'Bu_MuNuDstPiPi',#  'Bd_MuNuDstPiPi',
               'Bu_TauNuDstPi',   'Bd_TauNuDstPi',
               'Bd_TauNuDstPiPi', 'Bu_TauNuDstPiPi',
               'Bs_MuNuDstK',     'Bs_TauNuDstK',
               'Bd_DstDu',        'Bd_DstDd',        'Bd_DstDs',
               'Bu_DstDu',        'Bu_DstDd',        'Bs_DstDs',
               # Others
-              'DstKu_KuToMu',
-              'Mu_Enriched'
+              # 'DstKu_KuToMu',
+              # 'Mu_Enriched'
               ]
 
 sampleFile = '/storage/af/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml'
@@ -89,8 +89,9 @@ for s in MC_samples:
     filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
-filesLocMap['data'] = join(RDloc, '*_B2DstMu_210917_CAND.root')
-filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_211014_CAND.root')
+# filesLocMap['data'] = join(RDloc, '*_B2DstMu_210917_CAND.root')
+filesLocMap['data'] = join(RDloc, '*_B2DstMu_211205_CAND.root')
+# filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_211014_CAND.root')
 
 def getTLVfromField(ev, n, idx, mass):
     v = rt.TLorentzVector()
@@ -451,6 +452,8 @@ def makeSelection(inputs):
                    ev.mu_dcaT_vtxDst[j], ev.mu_sigdcaT_vtxDst[j],
                    ev.mu_dca_vtxDstMu[j], ev.mu_sigdca_vtxDstMu[j],
                    ev.mu_dcaT_vtxDstMu[j], ev.mu_sigdcaT_vtxDstMu[j],
+                   ev.mu_kickFinder[j], ev.mu_segmentCompatibility[j],
+                   ev.mu_trackerStandalonePosLocalChi2[j], ev.mu_tightId[j],
                    evEx.B_pt, evEx.B_eta, evEx.B_phi,
                    evEx.Dst_pt, evEx.Dst_eta, evEx.Dst_phi,
                    evEx.D0_pt, evEx.D0_eta, evEx.D0_phi,
@@ -648,6 +651,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'mu_dcaT_vtxDst', 'mu_sigdcaT_vtxDst',
                        'mu_dca_vtxDstMu', 'mu_sigdca_vtxDstMu',
                        'mu_dcaT_vtxDstMu', 'mu_sigdcaT_vtxDstMu',
+                       'mu_kickFinder', 'mu_segmentCompatibility',
+                       'mu_trackerStandalonePosLocalChi2', 'mu_tightId',
                        'B_pt', 'B_eta', 'B_phi',
                        'Dst_pt', 'Dst_eta', 'Dst_phi',
                        'D0_pt', 'D0_eta', 'D0_phi',

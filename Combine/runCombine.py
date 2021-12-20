@@ -282,7 +282,8 @@ corrScaleFactors = {}
 def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
-    candDir='ntuples_B2DstMu_211118'
+    # candDir='ntuples_B2DstMu_211118'
+    candDir='ntuples_B2DstMu_mediumId'
     print 'Using candDir =', candDir
     MCsample = {
     ######## Signals
@@ -291,6 +292,7 @@ def loadDatasets(category, loadRD):
     ######## D** background
     'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    # 'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi_v2', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
@@ -317,7 +319,7 @@ def loadDatasets(category, loadRD):
             print n, 'not declarted in processOrder'
             raise
         dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType)))
-        dSetTkSide[n] = rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType))
+        dSetTkSide[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType)))
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
     locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_211014_{}'.format(category.name)
@@ -329,7 +331,8 @@ def loadDatasets(category, loadRD):
         print 'Loading real data datasets'
         lumi_tot = 0
 
-        creation_date = '210917'
+        # creation_date = '210917'
+        creation_date = '211205'
         locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
         dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
         dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
@@ -477,7 +480,7 @@ def createHistograms(category):
         return trgSF, up, down
 
     fMuonIDSF = rt.TFile.Open(dataDir+'/calibration/muonIDscaleFactors/Run2018ABCD_SF_MuonID_Jpsi.root', 'READ')
-    hMuonIDSF = fMuonIDSF.Get('NUM_SoftID_DEN_genTracks_pt_abseta')
+    hMuonIDSF = fMuonIDSF.Get('NUM_MediumID_DEN_genTracks_pt_abseta')
     def computeMuonIDSF(ds, selection=None):
         muonSF = np.ones_like(ds['q2'])
         muonSFUnc = np.zeros_like(ds['q2'])
@@ -814,8 +817,8 @@ def createHistograms(category):
             wVar['brB_D2460MuNuUp'] = wNeuUp * wChUp
             wVar['brB_D2460MuNuDown'] = wNeuDw * wChDw
 
-            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, infate*0.5)
-            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 511}, infate*0.5)
+            _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, infate*0.8)
+            _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 511}, infate*0.8)
             wVar['brB_DstPiMuNuUp'] = wNeuUp * wChUp
             wVar['brB_DstPiMuNuDown'] = wNeuDw * wChDw
 
@@ -1164,7 +1167,7 @@ def createHistograms(category):
     # sideVar['AddTk_pp_mHad'] = 'massHadTks_DstMassConstraint'
     binning['AddTk_pp_mHad'] = [20, 2.25, 3.7]
 
-    binning['m_tk_pt_0'] = [50, 0.5, 12]
+    binning['m_tk_pt_0'] = [60, 0.5, 10]
     binning['p_tk_pt_0'] = [50, 0.5, 15]
     binning['mm_tk_pt_0'] = [30, 0.5, 10]
     binning['pm_tk_pt_0'] = [50, 0.5, 15]
@@ -2852,7 +2855,7 @@ def dumpNuisFromScan(tag, out):
     for v in df.columns:
         if not v.startswith('trackedParam_'):
             continue
-        if v == 'CMS_th1x':
+        if v == 'trackedParam_CMS_th1x':
             continue
         aux.append([v[13:], df[v].iloc[0] ])
 
