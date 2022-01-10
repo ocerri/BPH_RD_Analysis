@@ -264,6 +264,7 @@ def extractEventInfos(j, ev, corr=None):
     e.tkPtError = []
     e.tkEta = []
     e.tkPhi = []
+    e.tk_pval = []
     e.MC_tkFlag = []
     e.MC_tkFromMainB = []
     e.MC_tkPdgId = []
@@ -318,6 +319,7 @@ def extractEventInfos(j, ev, corr=None):
             e.tkPtError.insert(idx, ev.tksAdd_ptError[jj])
             e.tkEta.insert(idx, eta)
             e.tkPhi.insert(idx, phi)
+            e.tk_pval.insert(idx, ev.tksAdd_pval[jj])
             e.tkCharge.insert(idx, ev.tksAdd_charge[jj]*ev.mu_charge[j])
             e.massVis_wTk.insert(idx, mVis_wTk)
             e.massHad_wTk.insert(idx, (p4_Dst + p4_tk).M())
@@ -392,7 +394,7 @@ def extractEventInfos(j, ev, corr=None):
 
 
     if e.N_goodAddTks < 3:
-        auxList = [e.tkCharge, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk, e.UmissTk]
+        auxList = [e.tkCharge, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.tk_pval, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk, e.UmissTk]
         auxList += [e.MC_tkFlag, e.MC_tkFromMainB, e.MC_tkPdgId, e.MC_tkMotherPdgId, e.MC_tkMotherMotherPdgId, e.MC_tk_dphi, e.MC_tk_deta, e.MC_tk_dpt]
         for l in auxList:
             l += [0, 0, 0]
@@ -475,6 +477,7 @@ def makeSelection(inputs):
                    evEx.tkPtError[0], evEx.tkPtError[1], evEx.tkPtError[2],
                    evEx.tkEta[0], evEx.tkEta[1], evEx.tkEta[2],
                    evEx.tkPhi[0], evEx.tkPhi[1], evEx.tkPhi[2],
+                   evEx.tk_pval[0], evEx.tk_pval[1], evEx.tk_pval[2],
                    evEx.massVis_wTk[0], evEx.massVis_wTk[1], evEx.massVis_wTk[2],
                    evEx.massHad_wTk[0], evEx.massHad_wTk[1], evEx.massHad_wTk[2],
                    evEx.massMuTk[0], evEx.massMuTk[1], evEx.massMuTk[2],
@@ -674,6 +677,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'tkPtError_0', 'tkPtError_1', 'tkPtError_2',
                        'tkEta_0', 'tkEta_1', 'tkEta_2',
                        'tkPhi_0', 'tkPhi_1', 'tkPhi_2',
+                       'tk_pval_0', 'tk_pval_1', 'tk_pval_2',
                        'tkMassVis_0', 'tkMassVis_1', 'tkMassVis_2',
                        'tkMassHad_0', 'tkMassHad_1', 'tkMassHad_2',
                        'tkMassMuTk_0', 'tkMassMuTk_1', 'tkMassMuTk_2',

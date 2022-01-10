@@ -33,7 +33,8 @@ def trigger_selection(j, ev, evEx, cat):
     if not ev.trgMu_sigdxy_BS[j] > cat.minIP:
         return False
     eta = ev.trgMu_eta[j] if hasattr(ev, 'trgMu_eta') else ev.trgCand_eta[j]
-    if not abs(eta) < 1.5:
+    # if not abs(eta) < 1.5:
+    if not abs(eta) < 0.8:
         return False
     return True
 
@@ -79,8 +80,8 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
         if not ev.sigdxy_vtxD0_PV[j] > 2:
             return False
     if not (8 in skipCut):
-        # if not e.pis_pt > 1.0:
-        if not e.pis_pt > 0.5:
+        if not e.pis_pt > 0.65:
+        # if not e.pis_pt > 0.5:
             return False
     if not (9 in skipCut):
         if not abs(e.pis_eta) < 2.4:
@@ -103,11 +104,11 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
             return False
     # Cuts on the observables
     if not (15 in skipCut):
-        sel = e.q2 > -2. and e.q2 < 12
-        sel = sel and e.M2_miss > -2.5
+        # sel = e.q2 > -2. and e.q2 < 12
+        # sel = sel and e.M2_miss > -2.5
 
-        # sel = e.q2 > 0 and e.q2 < 12
-        # sel = sel and e.M2_miss > 0
+        sel = e.q2 > 0 and e.q2 < 12
+        sel = sel and e.M2_miss > 0.2
         if not sel:
             return False
     if not (16 in skipCut):
