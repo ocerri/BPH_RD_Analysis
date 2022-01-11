@@ -276,6 +276,7 @@ def extractEventInfos(j, ev, corr=None):
     e.massVis_wTk = []
     e.massHad_wTk = []
     e.massMuTk = []
+    e.massDTk = []
     e.mass2MissTk = []
     e.UmissTk = []
 
@@ -324,6 +325,7 @@ def extractEventInfos(j, ev, corr=None):
             e.massVis_wTk.insert(idx, mVis_wTk)
             e.massHad_wTk.insert(idx, (p4_Dst + p4_tk).M())
             e.massMuTk.insert(idx, (p4_mu + p4_tk).M())
+            e.massDTk.insert(idx, (p4_D0 + p4_tk).M())
             p_miss = p4_B - p4_vis - p4_tk
             e.mass2MissTk.insert(idx, p_miss.M2())
             e.UmissTk.insert(idx, p_miss.E() - p_miss.P())
@@ -390,11 +392,13 @@ def extractEventInfos(j, ev, corr=None):
     p4_BwTks = rt.TLorentzVector()
     p4_BwTks.SetPtEtaPhiM(e.BwTks_pt, e.B_eta, e.B_phi, m_B0);
     p_miss_wTks = p4_BwTks - p4_vis_wTks
+    e.EmissTks = p_miss_wTks.E()
+    e.PmissTks = p_miss_wTks.P()
     e.UmissTks = p_miss_wTks.E() - p_miss_wTks.P()
 
 
     if e.N_goodAddTks < 3:
-        auxList = [e.tkCharge, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.tk_pval, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.mass2MissTk, e.UmissTk]
+        auxList = [e.tkCharge, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.tk_pval, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.massDTk, e.mass2MissTk, e.UmissTk]
         auxList += [e.MC_tkFlag, e.MC_tkFromMainB, e.MC_tkPdgId, e.MC_tkMotherPdgId, e.MC_tkMotherMotherPdgId, e.MC_tk_dphi, e.MC_tk_deta, e.MC_tk_dpt]
         for l in auxList:
             l += [0, 0, 0]
@@ -481,13 +485,14 @@ def makeSelection(inputs):
                    evEx.massVis_wTk[0], evEx.massVis_wTk[1], evEx.massVis_wTk[2],
                    evEx.massHad_wTk[0], evEx.massHad_wTk[1], evEx.massHad_wTk[2],
                    evEx.massMuTk[0], evEx.massMuTk[1], evEx.massMuTk[2],
+                   evEx.massDTk[0], evEx.massDTk[1], evEx.massDTk[2],
                    evEx.mass2MissTk[0], evEx.mass2MissTk[1], evEx.mass2MissTk[2],
                    evEx.UmissTk[0], evEx.UmissTk[1], evEx.UmissTk[2],
                    evEx.massTks_pipi, evEx.massTks_KK, evEx.massTks_piK, evEx.massTks_Kpi,
                    evEx.massVisTks,
                    evEx.massHadTks,
                    evEx.massHadTks_DstMassConstraint,
-                   evEx.UmissTks,
+                   evEx.EmissTks, evEx.PmissTks, evEx.UmissTks,
                    trigger_selection(idxTrg, ev, evEx, categories['low']),
                    trigger_selection(idxTrg, ev, evEx, categories['mid']),
                    trigger_selection(idxTrg, ev, evEx, categories['high']),
@@ -681,13 +686,14 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'tkMassVis_0', 'tkMassVis_1', 'tkMassVis_2',
                        'tkMassHad_0', 'tkMassHad_1', 'tkMassHad_2',
                        'tkMassMuTk_0', 'tkMassMuTk_1', 'tkMassMuTk_2',
+                       'tkMassDTk_0', 'tkMassDTk_1', 'tkMassDTk_2',
                        'tkMassMiss2_0', 'tkMassMiss2_1', 'tkMassMiss2_2',
                        'tkUmiss_0', 'tkUmiss_1', 'tkUmiss_2',
                        'massTks_pipi', 'massTks_KK', 'massTks_piK', 'massTks_Kpi',
                        'massVisTks',
                        'massHadTks',
                        'massHadTks_DstMassConstraint',
-                       'UmissTks',
+                       'EmissTks', 'PmissTks', 'UmissTks',
                        'cat_low', 'cat_mid', 'cat_high',
                        'muPass_Mu12_IP6', 'muPass_Mu9_IP6', 'muPass_Mu7_IP4',
                        'N_vtx', 'localVertexDensity'

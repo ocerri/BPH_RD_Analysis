@@ -80,7 +80,7 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
         if not ev.sigdxy_vtxD0_PV[j] > 2:
             return False
     if not (8 in skipCut):
-        if not e.pis_pt > 0.65:
+        if not e.pis_pt > 0.6:
         # if not e.pis_pt > 0.5:
             return False
     if not (9 in skipCut):
