@@ -10,9 +10,11 @@ To activate the environment run: cd ~/work/CMSSW_10_2_13/src/; cmsenv; cd ~/BPH_
 
 
 import sys, os, pickle, time, json, yaml, itertools, commands, re
+from datetime import datetime
 from glob import glob
 sys.path.append('../lib')
 sys.path.append('../analysis')
+from collections import defaultdict
 from multiprocessing import Pool
 from prettytable import PrettyTable
 import numpy as np
@@ -48,23 +50,26 @@ parser = argparse.ArgumentParser(description='Script used to run combine on the 
                                  add_help=True
                                  )
 parser.add_argument ('--HELP', '-H', default=False, action='store_true', help='Print help message.')
-parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
-parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit.')
-parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
-parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
 parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
+parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
+parser.add_argument ('--skimmedTag', default='_220110', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
+parser.add_argument ('--maxEventsToLoadPerMCSample', default=None, type=int, help='Max number of MC events to load per sample.')
+parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
+parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
+parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
+
+parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit.')
+parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
-parser.add_argument ('--controlRegions', default=['p', 'm', 'pm', 'pp', 'mm'], choices=['none', 'p', 'm', 'pm', 'pp', 'mm'], help='Control regions to use', nargs='+')
-parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
+parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pm_mHad', 'pp_mHad', 'mm_mHad'], help='Control regions to use', nargs='+')
+
+parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
 parser.add_argument ('--freeMuBr', default=True, help='Make muon branching fraction with a rate parameter (flat prior).')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
-parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
 parser.add_argument ('--noMCstats', default=False, action='store_true', help='Do not include MC stat systematic.')
-parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
-parser.add_argument ('--skimmedTag', default='', type=str, help='Tag to append to the skimmed directory.')
-parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
 
 parser.add_argument ('--dumpWeightsTree', default=False, action='store_true', help='Dump tree with weights for skimmed events.')
 
@@ -219,6 +224,7 @@ def createCardName(a):
 
 card_name = createCardName(args)
 print 'Card name:', card_name
+print 'Control regions:', args.controlRegions
 
 basedir = os.path.dirname(os.path.abspath(__file__)).replace('Combine', '')
 
@@ -233,6 +239,16 @@ webFolder = '/storage/af/user/'+userName+'/public_html/BPH_RDst/Combine/' + card
 if not os.path.isdir(webFolder):
     os.makedirs(webFolder)
     os.system('cp '+webFolder+'/../index.php '+webFolder)
+# Log command line call and arguments
+if not args.submit:
+    with open(webFolder + '/callsLog.txt', 'a') as f:
+        f.write(50*'#'+'\n')
+        f.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n')
+        f.write( ' '.join(sys.argv) + '\n')
+        f.write(5*'>'+'\n')
+        f.write( yaml.dump(args.__dict__) )
+        f.write(5*'<'+'\n')
+        f.write(50*'-'+ '\n\n')
 
 def runCommandSafe(command, printCommand=True):
     if printCommand:
@@ -285,6 +301,7 @@ def loadDatasets(category, loadRD):
     # candDir='ntuples_B2DstMu_211118'
     candDir='ntuples_B2DstMu_mediumId'
     print 'Using candDir =', candDir
+    print 'Using skim = skimmed'+args.skimmedTag
     MCsample = {
     ######## Signals
     'tau': DSetLoader('Bd_TauNuDst', candDir=candDir, skimmedTag=args.skimmedTag),
@@ -314,15 +331,24 @@ def loadDatasets(category, loadRD):
     dSetTkSide = {}
     mcType = 'bare' if args.bareMC else 'corr'
     print 'mcType:', mcType
+    if not args.maxEventsToLoadPerMCSample is None:
+        print 'Limiting events per MC sample to', args.maxEventsToLoadPerMCSample
     for n, s in MCsample.iteritems():
         if not n in processOrder:
             print n, 'not declarted in processOrder'
             raise
-        dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType)))
-        dSetTkSide[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType)))
+        dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType),
+                                               stop=args.maxEventsToLoadPerMCSample
+                                              )
+                              )
+        dSetTkSide[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType),
+                                                     stop=args.maxEventsToLoadPerMCSample
+                                                    )
+                                    )
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
-    locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_211014_{}'.format(category.name)
+    # locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_211014_{}'.format(category.name)
+    locRD = dataDir+'/skimmed/B2DstMu_SS_211014_{}'.format(category.name)
     dSet['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
     dSetTkSide['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
 
@@ -345,26 +371,27 @@ def loadDatasets(category, loadRD):
         # pass
         for k in dSet.keys():
             addCuts = [
-                ['B_eta', -1., 1.],
+                # ['B_eta', -1., 1.],
                 # ['K_pt', 1., 1e3],
                 # ['pi_pt', 1., 1e3],
                 # ['pis_pt', 1., 1e3],
                       ]
             # sel = np.ones_like(dSet[k]).astype(np.bool)
-            sel = dSet[k]['M2_miss'] > 0.2
+            sel = dSet[k]['M2_miss'] > 0.4
             for var, low, high in addCuts:
                 sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
+
             #removeDups
-            if k == 'mu':
-                selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
-                                        np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
-                sel = np.logical_and(sel, selDups)
+            # if k == 'mu':
+            #     selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
+            #                             np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
+            #     sel = np.logical_and(sel, selDups)
 
             dSet[k] = dSet[k][sel]
             corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
 
             # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
-            sel = dSetTkSide[k]['M2_miss'] > 0.2
+            sel = dSetTkSide[k]['M2_miss'] > 0.4
             for var, low, high in addCuts:
                 sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
             dSetTkSide[k] = dSetTkSide[k][sel]
@@ -1120,89 +1147,104 @@ def createHistograms(category):
     ######################################################
     ########## Control region
     ######################################################
-
-
-    sideSelecton = {}
-    sideVar = {}
-
+    controlRegSel = {}
     def selfun__TkPlus(ds):
         sel = np.logical_and(ds['N_goodAddTks'] == 1, ds['tkCharge_0'] > 0)
         return sel
-    sideSelecton['AddTk_p_mHad'] = selfun__TkPlus
-    sideVar['AddTk_p_mHad'] = 'massHadTks'
-    # sideVar['AddTk_p_mHad'] = 'massHadTks_DstMassConstraint'
-    binning['AddTk_p_mHad'] = [35, 2.13, 2.83]
+    controlRegSel['p_'] = selfun__TkPlus
 
     def selfun__TkMinus(ds):
         sel = np.logical_and(ds['N_goodAddTks'] == 1, ds['tkCharge_0'] < 0)
         return sel
-    sideSelecton['AddTk_m_mHad'] = selfun__TkMinus
-    sideVar['AddTk_m_mHad'] = 'massHadTks'
-    # sideVar['AddTk_m_mHad'] = 'massHadTks_DstMassConstraint'
-    binning['AddTk_m_mHad'] = [40, 2.1, 3.3]
+    controlRegSel['m_'] = selfun__TkMinus
 
-    def selfun__TkPlusMinus_all(ds):
-        sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == 0, ds['N_goodAddTks'] == 2)
-        sel = np.logical_and(ds['massVisTks'] < 5.55, sel )
-        return sel
-
-    def selfun__TkPlusMinus_even(ds):
+    def selfun__TkPlusMinus(ds):
         sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == 0, ds['N_goodAddTks'] == 2)
         sel = np.logical_and(ds['massVisTks'] < 5.55, sel)
-        sel = np.logical_and( np.mod(ds['index'], 2) == 0, sel )
         return sel
-    sideSelecton['AddTk_pm_mVis'] = selfun__TkPlusMinus_even
-    sideVar['AddTk_pm_mVis'] = 'massVisTks'
-    # binning['AddTk_pm_mVis'] = array('d', [2.8] + list(np.arange(3., 5.5, 0.07)) + [5.55] )
-    binning['AddTk_pm_mVis'] = array('d', [2.8] + list(np.arange(3., 5.5, 0.12)) + [5.5] )
-    # binning['AddTk_pm_mVis'] = array('d', [2.8] + list(np.arange(3., 6.5, 0.1)) )
-
-    def selfun__TkPlusMinus_odd(ds):
-        sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == 0, ds['N_goodAddTks'] == 2)
-        sel = np.logical_and(ds['massVisTks'] < 5.55, sel)
-        sel = np.logical_and( np.mod(ds['index'], 2) == 1, sel )
-        return sel
-    sideSelecton['AddTk_pm_mHad'] = selfun__TkPlusMinus_odd
-    sideVar['AddTk_pm_mHad'] = 'massHadTks'
-    # sideVar['AddTk_pm_mHad'] = 'massHadTks_DstMassConstraint'
-    # binning['AddTk_pm_mHad'] = [75, 2.3, 3.8]
-    binning['AddTk_pm_mHad'] = [50, 2.3, 3.8]
-    # binning['AddTk_pm_mHad'] = [80, 2.3, 5.3]
+    controlRegSel['pm'] = selfun__TkPlusMinus
 
     def selfun__TkMinusMinus(ds):
         sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == -2, ds['N_goodAddTks'] == 2)
         sel = np.logical_and(ds['massVisTks'] < 5.3, sel)
         return sel
-    sideSelecton['AddTk_mm_mHad'] = selfun__TkMinusMinus
-    sideVar['AddTk_mm_mHad'] = 'massHadTks'
-    # sideVar['AddTk_mm_mHad'] = 'massHadTks_DstMassConstraint'
-    binning['AddTk_mm_mHad'] = [20, 2.25, 3.6]
+    controlRegSel['mm'] = selfun__TkMinusMinus
 
     def selfun__TkPlusPlus(ds):
         sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == +2, ds['N_goodAddTks'] == 2)
         sel = np.logical_and(ds['massVisTks'] < 5.3, sel)
         return sel
-    sideSelecton['AddTk_pp_mHad'] = selfun__TkPlusPlus
-    sideVar['AddTk_pp_mHad'] = 'massHadTks'
-    # sideVar['AddTk_pp_mHad'] = 'massHadTks_DstMassConstraint'
-    binning['AddTk_pp_mHad'] = [20, 2.25, 3.7]
+    controlRegSel['pp'] = selfun__TkPlusPlus
 
-    binning['m_tk_pt_0'] = [60, 0.5, 10]
-    binning['p_tk_pt_0'] = [50, 0.5, 15]
-    binning['mm_tk_pt_0'] = [30, 0.5, 10]
-    binning['pm_tk_pt_0'] = [50, 0.5, 15]
-    binning['pp_tk_pt_0'] = [50, 0.5, 15]
-    binning['mm_tk_pt_1'] = [40, 0.5, 4]
-    binning['pm_tk_pt_1'] = [40, 0.5, 8]
-    binning['pp_tk_pt_1'] = [40, 0.5, 4]
+    ctrlVar = {}
+    ctrlVar['ctrl_p__mHad'] = 'massHadTks'
+    binning['ctrl_p__mHad'] = [35, 2.13, 2.83]
 
-    binning['Umiss_tks'] = [60, -0.15, 0.12]
+    ctrlVar['ctrl_m__mHad'] = 'massHadTks'
+    binning['ctrl_m__mHad'] = [40, 2.1, 3.3]
 
-    binning['massTks_pipi'] = [50, 0.25, 1.2]
-    binning['mass_DstPi_0'] = [50, 2.1, 3.3]
+    ctrlVar['ctrl_pm_mVis'] = 'massVisTks'
+    # binning['ctrl_pm_mVis'] = array('d', [2.8] + list(np.arange(3., 5.5, 0.07)) + [5.55] )
+    binning['ctrl_pm_mVis'] = array('d', [2.8] + list(np.arange(3., 5.5, 0.12)) + [5.5] )
+
+    ctrlVar['ctrl_pm_mHad'] = 'massHadTks'
+    # binning['ctrl_pm_mHad'] = [75, 2.3, 3.8]
+    binning['ctrl_pm_mHad'] = [50, 2.3, 3.8]
+
+    ctrlVar['ctrl_mm_mHad'] = 'massHadTks'
+    binning['ctrl_mm_mHad'] = [20, 2.25, 3.6]
+
+    ctrlVar['ctrl_pp_mHad'] = 'massHadTks'
+    binning['ctrl_pp_mHad'] = [20, 2.25, 3.7]
+
+    ctrlVar['ctrl_m__tk_pt_0'] = 'tkPt_0'
+    binning['ctrl_m__tk_pt_0'] = [60, 0.5, 10]
+    ctrlVar['ctrl_p__tk_pt_0'] = 'tkPt_0'
+    binning['ctrl_p__tk_pt_0'] = [50, 0.5, 15]
+    ctrlVar['ctrl_mm_tk_pt_0'] = 'tkPt_0'
+    binning['ctrl_mm_tk_pt_0'] = [30, 0.5, 10]
+    ctrlVar['ctrl_pm_tk_pt_0'] = 'tkPt_0'
+    binning['ctrl_pm_tk_pt_0'] = [50, 0.5, 15]
+    ctrlVar['ctrl_pp_tk_pt_0'] = 'tkPt_0'
+    binning['ctrl_pp_tk_pt_0'] = [50, 0.5, 15]
+    ctrlVar['ctrl_mm_tk_pt_1'] = 'tkPt_1'
+    binning['ctrl_mm_tk_pt_1'] = [40, 0.5, 4]
+    ctrlVar['ctrl_pm_tk_pt_1'] = 'tkPt_1'
+    binning['ctrl_pm_tk_pt_1'] = [40, 0.5, 8]
+    ctrlVar['ctrl_pp_tk_pt_1'] = 'tkPt_1'
+    binning['ctrl_pp_tk_pt_1'] = [40, 0.5, 4]
+
+
+    for s in ['m_', 'p_', 'mm', 'pm', 'pp']:
+        ctrlVar['ctrl_'+s+'_umiss'] = 'UmissTks'
+        binning['ctrl_'+s+'_umiss'] = [50, -0.12, 0.12]
+
+        if not s[1] == '_':
+            ctrlVar['ctrl_'+s+'_mPiPi'] = 'massTks_pipi'
+            binning['ctrl_'+s+'_mPiPi'] = [50, 0.25, 1.2]
+
+            ctrlVar['ctrl_'+s+'_mDstPi_0'] = 'tkMassHad_0'
+            binning['ctrl_'+s+'_mDstPi_0'] = [50, 2.1, 3.3]
+
+    # Figuring out the mod to avoid double counting
+    ctrlVar_mod = defaultdict(lambda : None)
+    ctrlVar_counter = defaultdict(lambda : 0)
+    for r in args.controlRegions:
+        if not 'ctrl_'+r in ctrlVar.keys():
+            print '[ERROR] Region "{}" not defined'.format(r)
+            exit()
+
+        ctrlVar_mod['ctrl_'+r] = [ -1, ctrlVar_counter[r[:2]] ]
+        ctrlVar_counter[r[:2]]+= 1
+
+    for k in ctrlVar_mod.keys():
+        ctrlVar_mod[k][0] = ctrlVar_counter[k[5:7]]
+
+    print '[DEBUG] Control regions modulos:', ','.join([k+':'+str(v) for k, v in ctrlVar_mod.iteritems()])
+
 
     print '---------> Fill control regions histograms'
-    for k in sideSelecton.keys():
+    for k in ctrlVar.keys():
         histo[k] = {}
 
     totalCounting = {}
@@ -1522,17 +1564,16 @@ def createHistograms(category):
         sel = {}
         scale = {}
         latexTableString = {}
-        for k, selFun in sideSelecton.iteritems():
+        table = PrettyTable()
+        table.field_names = ['Region', 'Selected', 'Exp. bare', 'Exp. weights']
+        for k, selFun in controlRegSel.iteritems():
             sel[k] = selFun(ds)
             nTotSel = float(np.sum(sel[k]))
-            # print 'N tot selected {}: {:.0f}'.format(k, nTotSel)
             nExp = nTotExp * nTotSel / sel[k].shape[0]
-            if n == 'dataSS_DstMu' and '_mm_' in k:
+            if n == 'dataSS_DstMu' and k == 'mm':
                 nExp *= 1e-3
-            # print 'N tot expected {} (before weights): {:.0f}'.format(k, nExp)
             nAux = nTotExp * np.sum(weightsCentral[sel[k]]) / sel[k].shape[0]
-            # print 'N tot expected {} (after weights): {:.0f}'.format(k, nAux)
-            print 'N tot {}: {:.0f} (sel), {:.0f} (exp. bare), {:.0f} (exp. weights)'.format(k, nTotSel, nExp, nAux)
+            table.add_row([k] + '{:.0f} {:.0f} {:.0f}'.format(nTotSel, nExp, nAux).split(' '))
             latexTableString[k] = '{:.0f} ({:.0f})'.format(nAux, nTotSel)
             if not k in totalCounting.keys():
                 totalCounting[k] = [0, 0]
@@ -1541,7 +1582,8 @@ def createHistograms(category):
             if nTotSel ==0:
                 nTotSel+=1
             scale[k] = nExp/nTotSel
-        s = ' & '.join([latexTableString['AddTk_'+s+'_mHad'] for s in ['p', 'm', 'pp', 'pm', 'mm']])
+        print table.get_string(sortby="Region")
+        s = ' & '.join([latexTableString[s] for s in ['m_', 'p_', 'mm', 'pm', 'pp']])
         print s
         eventCountingStr[n] += ' & ' + s + '\\\\'
 
@@ -1552,68 +1594,28 @@ def createHistograms(category):
                 h_name += '__' + name_wVar
             w = weightsCentral*v_wVar
 
-            for k in sideVar.keys():
-                histo[k][h_name] = create_TH1D(
-                                               ds[sideVar[k]][sel[k]],
+            for k, var in ctrlVar.iteritems():
+                region = k[5:7]
+
+                auxSel = sel[region]
+                if not ctrlVar_mod[k] is None:
+                    m, j = ctrlVar_mod[k]
+                    if m > 1:
+                        auxSel = np.logical_and( np.mod(ds['index'], m) == j, auxSel )
+
+                histo[k][h_name] = create_TH1D(ds[var][auxSel],
                                                name=h_name, title=h_name,
                                                binning=binning[k],
                                                opt='',
-                                               weights=w[sel[k]], scale_histo=scale[k]
+                                               weights=w[auxSel], scale_histo=scale[region]
                                               )
-
-                if k.endswith('mHad'):
-                    nTk = 1 if ('_p_' in k or '_m_' in k) else 2
-                    auxSel = selfun__TkPlusMinus_all(ds) if '_pm_' in k else sel[k]
-
-                    regName = k[6:-5]+'_Umiss_tks'
-                    if not regName in histo.keys():
-                        histo[regName] = {}
-                    histo[regName][h_name] = create_TH1D(
-                                                   ds['UmissTks'][auxSel],
-                                                   name=h_name, title=h_name,
-                                                   binning=binning['Umiss_tks'], opt='',
-                                                   weights=w[auxSel], scale_histo=scale[k]
-                                                  )
-
-                    for iTk in range(nTk):
-                        regName = k[6:-5]+'_tk_pt_'+str(iTk)
-                        if not regName in histo.keys():
-                            histo[regName] = {}
-
-                        histo[regName][h_name] = create_TH1D(
-                                                       ds['tkPt_'+str(iTk)][auxSel],
-                                                       name=h_name, title=h_name,
-                                                       binning=binning[regName], opt='',
-                                                       weights=w[auxSel], scale_histo=scale[k]
-                                                      )
-
-                    if nTk == 2:
-                        regName = 'mass_tks_pipi_'+k[6:-5]
-                        if not regName in histo.keys():
-                            histo[regName] = {}
-                        histo[regName][h_name] = create_TH1D(
-                                                       ds['massTks_pipi'][auxSel],
-                                                       name=h_name, title=h_name,
-                                                       binning=binning['massTks_pipi'], opt='',
-                                                       weights=w[auxSel], scale_histo=scale[k]
-                                                      )
-
-                        regName = 'mass_DstPi_0_'+k[6:-5]
-                        if not regName in histo.keys():
-                            histo[regName] = {}
-                        histo[regName][h_name] = create_TH1D(
-                                                       ds['tkMassHad_0'][auxSel],
-                                                       name=h_name, title=h_name,
-                                                       binning=binning['mass_DstPi_0'], opt='',
-                                                       weights=w[auxSel], scale_histo=scale[k]
-                                                      )
 
 
     if args.dumpWeightsTree:
         print 'Exiting runCombine.py. To run further remove dumpWeightsTree option.'
         exit()
 
-    s = ' & '.join(['{:.0f} ({:.0f})'.format(*totalCounting['AddTk_'+s+'_mHad']) for s in ['p', 'm', 'pp', 'pm', 'mm']]) + ' \\\\'
+    s = ' & '.join(['{:.0f} ({:.0f})'.format(*totalCounting[s]) for s in ['p_', 'm_', 'mm', 'pm', 'pp']]) + ' \\\\'
     eventCountingStr['tot'] += ' & ' + s
     with open(outdir + '/eventCounting.txt', 'w') as f:
         for p in processOrder + ['tot']:
@@ -1689,50 +1691,21 @@ def createHistograms(category):
             histo[var]['data'] = create_TH1D(ds[varName], name='data_obs', binning=binning[var], opt='underflow,overflow')
 
         ds = dSetTkSide['data']
-        for k in sideVar.keys():
-            histo[k]['data'] = create_TH1D(
-                                           ds[sideVar[k]][sideSelecton[k](ds)],
+        for k, var in ctrlVar.iteritems():
+            region = k[5:7]
+            auxSel = controlRegSel[region](ds)
+            if not ctrlVar_mod[k] is None:
+                m, j = ctrlVar_mod[k]
+                if m > 1:
+                    auxSel = np.logical_and( np.mod(ds['index'], m) == j, auxSel )
+
+            histo[k]['data'] = create_TH1D(ds[var][auxSel],
                                            name='data_obs', title='Data Obs',
                                            binning=binning[k],
                                            opt='',
                                           )
 
-            if k.endswith('mHad'):
-                nTk = 1 if ('_p_' in k or '_m_' in k) else 2
-                if '_pm_' in k:
-                    auxSel = selfun__TkPlusMinus_all(ds)
-                    print '_pm_: {:.0f} vs {:.0f}'.format(np.sum(sideSelecton[k](ds)), np.sum(auxSel))
-                else:
-                    auxSel = sideSelecton[k](ds)
-
-                regName = k[6:-5]+'_Umiss_tks'
-                histo[regName]['data'] = create_TH1D(
-                                               ds['UmissTks'][auxSel],
-                                               name='data_obs', title='Data Obs',
-                                               binning=binning['Umiss_tks'], opt='')
-
-                for iTk in range(nTk):
-                    regName = k[6:-5]+'_tk_pt_'+str(iTk)
-                    histo[regName]['data'] = create_TH1D(
-                                                   ds['tkPt_'+str(iTk)][auxSel],
-                                                   name='data_obs', title='Data Obs',
-                                                   binning=binning[regName], opt='')
-
-                if nTk == 2:
-                    regName = 'mass_tks_pipi_'+k[6:-5]
-                    histo[regName]['data'] = create_TH1D(
-                                                   ds['massTks_pipi'][auxSel],
-                                                   name='data_obs', title='Data Obs',
-                                                   binning=binning['massTks_pipi'], opt='',
-                                                  )
-
-                    regName = 'mass_DstPi_0_'+k[6:-5]
-                    histo[regName]['data'] = create_TH1D(
-                                                   ds['tkMassHad_0'][auxSel],
-                                                   name='data_obs', title='Data Obs',
-                                                   binning=binning['mass_DstPi_0'], opt='',
-                                                  )
-        print 'N observed data control regions: ' + ' & '.join(['{:.0f}'.format(histo['AddTk_'+s+'_mHad']['data'].Integral()) for s in ['p', 'm', 'pp', 'pm', 'mm']]) + ' \\\\'
+        print 'N observed data control regions: ' + ' & '.join(['{:.0f}'.format(histo['ctrl_'+s+'_mHad']['data'].Integral()) for s in ['p_', 'm_', 'mm', 'pm', 'pp']]) + ' \\\\'
 
     ######################################################
     ########## Dump root file
@@ -1839,20 +1812,20 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
         outCanvas.append(cAux)
 
     varsToPlot = ['B_eta', 'mu_eta', 'K_eta', 'pi_eta', 'pis_eta','mass_piK','deltaM_DstD']
-    varsToPlot += ['p_tk_pt_0', 'm_tk_pt_0', 'pp_tk_pt_0', 'pm_tk_pt_0', 'mm_tk_pt_0', 'pp_tk_pt_1', 'pm_tk_pt_1', 'mm_tk_pt_1']
-    varsToPlot += ['mass_tks_pipi_mm', 'mass_tks_pipi_pm', 'mass_tks_pipi_pp']
-    varsToPlot += ['mass_DstPi_0_mm', 'mass_DstPi_0_pm', 'mass_DstPi_0_pp']
-    varsToPlot += [r+'_Umiss_tks' for r in ['p', 'm', 'pm', 'pp', 'mm']]
+    varsToPlot += [v for v in hDic.keys() if v.startswith('ctrl_')]
     for var in varsToPlot:
         if var in hDic.keys():
             print 'Creating '+var
-            title = var.replace('_eta', ' #eta').replace('st', '*').replace('_', ' ')
+            title = var[8:] if var.startswith('ctrl_') else var
+            title = title.replace('_eta', ' #eta').replace('st', '*').replace('_', ' ')
             hDic[var]['data'].GetXaxis().SetTitle(title)
             hDic[var]['data'].GetYaxis().SetTitle('Events')
+            ctrl_text = (', '+getControlSideText(var)) if var.startswith('ctrl_') else ''
             cAux = plot_SingleCategory(CMS_lumi, hDic[var],
                                        draw_pulls=True, pullsRatio=True, pulls_ylim='auto',
                                        scale_dic=scale_dic,
-                                       addText='Cat. '+catName, logy=False, legBkg=True,
+                                       addText='Cat. '+catName+ctrl_text,
+                                       logy=False, legBkg=True,
                                        min_y=1, tag=tag+var, legLoc=[0.77, 0.55, 0.94, 0.75])
             cAux.SaveAs(outdir+'/fig/'+var+'_'+tag+'.png')
             cAux.SaveAs(webFolder+'/'+var+'_'+tag+'.png')
@@ -1891,23 +1864,23 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
 
 
     # Draw control regions
-    for k in np.sort([k for k in hDic.keys() if 'AddTk' in k]):
-        print 'Creating', k
-        legLoc = [0.67, 0.3, 0.93, 0.72]
-        if 'Vis' in k:
-            legLoc = [0.18, 0.4, 0.4, 0.75]
-        cAux = plot_SingleCategory(CMS_lumi, hDic[k], scale_dic=scale_dic,
-                                   xtitle=getControlXtitle(k),
-                                   addText='Cat. '+catName + ', ' + getControlSideText(k),
-                                   procOrder = ['tau', 'DstHc', 'dataSS_DstMu', 'mu', 'Dstst'],
-                                   tag=k, legLoc=legLoc,
-                                   draw_pulls=True,
-                                   pullsRatio=True if 'prefit' in tag else False,
-                                   pulls_ylim='auto'
-                                   )
-        cAux.SaveAs(outdir+'/fig/'+k+'_'+tag+'.png')
-        cAux.SaveAs(webFolder+'/'+k+'_'+tag+'.png')
-        outCanvas.append(cAux)
+    # for k in np.sort([k for k in hDic.keys() if 'AddTk' in k]):
+    #     print 'Creating', k
+    #     legLoc = [0.67, 0.3, 0.93, 0.72]
+    #     if 'Vis' in k:
+    #         legLoc = [0.18, 0.4, 0.4, 0.75]
+    #     cAux = plot_SingleCategory(CMS_lumi, hDic[k], scale_dic=scale_dic,
+    #                                xtitle=getControlXtitle(k),
+    #                                addText='Cat. '+catName + ', ' + getControlSideText(k),
+    #                                procOrder = ['tau', 'DstHc', 'dataSS_DstMu', 'mu', 'Dstst'],
+    #                                tag=k, legLoc=legLoc,
+    #                                draw_pulls=True,
+    #                                pullsRatio=True if 'prefit' in tag else False,
+    #                                pulls_ylim='auto'
+    #                                )
+    #     cAux.SaveAs(outdir+'/fig/'+k+'_'+tag+'.png')
+    #     cAux.SaveAs(webFolder+'/'+k+'_'+tag+'.png')
+    #     outCanvas.append(cAux)
 
     # 2D plot
     for i_q2 in range(len(binning['q2'])-1):
@@ -2144,8 +2117,6 @@ def drawShapeVarPlots(card, tag=''):
         region = os.path.basename(fn).replace(card+'_', '').replace('.root', '')
         if region.startswith('h2D'):
             continue
-        # if not region.startswith('AddTk_p_mHad'):
-        #     continue
         print ' ', region
 
         auxOut = os.path.join(plotsDir, region)
@@ -2355,16 +2326,14 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     for c in np.sort(histo.keys()):
         if c.startswith('h2'): continue
         if fitRegionsOnly:
-            # if c == 'AddTk_pm_mHad': continue
-            # if c == 'AddTk_pm_mVis': continue
-            if c.startswith('AddTk'):
-                if not c.split('_')[1] in args.controlRegions:
+            if c.startswith('ctrl_'):
+                if not c[5:] in args.controlRegions:
                     continue
             if args.signalRegProj1D:
                 aux = c.startswith(args.signalRegProj1D)
             else:
                 aux = c.startswith('Unrolled')
-            aux = aux or c.startswith('AddTk_')
+            aux = aux or c.startswith('ctrl_')
             if not aux:
                 continue
             if (not args.unblinded) and (c.endswith('_q2bin2') or c.endswith('_q2bin3')):
@@ -2446,9 +2415,9 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += 'trkEff lnN'
     for c in categories:
         val = ''
-        if re.match('AddTk_[pm]_', c):
+        if re.match('ctrl_[pm]__', c):
             val = ' {:.3}'.format(uncVal)
-        elif re.match('AddTk_[pm]{2}_', c):
+        elif re.match('ctrl_[pm]{2}_', c):
             val = ' {:.3}'.format(uncVal**2)
         else:
             val = ' -'
@@ -2515,7 +2484,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
 
     aux = ''
     for c in categories:
-        if c.startswith('AddTk_'):
+        if c.startswith('ctrl_'):
             aux += mcProcStr
         else: aux += ' -'*nProc
     if '1.' in aux:
@@ -2622,16 +2591,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ######################################################
 
     if not args.noMCstats:
-        if 'p' in args.controlRegions:
-            card += 'AddTk_p_mHad autoMCStats 0 1 1\n'
-        if 'm' in args.controlRegions:
-            card += 'AddTk_m_mHad autoMCStats 0 1 1\n'
-        if 'pm' in args.controlRegions:
-            card += 'AddTk_pm_mHad autoMCStats 0 1 1\n'
-        if 'pp' in args.controlRegions:
-            card += 'AddTk_pp_mHad autoMCStats 0 1 1\n'
-        if 'mm' in args.controlRegions:
-            card += 'AddTk_mm_mHad autoMCStats 0 1 1\n'
+        for r in args.controlRegions:
+            card += 'ctrl_'+r+' autoMCStats 0 1 1\n'
 
         if args.useMVA:
             card += 'MVA autoMCStats 2 1 1\n'
@@ -2670,7 +2631,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
                 continue
             parName = 'B2Dst'+schemeFF+n
             card += 'nuisance edit rename * ' + signalChannel+'_q2bin[01] ' + parName + ' ' + parName+'_ctrlReg'+category.name+'\n'
-            card += 'nuisance edit rename * AddTk.* ' + parName + ' ' + parName+'_ctrlReg'+category.name+'\n'
+            card += 'nuisance edit rename * ctrl_.* ' + parName + ' ' + parName+'_ctrlReg'+category.name+'\n'
             card += 'nuisance edit rename * ' + signalChannel+'_q2bin[23] ' + parName + ' ' + parName+'_sigReg'+category.name+'\n'
             card += 'nuisance edit drop * * ' + parName +'\n'
 
@@ -2717,7 +2678,7 @@ def createCombinationCard(fitRegionsOnly=False):
             for c in categoriesToCombine:
                 chName = c + '_' + signalChannel+'_q2bin[01]'
                 cardStream.write('nuisance edit rename * ' + chName + ' ' + parName + ' ' + parName+'_ctrlReg'+c.capitalize()+'\n')
-                chName = c + '_AddTk.*'
+                chName = c + '_ctrl_.*'
                 cardStream.write('nuisance edit rename * ' + chName + ' ' + parName + ' ' + parName+'_ctrlReg'+c.capitalize()+'\n')
                 chName = c + '_' + signalChannel+'_q2bin[23]'
                 cardStream.write('nuisance edit rename * ' + chName + ' ' + parName + ' ' + parName+'_sigReg'+c.capitalize()+'\n')
@@ -3052,70 +3013,20 @@ def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
     return
 
 ########################### -------- Fit Diagnostic ------------------ #########################
-
 def defineChannelMasking(histo):
-    channelMasks = ['specQ2', 'deltaM_DstD']
-    # channelMasks = ['AddTk_pm_mVis', 'specQ2', 'deltaM_DstD']
-    if not 'p' in args.controlRegions:
-        channelMasks.append('AddTk_p_mHad')
-    if not 'm' in args.controlRegions:
-        channelMasks.append('AddTk_m_mHad')
-    if not 'pm' in args.controlRegions:
-        channelMasks.append('AddTk_pm_mHad')
-        channelMasks.append('AddTk_pm_mVis')
-    if not 'pp' in args.controlRegions:
-        channelMasks.append('AddTk_pp_mHad')
-    if not 'mm' in args.controlRegions:
-        channelMasks.append('AddTk_mm_mHad')
-    channelMasks += ['rgx{.*_pt.*}', 'rgx{.*_eta.*}', 'rgx{mass_.*}', 'rgx{.*_Umiss_tks}']
-
+    visibleChannels = ['ctrl_'+r for r in args.controlRegions]
     fitVar = args.signalRegProj1D if args.signalRegProj1D else 'Unrolled'
-    for v in ['Unrolled', 'M2_miss', 'Est_mu']:
-        if not v == fitVar:
-            channelMasks += ['rgx{'+v+'.*}']
+    if not args.noLowq2:
+        visibleChannels += [fitVar+'_q2bin0', fitVar+'_q2bin1']
+    if args.unblinded:
+        visibleChannels += [fitVar+'_q2bin2', fitVar+'_q2bin3']
 
-    if not args.unblinded:
-        channelMasks += [fitVar+'_q2bin2', fitVar+'_q2bin3']
-    if args.noLowq2:
-        channelMasks += [fitVar+'_q2bin0', fitVar+'_q2bin1']
+    if args.category == 'comb':
+        visibleChannels = ['rgx{mask_[hml].*_'+r+'}' for r in visibleChannels]
+    else:
+        visibleChannels = ['mask_'+r for r in visibleChannels]
 
-    hDic = histo.values()[0] if args.category == 'comb' else histo
-    triggeredMasks = []
-    masked = []
-    visible = []
-    for r in np.sort(hDic.keys()):
-        if r.startswith('h2'): continue
-        for mask in channelMasks:
-            pattern = mask
-            if mask.startswith('rgx'):
-                pattern = mask[4:-1]
-            if re.match(pattern, r):
-                masked.append(r)
-                triggeredMasks.append(mask)
-        if not r in masked:
-            visible.append(r)
-    for mask in channelMasks:
-        if not mask in triggeredMasks:
-            print '[WARNING] Mask "'+mask+'" not matching any region'
-            channelMasks.remove(mask)
-    print 'Masked regions:', len(masked)
-    print 'Visible regions {}: '.format(len(visible)) + ', '.join(visible)
-
-
-    aux = []
-    for cm in channelMasks:
-        if cm.startswith('rgx{'):
-            if args.category == 'comb':
-                aux.append('rgx{mask_.*_' + cm[4:])
-            else:
-                aux.append('rgx{mask_' + cm[4:])
-        else:
-            if args.category == 'comb':
-                aux.append('rgx{mask_.*_' + cm + '}')
-            else:
-                aux.append('mask_' + cm)
-    channelMaskingStr = ','.join(['{}=1'.format(c) for c in aux])
-
+    channelMaskingStr = 'rgx{mask_.*}=1,'+','.join([c+'=0' for c in visibleChannels])
     return channelMaskingStr
 
 def runFitDiagnostic(tag, card, out, forceRDst=False, maskStr='', rVal=SM_RDst, rLimits=[0.1, 0.7], seed=6741, strategy=1):
