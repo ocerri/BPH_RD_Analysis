@@ -245,10 +245,10 @@ if not args.submit:
         f.write(50*'#'+'\n')
         f.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n')
         f.write( ' '.join(sys.argv) + '\n')
-        f.write(5*'>'+'\n')
+        f.write(5*'>'+' Arguments\n')
         f.write( yaml.dump(args.__dict__) )
         f.write(5*'<'+'\n')
-        f.write(50*'-'+ '\n\n')
+        f.write(50*'-'+ '\n')
 
 def runCommandSafe(command, printCommand=True):
     if printCommand:
@@ -368,34 +368,33 @@ def loadDatasets(category, loadRD):
     if args.dumpWeightsTree:
         print 'Skipping on the flight cuts (if any).'
     else:
-        # pass
-        for k in dSet.keys():
-            addCuts = [
-                # ['B_eta', -1., 1.],
-                # ['K_pt', 1., 1e3],
-                # ['pi_pt', 1., 1e3],
-                # ['pis_pt', 1., 1e3],
-                      ]
-            # sel = np.ones_like(dSet[k]).astype(np.bool)
-            sel = dSet[k]['M2_miss'] > 0.4
-            for var, low, high in addCuts:
-                sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
+        addCuts = [
+        ['M2_miss', 0.4, 1e3],
+        # ['B_eta', -1., 1.],
+        # ['K_pt', 1., 1e3],
+        # ['pi_pt', 1., 1e3],
+        # ['pis_pt', 1., 1e3],
+        ]
+        if len(addCuts) > 0:
+            with open(webFolder + '/callsLog.txt', 'a') as f:
+                f.write(5*'>'+' Cuts at loading time\n')
+                for v, m, M in addCuts:
+                    f.write('{} < {} < {}\n'.format(m, v, M))
+                f.write(5*'<'+'\n')
+                f.write(50*'-'+ '\n')
+            for k in dSet.keys():
+                sel = np.ones_like(dSet[k]['q2']).astype(np.bool)
+                for var, low, high in addCuts:
+                    sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
 
-            #removeDups
-            # if k == 'mu':
-            #     selDups = np.logical_or(np.logical_or(dSet[k]['pi_pt'] < 4.9854763, dSet[k]['pi_pt'] > 4.9854765),
-            #                             np.logical_or(dSet[k]['mu_pt'] < 9.3952416, dSet[k]['mu_pt'] > 9.3952418))
-            #     sel = np.logical_and(sel, selDups)
+                dSet[k] = dSet[k][sel]
+                corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
 
-            dSet[k] = dSet[k][sel]
-            corrScaleFactors[k] = np.sum(sel)/float(sel.shape[0])
-
-            # sel = np.ones_like(dSetTkSide[k]).astype(np.bool)
-            sel = dSetTkSide[k]['M2_miss'] > 0.4
-            for var, low, high in addCuts:
-                sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
-            dSetTkSide[k] = dSetTkSide[k][sel]
-            corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
+                sel = np.ones_like(dSetTkSide[k]['q2']).astype(np.bool)
+                for var, low, high in addCuts:
+                    sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
+                dSetTkSide[k] = dSetTkSide[k][sel]
+                corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
 
     return MCsample, dSet, dSetTkSide
 
