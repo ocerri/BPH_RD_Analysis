@@ -85,6 +85,7 @@ defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'u
 # histos preFitPlots shapeVarPlots card workspace scan fitDiag postFitPlots uncBreakdownScan GoF
 parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
 parser.add_argument ('--submit', default=False, action='store_true', help='Submit a job instead of running the call interactively.')
+parser.add_argument ('--runInJob', default=False, action='store_true', help='Not for user, reserved to jobs calls.')
 
 parser.add_argument ('--validateCard', default=False, action='store_true', help='Run combine card validation.')
 parser.add_argument ('--decorrelateFFpars', default=False, action='store_true', help='Decorrelte form factors parameters')
@@ -142,7 +143,7 @@ if len(args.step) == 0:
             if 'uncBreakdown' in s:
                 args.step.remove(s)
 
-    if args.submit and not args.category == 'comb':
+    if args.runInJob and not args.category == 'comb':
         args.step.append('shapeVarPlots')
     print 'Running default steps: ' + ', '.join(args.step)
 
@@ -1238,7 +1239,7 @@ def createHistograms(category):
 
     for s in ['m_', 'p_', 'mm', 'pm', 'pp']:
         ctrlVar['ctrl_'+s+'_umiss'] = 'UmissTks'
-        binning['ctrl_'+s+'_umiss'] = [40, -0.08, 0.12]
+        binning['ctrl_'+s+'_umiss'] = [40, -0.08, 0.15]
 
         if not s[1] == '_':
             ctrlVar['ctrl_'+s+'_mPiPi'] = 'massTks_pipi'
@@ -1253,7 +1254,7 @@ def createHistograms(category):
     for r in args.controlRegions:
         if not 'ctrl_'+r in ctrlVar.keys():
             print '[ERROR] Region "{}" not defined'.format(r)
-            exit()
+            raise
 
         ctrlVar_mod['ctrl_'+r] = [ -1, ctrlVar_counter[r[:2]] ]
         ctrlVar_counter[r[:2]]+= 1
@@ -3908,7 +3909,7 @@ def submitRunToCondor():
     jN = str(jN)
 
     arguments = os.environ['PWD'] + ' '
-    arguments += ' '.join(sys.argv).replace(' --submit', '')
+    arguments += ' '.join(sys.argv).replace(' --submit', ' --runInJob')
 
     job = jdlTemplate.format(outdir=jobDir, arguments=arguments, jN=jN)
     with open(jobDir+'/job_'+jN+'.jdl', 'w') as fsub:
@@ -3950,11 +3951,11 @@ if __name__ == "__main__":
             present = False
             while not present:
                 n = len(glob(os.path.join(histo_file_dir, card_name.replace('comb', c)) + '_*.root'))
-                if n>9:
+                if n>50:
                     present = True
                 else:
                     print 'Waiting for ' + c
-                    time.sleep(60*5)
+                    time.sleep(60*10)
             histo[c] = loadHisto4CombineFromRoot(histo_file_dir, card_name.replace('comb', c))
     else:
         loadShapeVar = 'card' in args.step
