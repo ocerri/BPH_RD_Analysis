@@ -55,7 +55,7 @@ parser.add_argument ('--category', '-c', type=str, default='high', choices=['sin
 
 parser.add_argument ('--skimmedTag', default='_220110', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
-parser.add_argument ('--maxEventsToLoadPerMCSample', default=None, type=int, help='Max number of MC events to load per sample.')
+parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
 parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
@@ -64,7 +64,7 @@ parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], hel
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
-parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pm_mHad', 'pp_mHad', 'mm_mHad'], help='Control regions to use', nargs='+')
+parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pm_mVis', 'pp_mHad', 'mm_mHad'], help='Control regions to use', nargs='+')
 
 parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
 parser.add_argument ('--freeMuBr', default=True, help='Make muon branching fraction with a rate parameter (flat prior).')
@@ -294,6 +294,35 @@ def cleanPreviousResults():
 
 
 ########################### -------- Create histrograms ------------------ #########################
+controlRegSel = {}
+def selfun__TkPlus(ds):
+    sel = np.logical_and(ds['N_goodAddTks'] == 1, ds['tkCharge_0'] > 0)
+    return sel
+controlRegSel['p_'] = selfun__TkPlus
+
+def selfun__TkMinus(ds):
+    sel = np.logical_and(ds['N_goodAddTks'] == 1, ds['tkCharge_0'] < 0)
+    return sel
+controlRegSel['m_'] = selfun__TkMinus
+
+def selfun__TkPlusMinus(ds):
+    sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == 0, ds['N_goodAddTks'] == 2)
+    sel = np.logical_and(ds['massVisTks'] < 5.55, sel)
+    return sel
+controlRegSel['pm'] = selfun__TkPlusMinus
+
+def selfun__TkMinusMinus(ds):
+    sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == -2, ds['N_goodAddTks'] == 2)
+    sel = np.logical_and(ds['massVisTks'] < 5.3, sel)
+    return sel
+controlRegSel['mm'] = selfun__TkMinusMinus
+
+def selfun__TkPlusPlus(ds):
+    sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == +2, ds['N_goodAddTks'] == 2)
+    sel = np.logical_and(ds['massVisTks'] < 5.3, sel)
+    return sel
+controlRegSel['pp'] = selfun__TkPlusPlus
+
 corrScaleFactors = {}
 def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
@@ -331,18 +360,18 @@ def loadDatasets(category, loadRD):
     dSetTkSide = {}
     mcType = 'bare' if args.bareMC else 'corr'
     print 'mcType:', mcType
-    if not args.maxEventsToLoadPerMCSample is None:
-        print 'Limiting events per MC sample to', args.maxEventsToLoadPerMCSample
+    if not args.maxEventsToLoad is None:
+        print 'Limiting events per MC sample to', args.maxEventsToLoad
     for n, s in MCsample.iteritems():
         if not n in processOrder:
             print n, 'not declarted in processOrder'
             raise
         dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType),
-                                               stop=args.maxEventsToLoadPerMCSample
+                                               stop=args.maxEventsToLoad
                                               )
                               )
         dSetTkSide[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType),
-                                                     stop=args.maxEventsToLoadPerMCSample
+                                                     stop=args.maxEventsToLoad
                                                     )
                                     )
 
@@ -374,17 +403,23 @@ def loadDatasets(category, loadRD):
         # ['K_pt', 1., 1e3],
         # ['pi_pt', 1., 1e3],
         # ['pis_pt', 1., 1e3],
+        # ['ctrl_pm_massVisTks', 0, 3.8],
+        # ['ctrl_pm_index', 3, 0],
         ]
         if len(addCuts) > 0:
             with open(webFolder + '/callsLog.txt', 'a') as f:
                 f.write(5*'>'+' Cuts at loading time\n')
                 for v, m, M in addCuts:
-                    f.write('{} < {} < {}\n'.format(m, v, M))
+                    if 'index' in v:
+                        f.write('{} % {} <= {}\n'.format(v, m, M))
+                    else:
+                        f.write('{} < {} < {}\n'.format(m, v, M))
                 f.write(5*'<'+'\n')
                 f.write(50*'-'+ '\n')
             for k in dSet.keys():
                 sel = np.ones_like(dSet[k]['q2']).astype(np.bool)
                 for var, low, high in addCuts:
+                    if var.startswith('ctrl_'): continue
                     sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
 
                 dSet[k] = dSet[k][sel]
@@ -392,9 +427,25 @@ def loadDatasets(category, loadRD):
 
                 sel = np.ones_like(dSetTkSide[k]['q2']).astype(np.bool)
                 for var, low, high in addCuts:
-                    sel = np.logical_and(sel, np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high))
+                    region = 'all'
+                    if var.startswith('ctrl_'):
+                        var = var.replace('ctrl_', '')
+                        if re.match('[pm][pm_]_', var[:3]):
+                            region = var[:2]
+                            var = var[3:]
+                    if var == 'index':
+                        thisSel = np.mod(dSetTkSide[k][var], low) <= high
+                    else:
+                        thisSel = np.logical_and(dSetTkSide[k][var] > low, dSetTkSide[k][var] < high)
+                    if region == 'all':
+                        sel = np.logical_and(sel, thisSel)
+                    else:
+                        auxSel = np.logical_or( np.logical_not(controlRegSel[region](dSetTkSide[k])), thisSel)
+                        sel = np.logical_and(sel, auxSel)
+
                 dSetTkSide[k] = dSetTkSide[k][sel]
                 corrScaleFactors[k+'_tk'] = np.sum(sel)/float(sel.shape[0])
+
 
     return MCsample, dSet, dSetTkSide
 
@@ -1146,35 +1197,6 @@ def createHistograms(category):
     ######################################################
     ########## Control region
     ######################################################
-    controlRegSel = {}
-    def selfun__TkPlus(ds):
-        sel = np.logical_and(ds['N_goodAddTks'] == 1, ds['tkCharge_0'] > 0)
-        return sel
-    controlRegSel['p_'] = selfun__TkPlus
-
-    def selfun__TkMinus(ds):
-        sel = np.logical_and(ds['N_goodAddTks'] == 1, ds['tkCharge_0'] < 0)
-        return sel
-    controlRegSel['m_'] = selfun__TkMinus
-
-    def selfun__TkPlusMinus(ds):
-        sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == 0, ds['N_goodAddTks'] == 2)
-        sel = np.logical_and(ds['massVisTks'] < 5.55, sel)
-        return sel
-    controlRegSel['pm'] = selfun__TkPlusMinus
-
-    def selfun__TkMinusMinus(ds):
-        sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == -2, ds['N_goodAddTks'] == 2)
-        sel = np.logical_and(ds['massVisTks'] < 5.3, sel)
-        return sel
-    controlRegSel['mm'] = selfun__TkMinusMinus
-
-    def selfun__TkPlusPlus(ds):
-        sel = np.logical_and(ds['tkCharge_0']+ds['tkCharge_1'] == +2, ds['N_goodAddTks'] == 2)
-        sel = np.logical_and(ds['massVisTks'] < 5.3, sel)
-        return sel
-    controlRegSel['pp'] = selfun__TkPlusPlus
-
     ctrlVar = {}
     ctrlVar['ctrl_p__mHad'] = 'massHadTks'
     binning['ctrl_p__mHad'] = [35, 2.13, 2.83]
@@ -1197,33 +1219,33 @@ def createHistograms(category):
     binning['ctrl_pp_mHad'] = [20, 2.25, 3.7]
 
     ctrlVar['ctrl_m__tk_pt_0'] = 'tkPt_0'
-    binning['ctrl_m__tk_pt_0'] = [60, 0.5, 10]
+    binning['ctrl_m__tk_pt_0'] = array('d', list(np.arange(.5, 2., 0.1)) + list(np.arange(2., 7.51, 0.25)) )
+    ctrlVar['ctrl_mm_tk_pt_0'] = 'tkPt_0'
+    binning['ctrl_mm_tk_pt_0'] = [12, 0.5, 10]
+    ctrlVar['ctrl_mm_tk_pt_1'] = 'tkPt_1'
+    binning['ctrl_mm_tk_pt_1'] = [20, 0.5, 4]
     ctrlVar['ctrl_p__tk_pt_0'] = 'tkPt_0'
     binning['ctrl_p__tk_pt_0'] = [50, 0.5, 15]
-    ctrlVar['ctrl_mm_tk_pt_0'] = 'tkPt_0'
-    binning['ctrl_mm_tk_pt_0'] = [30, 0.5, 10]
     ctrlVar['ctrl_pm_tk_pt_0'] = 'tkPt_0'
-    binning['ctrl_pm_tk_pt_0'] = [50, 0.5, 15]
-    ctrlVar['ctrl_pp_tk_pt_0'] = 'tkPt_0'
-    binning['ctrl_pp_tk_pt_0'] = [50, 0.5, 15]
-    ctrlVar['ctrl_mm_tk_pt_1'] = 'tkPt_1'
-    binning['ctrl_mm_tk_pt_1'] = [40, 0.5, 4]
+    binning['ctrl_pm_tk_pt_0'] = [40, 0.5, 18]
     ctrlVar['ctrl_pm_tk_pt_1'] = 'tkPt_1'
-    binning['ctrl_pm_tk_pt_1'] = [40, 0.5, 8]
+    binning['ctrl_pm_tk_pt_1'] = [30, 0.5, 8]
+    ctrlVar['ctrl_pp_tk_pt_0'] = 'tkPt_0'
+    binning['ctrl_pp_tk_pt_0'] = [30, 0.5, 15]
     ctrlVar['ctrl_pp_tk_pt_1'] = 'tkPt_1'
-    binning['ctrl_pp_tk_pt_1'] = [40, 0.5, 4]
+    binning['ctrl_pp_tk_pt_1'] = [30, 0.5, 4]
 
 
     for s in ['m_', 'p_', 'mm', 'pm', 'pp']:
         ctrlVar['ctrl_'+s+'_umiss'] = 'UmissTks'
-        binning['ctrl_'+s+'_umiss'] = [50, -0.12, 0.12]
+        binning['ctrl_'+s+'_umiss'] = [40, -0.08, 0.12]
 
         if not s[1] == '_':
             ctrlVar['ctrl_'+s+'_mPiPi'] = 'massTks_pipi'
-            binning['ctrl_'+s+'_mPiPi'] = [50, 0.25, 1.2]
+            binning['ctrl_'+s+'_mPiPi'] = [30, 0.25, 1.]
 
             ctrlVar['ctrl_'+s+'_mDstPi_0'] = 'tkMassHad_0'
-            binning['ctrl_'+s+'_mDstPi_0'] = [50, 2.1, 3.3]
+            binning['ctrl_'+s+'_mDstPi_0'] = [30, 2.1, 3.]
 
     # Figuring out the mod to avoid double counting
     ctrlVar_mod = defaultdict(lambda : None)
