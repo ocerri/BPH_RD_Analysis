@@ -53,7 +53,8 @@ parser.add_argument ('--HELP', '-H', default=False, action='store_true', help='P
 parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
-parser.add_argument ('--skimmedTag', default='_220110', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTag', default='_mediumId_lostInnerHits', type=str, help='Tag to append to the skimmed directory.')
+# parser.add_argument ('--skimmedTag', default='_220110', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
 parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
@@ -135,7 +136,7 @@ if len(args.step) == 0:
         args.step = defaultPipelineComb
     else: args.step = defaultPipelineSingle
 
-    if args.cardTag == 'test' and not args.submit:
+    if args.cardTag == 'test_' and not args.submit:
         args.step = ['clean'] + args.step
 
     if not args.unblinded:
@@ -188,7 +189,7 @@ processOrder = [
     'Bd_DstDu', 'Bu_DstDu',
     'Bd_DstDd', 'Bu_DstDd',
     'Bd_DstDs', 'Bs_DstDs',
-    'dataSS_DstMu'
+    # 'dataSS_DstMu'
 ]
 
 
@@ -328,8 +329,8 @@ corrScaleFactors = {}
 def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
-    # candDir='ntuples_B2DstMu_211118'
-    candDir='ntuples_B2DstMu_mediumId'
+    candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
+    # candDir='ntuples_B2DstMu_mediumId'
     print 'Using candDir =', candDir
     print 'Using skim = skimmed'+args.skimmedTag
     MCsample = {
@@ -376,24 +377,25 @@ def loadDatasets(category, loadRD):
                                                     )
                                     )
 
-    dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
+    # dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
+    dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD_mediumId_lostInnerHits'
     # locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_211014_{}'.format(category.name)
-    locRD = dataDir+'/skimmed/B2DstMu_SS_211014_{}'.format(category.name)
-    dSet['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
-    dSetTkSide['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
+    # locRD = dataDir+'/skimmed/B2DstMu_SS_211014_{}'.format(category.name)
+    # dSet['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
+    # dSetTkSide['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
 
 
     if loadRD:
         print 'Loading real data datasets'
-        lumi_tot = 0
 
-        # creation_date = '210917'
-        creation_date = '211205'
+        # creation_date = '211205'
+        creation_date = '220110'
         locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
         dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
         dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
-        datasets_loc = glob(dataDir + '/ParkingBPH*/*RDntuplizer_B2DstMu_{}_CAND.root'.format(creation_date))
-        lumi_tot = getLumiByTrigger(datasets_loc, category.trg, verbose=True)
+        # Not used
+        # datasets_loc = glob(dataDir + '/ParkingBPH*/*RDntuplizer_B2DstMu_{}_CAND.root'.format(creation_date))
+        # lumi_tot = getLumiByTrigger(datasets_loc, category.trg, verbose=True)
 
     if args.dumpWeightsTree:
         print 'Skipping on the flight cuts (if any).'
@@ -1238,6 +1240,9 @@ def createHistograms(category):
 
 
     for s in ['m_', 'p_', 'mm', 'pm', 'pp']:
+        ctrlVar['ctrl_'+s+'_mu_pt'] = 'mu_pt'
+        binning['ctrl_'+s+'_mu_pt'] = binning['mu_pt'][0]
+
         ctrlVar['ctrl_'+s+'_umiss'] = 'UmissTks'
         binning['ctrl_'+s+'_umiss'] = [40, -0.08, 0.15]
 
@@ -1366,7 +1371,7 @@ def createHistograms(category):
                     wVar.update(auxVarDic)
 
             # Correct the amount of random tracks from PV
-            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.3, centralVal=2.3)
+            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=3.0)
             # weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.05, centralVal=2.3)
             print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
 
@@ -3820,12 +3825,13 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 
     # Run the test stat toy distribution
     cmdToys = cmd.replace('-n Obs', '-n Toys')
-    cmdToys = cmdToys.replace('-t 0 -s 100', '-t 10 -s -1')
+    nToysPerRep = 40 if args.runInJob else 10
+    cmdToys = cmdToys.replace('-t 0 -s 100', '-t {} -s -1'.format(nToysPerRep))
     print cmdToys
 
-    Nrep = 10
-    p = Pool(min(20,Nrep))
-    outputs = p.map(runCommand, Nrep*[cmdToys])
+    nRep = 10 if args.runInJob else 20
+    p = Pool(min(20,nRep))
+    outputs = p.map(runCommand, nRep*[cmdToys])
     for s,o in outputs:
         if s: print o
 
