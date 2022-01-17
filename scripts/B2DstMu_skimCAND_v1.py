@@ -65,7 +65,7 @@ filesLocMap = {}
 
 root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples_B2DstMu_mediumId/out_CAND_*.root'
+MCend = 'ntuples_B2DstMu_220114/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
@@ -264,6 +264,7 @@ def extractEventInfos(j, ev, corr=None):
     e.tkPtError = []
     e.tkEta = []
     e.tkPhi = []
+    e.tk_lostInnerHits = []
     e.tk_pval = []
     e.MC_tkFlag = []
     e.MC_tkFromMainB = []
@@ -286,13 +287,16 @@ def extractEventInfos(j, ev, corr=None):
         if pval < 0.1:
             continue
 
+        if ev.tksAdd_lostInnerHits[jj] > 0:
+            continue
+
         eta = ev.tksAdd_eta[jj]
         if np.abs(eta) >= 2.4:
             continue
         phi = ev.tksAdd_phi[jj]
         pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 2e-3)
         # if pt < 1.0:
-        if pt < 0.5:
+        if pt < 0.55:
             continue
         #Avoid tracks duplicates
         duplicate = False
@@ -320,6 +324,7 @@ def extractEventInfos(j, ev, corr=None):
             e.tkPtError.insert(idx, ev.tksAdd_ptError[jj])
             e.tkEta.insert(idx, eta)
             e.tkPhi.insert(idx, phi)
+            e.tk_lostInnerHits.insert(idx, ev.tksAdd_lostInnerHits[jj])
             e.tk_pval.insert(idx, ev.tksAdd_pval[jj])
             e.tkCharge.insert(idx, ev.tksAdd_charge[jj]*ev.mu_charge[j])
             e.massVis_wTk.insert(idx, mVis_wTk)
@@ -398,7 +403,7 @@ def extractEventInfos(j, ev, corr=None):
 
 
     if e.N_goodAddTks < 3:
-        auxList = [e.tkCharge, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.tk_pval, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.massDTk, e.mass2MissTk, e.UmissTk]
+        auxList = [e.tkCharge, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.tk_lostInnerHits, e.tk_pval, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.massDTk, e.mass2MissTk, e.UmissTk]
         auxList += [e.MC_tkFlag, e.MC_tkFromMainB, e.MC_tkPdgId, e.MC_tkMotherPdgId, e.MC_tkMotherMotherPdgId, e.MC_tk_dphi, e.MC_tk_deta, e.MC_tk_dpt]
         for l in auxList:
             l += [0, 0, 0]
@@ -464,9 +469,12 @@ def makeSelection(inputs):
                    evEx.Dst_pt, evEx.Dst_eta, evEx.Dst_phi,
                    evEx.D0_pt, evEx.D0_eta, evEx.D0_phi,
                    evEx.pi_pt, evEx.pi_eta, evEx.pi_phi,
+                   ev.pi_lostInnerHits[j],
                    evEx.K_pt, evEx.K_eta, evEx.K_phi,
+                   ev.K_lostInnerHits[j],
                    ev.pval_piK[j], ev.sigdxy_vtxD0_PV[j],
                    evEx.pis_pt, evEx.pis_eta, evEx.pis_phi,
+                   ev.pis_lostInnerHits[j],
                    ev.pval_D0pis[j],
                    evEx.mass_piK, evEx.mass_D0pis, evEx.mass_D0pismu,
                    evEx.mass_D0pis - evEx.mass_piK,
@@ -481,6 +489,7 @@ def makeSelection(inputs):
                    evEx.tkPtError[0], evEx.tkPtError[1], evEx.tkPtError[2],
                    evEx.tkEta[0], evEx.tkEta[1], evEx.tkEta[2],
                    evEx.tkPhi[0], evEx.tkPhi[1], evEx.tkPhi[2],
+                   evEx.tk_lostInnerHits[0], evEx.tk_lostInnerHits[1], evEx.tk_lostInnerHits[2],
                    evEx.tk_pval[0], evEx.tk_pval[1], evEx.tk_pval[2],
                    evEx.massVis_wTk[0], evEx.massVis_wTk[1], evEx.massVis_wTk[2],
                    evEx.massHad_wTk[0], evEx.massHad_wTk[1], evEx.massHad_wTk[2],
@@ -665,9 +674,12 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'Dst_pt', 'Dst_eta', 'Dst_phi',
                        'D0_pt', 'D0_eta', 'D0_phi',
                        'pi_pt', 'pi_eta', 'pi_phi',
+                       'pi_lostInnerHits',
                        'K_pt', 'K_eta', 'K_phi',
+                       'K_lostInnerHits',
                        'pval_piK', 'sigdxy_vtxD0_PV',
                        'pis_pt', 'pis_eta', 'pis_phi',
+                       'pis_lostInnerHits',
                        'pval_D0pis',
                        'mass_piK', 'mass_D0pis', 'mass_D0pismu',
                        'deltaM_DstD',
@@ -682,6 +694,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'tkPtError_0', 'tkPtError_1', 'tkPtError_2',
                        'tkEta_0', 'tkEta_1', 'tkEta_2',
                        'tkPhi_0', 'tkPhi_1', 'tkPhi_2',
+                       'tk_lostInnerHits_0', 'tk_lostInnerHits_1', 'tk_lostInnerHits_2',
                        'tk_pval_0', 'tk_pval_1', 'tk_pval_2',
                        'tkMassVis_0', 'tkMassVis_1', 'tkMassVis_2',
                        'tkMassHad_0', 'tkMassHad_1', 'tkMassHad_2',
