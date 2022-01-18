@@ -39,6 +39,13 @@ def loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=False, ver
     return histo
 
 def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
+    def y_lineByPoints(x, x1, x2, y1, y2):
+        # (x - x1) / (x2 -x1) = (y - y1)/(y2 - y1)
+        if x1 != x2:
+            return y1 + (y2 - y1) * (x - x1) / (x2 - x1)
+        else:
+            return (y1 + y2)*0.5
+
     if not os.path.isfile(name):
         print 'File not found:', name
         raise
@@ -70,7 +77,8 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
             plt.xlabel('$-2\Delta\log(L)$')
             plt.ylabel('POI')
             plt.grid()
-        if np.all(nll_l[:-1] >= nll_l[1:]) and np.all(nll_u[:-1] <= nll_u[1:]):
+
+        if np.all(nll_l[:-1] >= nll_l[1:]):
             if len(r_l) > 2:
                 kind = 'linear' if 1 > np.max(nll_l) else 'quadratic'
                 f_l = interp1d(nll_l, r_l, kind, fill_value='extrapolate')
@@ -82,6 +90,15 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
                     l, l2 = r_l[0], r_l[0]
                 else:
                     l, l2 = c, c
+        else:
+            print 'Low error'
+            print nll_l
+            print '[ERROR] Likelihood not convex (X array not sorted)'
+            l, l2 = 0, 0
+            raise
+
+
+        if np.all(nll_u[:-1] <= nll_u[1:]):
             if len(r_u) > 2:
                 kind = 'linear' if 1 > np.max(nll_u) else 'quadratic'
                 f_u = interp1d(nll_u, r_u, kind, fill_value='extrapolate')
@@ -93,17 +110,38 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
                     u, u2 = r_u[-1], r_u[-1]
                 else:
                     u, u2 = c, c
-
         else:
-            if not np.all(nll_l[:-1] >= nll_l[1:]):
-                print 'Low error'
-                print nll_l
-            if not np.all(nll_u[:-1] <= nll_u[1:]):
-                print 'High error'
-                print nll_u
-            print 'ERROR: X array not sorted'
-            u, l = 0, 0
-            u2, l2 = 0, 0
+            print 'High error'
+            print nll_u
+            print '[ERROR] Likelihood not convex (X array not sorted)'
+            i = 0
+            u, u2 = None, None
+            while i < len(nll_u):
+                if nll_u[i] < 0.5 or (u is not None and nll_u[i] < 2.):
+                    i += 1
+                    continue
+                elif u is None:
+                    aux_r_u = [c] + list(r_u)
+                    aux_nll_u = [0] + list(nll_u)
+
+                    x1, x2 = aux_nll_u[i], aux_nll_u[i+1]
+                    y1, y2 = aux_r_u[i], aux_r_u[i+1]
+                    u = y_lineByPoints(0.5, x1, x2, y1, y2)
+                elif u2 is None:
+                    x1, x2 = nll_u[i-1], nll_u[i]
+                    y1, y2 = r_u[i-1], r_u[i]
+                    u2 = y_lineByPoints(2., x1, x2, y1, y2)
+                else:
+                    break
+            if u is None:
+                imax = np.argmax(nll_u)
+                x1, x2 = nll_u[imax], 0
+                y1, y2 = r_u[imax], c
+                u = y_lineByPoints(0.2, x1, x2, y1, y2)
+            if u2 is None:
+                u2 = 2*u
+
+
         if verbose:
             print '----------------------------------'
             if iToy:
