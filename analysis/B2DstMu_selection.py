@@ -104,11 +104,11 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
             return False
     # Cuts on the observables
     if not (15 in skipCut):
-        # sel = e.q2 > -2. and e.q2 < 12
-        # sel = sel and e.M2_miss > -2.5
+        sel = e.q2 > -2. and e.q2 < 12
+        sel = sel and e.M2_miss > -2.5
 
-        sel = e.q2 > 0 and e.q2 < 12
-        sel = sel and e.M2_miss > 0.2
+        # sel = e.q2 > 0 and e.q2 < 12
+        # sel = sel and e.M2_miss > 0.2
         if not sel:
             return False
     if not (16 in skipCut):

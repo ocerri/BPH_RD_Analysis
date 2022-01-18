@@ -89,8 +89,8 @@ for s in MC_samples:
     filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
-# filesLocMap['data'] = join(RDloc, '*_B2DstMu_210917_CAND.root')
-filesLocMap['data'] = join(RDloc, '*_B2DstMu_211205_CAND.root')
+# filesLocMap['data'] = join(RDloc, '*_B2DstMu_211205_CAND.root')
+filesLocMap['data'] = join(RDloc, '*_B2DstMu_220113_CAND.root')
 # filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_211014_CAND.root')
 
 def getTLVfromField(ev, n, idx, mass):
@@ -597,7 +597,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
     print n, catName
     if 'data' in n:
         loc = join(root,'cmsRD/skimmed'+args.skimTag+'/B2DstMu'+ n.replace('data', ''))
-        out = re.search('21[01][0-9][0-3][0-9]', filepath)
+        out = re.search('2[12][01][0-9][0-3][0-9]', filepath)
         if out is None:
             print filepath
             raise

@@ -4,8 +4,8 @@
 ######### Notes #########
 To activate the environment run: cd ~/work/CMSSW_10_2_13/src/; cmsenv; cd ~/BPH_RD_Analysis/Combine/
 
-######## Release notes #########
-- Added DstMu combinatorial
+To run more categories at once:
+for cat in low mid high comb; do ./runCombine.py --cat $cat --submit; done
 """
 
 
@@ -53,7 +53,7 @@ parser.add_argument ('--HELP', '-H', default=False, action='store_true', help='P
 parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
-parser.add_argument ('--skimmedTag', default='_mediumId_lostInnerHits', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTag', default='_220117_lostInnerHits_fullM2miss', type=str, help='Tag to append to the skimmed directory.')
 # parser.add_argument ('--skimmedTag', default='_220110', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
@@ -144,8 +144,8 @@ if len(args.step) == 0:
             if 'uncBreakdown' in s:
                 args.step.remove(s)
 
-    if args.runInJob and not args.category == 'comb':
-        args.step.append('shapeVarPlots')
+    # if args.runInJob and not args.category == 'comb':
+    #     args.step.append('shapeVarPlots')
     print 'Running default steps: ' + ', '.join(args.step)
 
 schemeFF = args.schemeFF
@@ -329,8 +329,8 @@ corrScaleFactors = {}
 def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
-    candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
-    # candDir='ntuples_B2DstMu_mediumId'
+    # candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
+    candDir='ntuples_B2DstMu_220114'
     print 'Using candDir =', candDir
     print 'Using skim = skimmed'+args.skimmedTag
     MCsample = {
@@ -377,8 +377,7 @@ def loadDatasets(category, loadRD):
                                                     )
                                     )
 
-    # dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
-    dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD_mediumId_lostInnerHits'
+    dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
     # locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_211014_{}'.format(category.name)
     # locRD = dataDir+'/skimmed/B2DstMu_SS_211014_{}'.format(category.name)
     # dSet['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
@@ -389,7 +388,7 @@ def loadDatasets(category, loadRD):
         print 'Loading real data datasets'
 
         # creation_date = '211205'
-        creation_date = '220110'
+        creation_date = '220113'
         locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
         dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
         dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
@@ -401,7 +400,7 @@ def loadDatasets(category, loadRD):
         print 'Skipping on the flight cuts (if any).'
     else:
         addCuts = [
-        ['M2_miss', 0.4, 1e3],
+        # ['M2_miss', 0.2, 1e3],
         # ['B_eta', -1., 1.],
         # ['K_pt', 1., 1e3],
         # ['pi_pt', 1., 1e3],
@@ -1371,7 +1370,7 @@ def createHistograms(category):
                     wVar.update(auxVarDic)
 
             # Correct the amount of random tracks from PV
-            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=3.0)
+            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=2.5)
             # weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.05, centralVal=2.3)
             print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
 
@@ -1585,6 +1584,10 @@ def createHistograms(category):
             auxName = category.name + 'trkCtrl_' + mcType + '_' + card_name + '.root'
 
             wDf = pd.DataFrame.from_dict({'central': weightsCentral*nTotExp/float(weightsCentral.shape[0]) })
+            for k, w in wVar.iteritems():
+                if k:
+                    wDf[k] = w*wDf['central']
+
             print 'Dumping weights tree in', os.path.join(weightsDir, auxName)
             rtnp.array2root(wDf.to_records(), os.path.join(weightsDir, auxName), treename='weights', mode='RECREATE')
 
@@ -2679,7 +2682,7 @@ def createCombinationCard(fitRegionsOnly=False):
                 print '[ERROR] Waited too long...goodbye.'
                 raise
             print 'Waiting for {} card to be produced'.format(c)
-            time.sleep(30)
+            time.sleep(60)
             nWait += 1
         cmd += ' {}={}'.format(c, cl.replace('comb', c))
     cmd += ' > ' + cl
@@ -2953,6 +2956,11 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=3
     res = getUncertaintyFromLimitTree(out+'higgsCombine{}.MultiDimFit.mH120.root'.format(tag))
     rLimitsOut = [res[0] - 3*res[1], res[0] + 3*res[2]]
     rValOur = res[0]
+    with open(webFolder+'/scan_results.txt', 'a') as dumpFile:
+        strRes = tag
+        strRes += ' '*(35-len(strRes))
+        strRes += '{:.3f} +{:.3f} / -{:.3f}'.format(res[0], res[2], res[1])
+        dumpFile.write(strRes + '\n')
     if args.showPlots:
         display(Image(filename=out+'/scan'+tag+'.png'))
     return rValOur, rLimitsOut
@@ -3860,11 +3868,13 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
     plt.savefig(webFolder + '/resultsGoF'+tag+'.png')
 
     strRes = tag
-    strRes += ' '*(55-len(strRes))
-    strRes += '{:.2f}'.format(s_obs)
+    strRes += ' '*(45-len(strRes))
+    strRes += '{:.3f} ({:.1f}%)'.format(s_obs, 100*p_val)
     strRes += ' '*(70-len(strRes))
-    strRes += '{:.2f} {:.2f} {:.2f}'.format(np.percentile(s_toys, 50), np.percentile(s_toys, 95), np.percentile(s_toys, 99))
+    strRes += '{:.3f} {:.3f} {:.3f}'.format(np.percentile(s_toys, 50), np.percentile(s_toys, 95), np.percentile(s_toys, 99))
     print strRes
+    with open(webFolder+'/GoF_results.txt', 'a') as dumpFile:
+        dumpFile.write(strRes + '\n')
     os.system('echo "{}" >> {}GoF_results.txt'.format(strRes, out));
 
 
@@ -3874,7 +3884,7 @@ mem = '2500'
 if 'histos' in args.step:
     mem = '12000'
 elif args.category == 'comb' and 'fitDiag' in args.step:
-    mem = '7000'
+    mem = '15000'
 jdlTemplate = '\n'.join([
               'executable        = '+basedir+'Combine/condorJob.sh',
               'arguments         = {arguments}',
@@ -3890,8 +3900,8 @@ jdlTemplate = '\n'.join([
               '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"',
               '+SingularityBindCVMFS = True',
               'run_as_owner      = True',
-              'RequestDisk       = 2000000',
-              'RequestMemory     = ' + mem,
+              'RequestDisk       = 15000000', #KB
+              'RequestMemory     = ' + mem, #MB
               'RequestCpus       = {:.0f}'.format(np.ceil(float(mem)/4000)),
               'x509userproxy     = $ENV(X509_USER_PROXY)',
               'on_exit_remove    = (ExitBySignal == False) && (ExitCode == 0)',
