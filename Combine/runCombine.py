@@ -67,6 +67,7 @@ parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the 
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pm_mVis', 'pp_mHad', 'mm_mHad'], help='Control regions to use', nargs='+')
 
+parser.add_argument ('--correlate_tkPVfrac', default=False, action='store_true', help='Correlate tkPVfrac in all categories.')
 parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
 parser.add_argument ('--freeMuBr', default=True, help='Make muon branching fraction with a rate parameter (flat prior).')
 parser.add_argument ('--asimov', default=False, action='store_true', help='Use Asimov dataset insted of real data.')
@@ -1376,7 +1377,8 @@ def createHistograms(category):
                     wVar.update(auxVarDic)
 
             # Correct the amount of random tracks from PV
-            weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=2.5)
+            aux = '' if args.correlate_tkPVfrac else category.name
+            weights['tkPVfrac'], wVar['tkPVfrac'+aux+'Up'], wVar['tkPVfrac'+aux+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=2.5)
             # weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.05, centralVal=2.3)
             print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
 
@@ -2524,7 +2526,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             aux += mcProcStr
         else: aux += ' -'*nProc
     if '1.' in aux:
-        card += 'tkPVfrac'+category.name+' shape' + aux + '\n'
+        auxTag = '' if args.correlate_tkPVfrac else category.name
+        card += 'tkPVfrac'+auxTag+' shape' + aux + '\n'
 
     # Soft track efficiency
     # card += 'softTrkEff_w shape' + mcProcStr*nCat + '\n'

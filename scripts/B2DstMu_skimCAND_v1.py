@@ -284,7 +284,7 @@ def extractEventInfos(j, ev, corr=None):
     p4_sumGoodTks = rt.TLorentzVector()
     for jj in range(idx_st, idx_stop):
         pval = ev.tksAdd_pval[jj]
-        if pval < 0.2:
+        if pval < 0.1:
             continue
 
         if ev.tksAdd_lostInnerHits[jj] > 0:
