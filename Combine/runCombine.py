@@ -2919,6 +2919,24 @@ def dumpNuisFromScan(tag, out):
     with open(webFolder+'/scanNuisanceOut_'+tag+'.txt', 'w') as dumpfile:
         dumpfile.write('{}\n'.format(t))
 
+    # Create pulls distribution
+    hNuisances = create_TH1D(np.array([x[1] for x in aux]), 'hNuisDiff', binning=[41, -4.5, 4.5],
+                             axis_title=['Post-pre fit nuisance difference [#sigma]', '# Nuisance'])
+    hNuisances.Sumw2()
+    binWidth = hNuisances.GetBinWidth(1)
+    fGaus = rt.TF1('fFit', '{}*exp(-(x-[0])*(x-[0])/(2*[1]*[1]))/({:.4f}*[1])'.format(len(aux)*binWidth, np.sqrt(2*np.pi)), -5, 5)
+    fGaus.SetParameters(0,1)
+    fGaus.SetParNames('#mu','#sigma')
+    fGaus.SetLineColor(rt.kRed-4)
+    fGaus.SetLineStyle(7)
+    fGaus.SetLineWidth(3)
+    hNuisances.Fit(fGaus, 'QWL')
+    cAux = drawOnCMSCanvas(CMS_lumi, [hNuisances], tag='nuisDiff')
+    textPave = hNuisances.FindObject('stats')
+    textPave.SetY1NDC(0.7)
+    textPave.SetY2NDC(0.95)
+    cAux.SaveAs(webFolder+'/scanNuisanceOut_'+tag+'_distribution.png')
+
 
 def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=30, maskStr='', strategy=1, freezePars=[], draw=True, dumpNuis=False):
     if not out[-1] == '/': out += '/'
