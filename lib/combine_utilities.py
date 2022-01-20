@@ -288,7 +288,7 @@ stringJubCustomizationCaltechT2 = '''
 +MaxRuntime = 3600
 +JobQueue   = "Short"
 RequestDisk = 200000
-RequestMemory = 2500
+RequestMemory = 3900
 RequestCpus = 1
 x509userproxy = $ENV(X509_USER_PROXY)
 '''

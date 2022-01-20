@@ -62,7 +62,7 @@ parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
 
 parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit.')
-parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu'], help='Use 1D projections in signal region instead of the unrolled histograms')
+parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu', 'U_miss'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pm_mVis', 'pp_mHad', 'mm_mHad'], help='Control regions to use', nargs='+')
@@ -406,12 +406,12 @@ def loadDatasets(category, loadRD):
         # ['K_pt', 1., 1e3],
         # ['pi_pt', 1., 1e3],
         # ['pis_pt', 1., 1e3],
-        # ['K_lostInnerHits', -2, 1],
-        # ['pi_lostInnerHits', -2, 1],
-        # ['pis_lostInnerHits', -2, 1],
+        ['K_lostInnerHits', -9, 1],
+        ['pi_lostInnerHits', -9, 1],
+        ['pis_lostInnerHits', -9, 1],
         # ['ctrl_tk_pval_0', 0.2, 1.0],
         # ['ctrl_tk_pval_1', 0.2, 1.0],
-        # ['ctrl_pm_massVisTks', 0, 3.8],
+        ['ctrl_pm_massVisTks', 0, 3.8],
         # ['ctrl_pm_massHadTks', 2.6, 10],
         # ['ctrl_pm_index', 3, 0],
         ]
@@ -702,6 +702,9 @@ def createHistograms(category):
             array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.2] ),
             [24, 0.3, 2.0],
         ]
+
+    binning['U_miss'] = 4*[[30, -0.1, 0.18]]
+
     binning['mu_pt'] = n_q2bins*[{'Low': array('d', list(np.arange(7.2, 9.2, 0.05))+[9.2] ),
                                   'Mid': array('d', list(np.arange(9.2, 12.2, 0.05)) +[12.2] ),
                                   'High': array('d', list(8+np.logspace(np.log10(12.2-8), np.log10(60), 30)) )
@@ -1115,7 +1118,7 @@ def createHistograms(category):
             name2D = 'h2D_q2bin'+str(i_q2)
             if not name2D in histo.keys():
                     histo[name2D] = {}
-            for var in ['M2_miss', 'Est_mu', 'mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt', 'mass_D0pismu']:
+            for var in ['M2_miss', 'Est_mu', 'U_miss', 'mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt', 'mass_D0pismu']:
                 cat_name = var+'_q2bin'+str(i_q2)
 
                 if not cat_name in histo.keys():
@@ -1251,6 +1254,9 @@ def createHistograms(category):
 
         ctrlVar['ctrl_'+s+'_umiss'] = 'UmissTks'
         binning['ctrl_'+s+'_umiss'] = [40, -0.08, 0.15]
+
+        ctrlVar['ctrl_'+s+'_M2miss'] = 'M2_miss'
+        binning['ctrl_'+s+'_M2miss'] = [25, -2, 8]
 
         if not s[1] == '_':
             ctrlVar['ctrl_'+s+'_mPiPi'] = 'massTks_pipi'
@@ -1700,7 +1706,7 @@ def createHistograms(category):
             q2_l = binning['q2'][i_q2]
             q2_h = binning['q2'][i_q2 + 1]
             sel_q2 = np.logical_and(ds['q2'] > q2_l, ds['q2'] < q2_h)
-            for var in ['M2_miss', 'Est_mu', 'mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt', 'mass_D0pismu']:
+            for var in ['M2_miss', 'Est_mu', 'U_miss', 'mu_pt', 'Dst_pt', 'K_pt', 'pi_pt', 'pis_pt', 'mass_D0pismu']:
                 cat_name = var+'_q2bin'+str(i_q2)
                 histo[cat_name]['data'] = create_TH1D(
                                                       ds[var][sel_q2],
@@ -2136,6 +2142,26 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
     cAux.SaveAs(outdir+'/fig/mass_D0pismu_allNorm_'+tag+'.png')
     cAux.SaveAs(webFolder+'/mass_D0pismu_allNorm_'+tag+'.png')
     outCanvas.append(cAux)
+
+    for i_q2 in range(len(binning['q2'])-1):
+        q2_l = binning['q2'][i_q2]
+        q2_h = binning['q2'][i_q2 + 1]
+        name = 'U_miss_q2bin'+str(i_q2)
+        if not name in hDic.keys(): continue
+        print 'Creating', name
+        hDic[name]['data'].GetXaxis().SetTitle('U_{miss} [GeV]')
+        hDic[name]['data'].GetYaxis().SetTitle('Events')
+        cAux = plot_SingleCategory(CMS_lumi, hDic[name], scale_dic=scale_dic,
+                                   draw_pulls=True, pullsRatio=False,
+                                   addText='Cat. '+catName+', {:.1f} <  q^{{2}}  < {:.1f} GeV^{{2}}'.format(q2_l, q2_h),
+                                   logy=False, legBkg=True,
+                                   min_y=1,
+                                   tag='Umiss_q2bin'+str(i_q2),
+                                   legLoc=[0.16, 0.45, 0.33, 0.8],
+                                   maskData = (not args.unblinded) and (False if i_q2 < 2 else True)
+                                   )
+        cAux.SaveAs(webFolder+'/U_miss_q2bin'+str(i_q2)+'_'+tag+'.png')
+        outCanvas.append(cAux)
 
 
     print 30*'-' + '\n\n'
@@ -3907,7 +3933,7 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 
 ########################### -------- Condor submissions ------------------ #########################
 # Check for the right singularity using: ll /cvmfs/singularity.opensciencegrid.org/cmssw/
-mem = '2500'
+mem = '7500'
 if 'histos' in args.step:
     mem = '12000'
 elif args.category == 'comb' and 'fitDiag' in args.step:
