@@ -406,9 +406,9 @@ def loadDatasets(category, loadRD):
         # ['K_pt', 1., 1e3],
         # ['pi_pt', 1., 1e3],
         # ['pis_pt', 1., 1e3],
-        ['K_lostInnerHits', -9, 1],
-        ['pi_lostInnerHits', -9, 1],
-        ['pis_lostInnerHits', -9, 1],
+        ['K_lostInnerHits', -2, 1],
+        ['pi_lostInnerHits', -2, 1],
+        ['pis_lostInnerHits', -2, 1],
         # ['ctrl_tk_pval_0', 0.2, 1.0],
         # ['ctrl_tk_pval_1', 0.2, 1.0],
         ['ctrl_pm_massVisTks', 0, 3.8],
@@ -474,19 +474,20 @@ def computeBrVarWeights(ds, selItems={}, relScale=0.2, centralVal=1., keepNorm=F
     return w, up/w, down/w
 
 def computeWidthVarWeights(ds, selItems=[], newGamma=None, relScale=0.1, keepNorm=False): #Gamma modification factor
+    # See EvtGen BW implementation: https://github.com/alberto-sanchez/evtgen-cms/blob/master/src/EvtGenBase/EvtBreitWignerPdf.cpp#L41
     # selItems=[ [pdgId, mass, Gamma] ]
     w = np.ones_like(ds['mu_pt'])
     up = np.ones_like(ds['mu_pt'])
     down = np.ones_like(ds['mu_pt'])
     for i, (pdgId, mass, gamma) in enumerate(selItems):
         # print pdgId, mass, gamma
-        # dx2 = np.clip(np.square(ds['MC_MassCharmedBDaughter'] - mass), 0, 9*(gamma**2)) # Non relativistic
-        dx2 = np.clip(np.square(np.square(ds['MC_MassCharmedBDaughter']) - mass**2), 0, 9*((mass*gamma)**2))
+        dx2 = np.clip(np.square(ds['MC_MassCharmedBDaughter'] - mass), 0, 9*(gamma**2)) # Non relativistic
+        # dx2 = np.clip(np.square(np.square(ds['MC_MassCharmedBDaughter']) - mass**2), 0, 9*((mass*gamma)**2))
 
         if not (newGamma is None) and not (newGamma[i] is None):
                 gNew = newGamma[i]
-                # wCentral = ((dx2 + gamma**2)*gNew)/(gamma*(dx2 + gNew**2)) # Non relativistic
-                wCentral = (gNew/gamma) * ( (dx2 + (mass*gamma)**2) / (dx2 + (mass*gNew)**2) )
+                wCentral = ((dx2 + (gamma**2)/4.0)*gNew)/(gamma*(dx2 + (gNew**2)/4.0)) # Non relativistic
+                # wCentral = (gNew/gamma) * ( (dx2 + (mass*gamma)**2) / (dx2 + (mass*gNew)**2) )
                 gUp = gNew*(1+relScale)
                 gDown = gNew*(1-relScale)
         else:
@@ -495,10 +496,10 @@ def computeWidthVarWeights(ds, selItems=[], newGamma=None, relScale=0.1, keepNor
             gDown = gamma*(1-relScale)
 
         # Non relativistic
-        # wUp = ((dx2 + gamma**2)*gUp)/(gamma*(dx2 + gUp**2))
-        # wDown = ((dx2 + gamma**2)*gDown)/(gamma*(dx2 + gDown**2))
-        wUp = (gUp/gamma) * ( (dx2 + (mass*gamma)**2) / (dx2 + (mass*gUp)**2) )
-        wDown = (gDown/gamma) * ( (dx2 + (mass*gamma)**2) / (dx2 + (mass*gDown)**2) )
+        wUp = ((dx2 + (gamma**2)/4.0)*gUp)/(gamma*(dx2 + (gUp**2)/4.0))
+        wDown = ((dx2 + (gamma**2)/4.0)*gDown)/(gamma*(dx2 + (gDown**2)/4.0))
+        # wUp = (gUp/gamma) * ( (dx2 + (mass*gamma)**2) / (dx2 + (mass*gUp)**2) )
+        # wDown = (gDown/gamma) * ( (dx2 + (mass*gamma)**2) / (dx2 + (mass*gDown)**2) )
 
         sel = np.abs(ds['MC_DstMotherPdgId'].astype(np.int)) == np.abs(pdgId)
         w = np.where(sel, wCentral, w)
@@ -696,6 +697,12 @@ def createHistograms(category):
             array('d', negSide + list(np.arange(0, 6, 0.2)) + [8] ),
             array('d', negSide + list(np.arange(0, 7.8, 0.2)) + [8] ),
         ]
+    # binning['M2_miss'] = [
+    #         array('d', [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
+    #         array('d', [0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.5, 0.2)) + [8] ),
+    #         array('d', list(np.arange(0, 6, 0.2)) + [8] ),
+    #         array('d', list(np.arange(0, 7.8, 0.2)) + [8] ),
+    #     ]
     binning['Est_mu'] = [
             array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.3] ),
             array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.3] ),
