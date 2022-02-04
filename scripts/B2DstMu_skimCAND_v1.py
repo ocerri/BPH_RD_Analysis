@@ -65,11 +65,11 @@ filesLocMap = {}
 
 root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples_B2DstMu_220114/out_CAND_*.root'
+MCend = 'ntuples_B2DstMu_220201/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
-              'Bd_MuNuDstPiPi_v2',  'Bu_MuNuDstPiPi',#  'Bd_MuNuDstPiPi',
+              'Bd_MuNuDstPiPi_v3',  'Bu_MuNuDstPiPi',#  'Bd_MuNuDstPiPi',
               'Bu_TauNuDstPi',   'Bd_TauNuDstPi',
               'Bd_TauNuDstPiPi', 'Bu_TauNuDstPiPi',
               'Bs_MuNuDstK',     'Bs_TauNuDstK',
@@ -89,8 +89,8 @@ for s in MC_samples:
     filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
-# filesLocMap['data'] = join(RDloc, '*_B2DstMu_211205_CAND.root')
-filesLocMap['data'] = join(RDloc, '*_B2DstMu_220113_CAND.root')
+# filesLocMap['data'] = join(RDloc, '*_B2DstMu_220113_CAND.root')
+filesLocMap['data'] = join(RDloc, '*_B2DstMu_220121_CAND.root')
 # filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_211014_CAND.root')
 
 def getTLVfromField(ev, n, idx, mass):
@@ -508,7 +508,9 @@ def makeSelection(inputs):
                    ev.trgMu_HLT_Mu12_IP6[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu12_IP6') else ev.trgObj_HLT_Mu12_IP6[idxTrg],
                    ev.trgMu_HLT_Mu9_IP6[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu9_IP6') else ev.trgObj_HLT_Mu9_IP6[idxTrg],
                    ev.trgMu_HLT_Mu7_IP4[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu7_IP4') else ev.trgObj_HLT_Mu7_IP4[idxTrg],
-                   ev.N_vertexes, ev.localVertexDensity[j]
+                   ev.N_vertexes, ev.localVertexDensity[j],
+                   ev.localVertexDensity_10mm[j], ev.localVertexDensity_5mm[j], ev.localVertexDensity_1mm[j],
+                   ev.localVertexDensity_cos800[j], ev.localVertexDensity_cos990[j], ev.localVertexDensity_cos999[j],
                   )
             if not 'data' in n:
                 muSisPdgId = []
@@ -562,6 +564,10 @@ def makeSelection(inputs):
                         ev.wh_BLPReig5Down, ev.wh_BLPReig5Up,
                         ev.wh_BLPReig6Down, ev.wh_BLPReig6Up,
                        )
+            # if 'MuNuDstPi' in n:
+            #     aux += (## FF Hammer weights for D** resances
+            #             # Flags to divide the different D** processes
+            #            )
             ev_output.append(aux)
 
         N_acc = len(ev_output)
@@ -709,7 +715,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'EmissTks', 'PmissTks', 'UmissTks',
                        'cat_low', 'cat_mid', 'cat_high',
                        'muPass_Mu12_IP6', 'muPass_Mu9_IP6', 'muPass_Mu7_IP4',
-                       'N_vtx', 'localVertexDensity'
+                       'N_vtx', 'localVertexDensity',
+                       'localVertexDensity_10mm', 'localVertexDensity_5mm', 'localVertexDensity_1mm',
+                       'localVertexDensity_cos800', 'localVertexDensity_cos990', 'localVertexDensity_cos999',
                       ]
         if not 'data' in n:
             leafs_names += [

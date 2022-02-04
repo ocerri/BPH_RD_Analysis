@@ -53,8 +53,8 @@ parser.add_argument ('--HELP', '-H', default=False, action='store_true', help='P
 parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
-parser.add_argument ('--skimmedTag', default='_220117_lostInnerHits_fullM2miss', type=str, help='Tag to append to the skimmed directory.')
-# parser.add_argument ('--skimmedTag', default='_220110', type=str, help='Tag to append to the skimmed directory.')
+# parser.add_argument ('--skimmedTag', default='_220117_lostInnerHits_fullM2miss', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTag', default='', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
 parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
@@ -331,7 +331,7 @@ def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
     # candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
-    candDir='ntuples_B2DstMu_220114'
+    candDir='ntuples_B2DstMu_220201'
     print 'Using candDir =', candDir
     print 'Using skim = skimmed'+args.skimmedTag
     MCsample = {
@@ -342,7 +342,7 @@ def loadDatasets(category, loadRD):
     'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     # 'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi_v2', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi_v3', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
@@ -389,7 +389,7 @@ def loadDatasets(category, loadRD):
         print 'Loading real data datasets'
 
         # creation_date = '211205'
-        creation_date = '220113'
+        creation_date = '220121'
         locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
         dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
         dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
