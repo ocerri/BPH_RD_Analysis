@@ -17,6 +17,7 @@ tmp
 Combine/results/*
 Combine/cards/validation.json
 Combine/cards/test*
+Combine/cards/*.txt
 *.gz
 *.out
 *.log

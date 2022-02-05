@@ -69,7 +69,7 @@ MCend = 'ntuples_B2DstMu_220201/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
-              'Bd_MuNuDstPiPi_v3',  'Bu_MuNuDstPiPi',#  'Bd_MuNuDstPiPi',
+              'Bd_MuNuDstPiPi_v3',  'Bu_MuNuDstPiPi_v3',#  'Bd_MuNuDstPiPi',
               'Bu_TauNuDstPi',   'Bd_TauNuDstPi',
               'Bd_TauNuDstPiPi', 'Bu_TauNuDstPiPi',
               'Bs_MuNuDstK',     'Bs_TauNuDstK',
@@ -564,10 +564,83 @@ def makeSelection(inputs):
                         ev.wh_BLPReig5Down, ev.wh_BLPReig5Up,
                         ev.wh_BLPReig6Down, ev.wh_BLPReig6Up,
                        )
-            # if 'MuNuDstPi' in n:
-            #     aux += (## FF Hammer weights for D** resances
-            #             # Flags to divide the different D** processes
-            #            )
+            if 'MuNuDstPi' in n:
+                aux += (ev.wh_Dstst_BLRCentral,
+                        ev.wh_DststN_BLReig1Down, ev.wh_DststN_BLReig1Up,
+                        ev.wh_DststN_BLReig2Down, ev.wh_DststN_BLReig2Up,
+                        ev.wh_DststN_BLReig3Down, ev.wh_DststN_BLReig3Up,
+                        ev.wh_DststN_BLReig4Down, ev.wh_DststN_BLReig4Up,
+                        ev.wh_DststW_BLReig1Down, ev.wh_DststW_BLReig1Up,
+                        ev.wh_DststW_BLReig2Down, ev.wh_DststW_BLReig2Up,
+                        ev.wh_DststW_BLReig3Down, ev.wh_DststW_BLReig3Up,
+                       )
+
+                id_0, id_1 = np.abs(muSisPdgId).astype(np.int)[:2]
+                id_m = np.abs(int(ev.MC_DstMotherPdgId))
+                id_muM = np.abs(int(ev.MC_muMotherPdgId))
+                # B -> D1 mu nu
+                if (id_0 in [10423, 10413]) and (id_1 in [0, 22]) and id_0 == id_m:
+                    process = 1
+                # B -> D1* mu nu
+                elif (id_0 in [20423, 20413]) and (id_1 in [0, 22]) and id_0 == id_m:
+                    process = 2
+                # B -> D2* mu nu
+                elif (id_0 in [425, 415]) and (id_1 in [0, 22]) and id_0 == id_m:
+                    process = 3
+                # B -> D*(2S) mu nu
+                elif (id_0 in [100423, 100413]) and (id_1 in [0, 22]) and id_0 == id_m:
+                    process = 4
+                # B -> D*(2S) mu nu with D*(2S) -> D1 pi
+                elif (id_0 in [100423, 100413]) and (id_1 in [0, 22]) and id_m in [10423, 10413]:
+                    process = 11
+                # B -> D*(2S) mu nu with D*(2S) -> D1* pi
+                elif (id_0 in [100423, 100413]) and (id_1 in [0, 22]) and id_m in [20423, 20413]:
+                    process = 12
+                # B -> D*(2S) mu nu with D*(2S) -> D*2 pi
+                elif (id_0 in [100423, 100413]) and (id_1 in [0, 22]) and id_m in [425, 415]:
+                    process = 13
+                # B -> D(2S) mu nu with D(2S) -> D*2 pi
+                elif (id_0 in [100421, 100411]) and (id_1 in [0, 22]) and id_m in [425, 415]:
+                    process = 23
+                # B -> D1 pi mu nu
+                elif (id_0 in [10423, 10413]) and (id_1 in [111, 211]) and id_0 == id_m:
+                    process = 31
+                # B -> D1* pi mu nu
+                elif (id_0 in [20423, 20413]) and (id_1 in [111, 211]) and id_0 == id_m:
+                    process = 32
+                # B -> D2* pi mu nu
+                elif (id_0 in [425, 415]) and (id_1 in [111, 211]) and id_0 == id_m:
+                    process = 33
+                # B -> D* (1+)pi mu nu
+                elif id_0 == 413 and (id_1 in [111, 211]) and (id_m in [511, 521]):
+                    process = 0
+                # No MC decay matching
+                elif len(ev.MC_decay) == 0:
+                    process = -1
+                # B -> D* mu nu (slipped in)
+                elif id_0 == 413 and (id_1 in [0, 22]) and (id_m in [511, 521]):
+                    process = -2
+                # B -> D* tau nu (slipped in)
+                elif list(np.sort(np.abs(ev.MC_decay)[2:])[::-1].astype(np.int)) == [511, 413, 16, 15, 0]:
+                    process = -3
+                # Muon from Tau
+                elif id_muM == 15:
+                    process = -4
+                # Muon from D meson
+                elif (id_muM %1000)/100 == 4:
+                    process = -5
+                # Muon from K meson
+                elif (id_muM %1000)/100 == 3:
+                    process = -6
+                else:
+                    print '\n\n'
+                    print id_0, id_1
+                    print id_m
+                    print id_muM
+                    print [x for x in ev.MC_decay]
+                    raise
+
+                aux += (process,)
             ev_output.append(aux)
 
         N_acc = len(ev_output)
@@ -759,6 +832,17 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'wh_BLPReig4Down', 'wh_BLPReig4Up',
                             'wh_BLPReig5Down', 'wh_BLPReig5Up',
                             'wh_BLPReig6Down', 'wh_BLPReig6Up',
+                            ]
+        if 'MuNuDstPi' in n:
+            leafs_names += ['wh_Dstst_BLRCentral',
+                            'wh_DststN_BLReig1Down', 'wh_DststN_BLReig1Up',
+                            'wh_DststN_BLReig2Down', 'wh_DststN_BLReig2Up',
+                            'wh_DststN_BLReig3Down', 'wh_DststN_BLReig3Up',
+                            'wh_DststN_BLReig4Down', 'wh_DststN_BLReig4Up',
+                            'wh_DststW_BLReig1Down', 'wh_DststW_BLReig1Up',
+                            'wh_DststW_BLReig2Down', 'wh_DststW_BLReig2Up',
+                            'wh_DststW_BLReig3Down', 'wh_DststW_BLReig3Up',
+                            'DststProc_id'
                             ]
 
         applyCorr = None
