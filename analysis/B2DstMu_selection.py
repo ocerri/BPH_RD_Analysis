@@ -34,7 +34,8 @@ def trigger_selection(j, ev, evEx, cat):
         return False
     eta = ev.trgMu_eta[j] if hasattr(ev, 'trgMu_eta') else ev.trgCand_eta[j]
     # if not abs(eta) < 1.5:
-    if not abs(eta) < 0.8:
+    if not abs(eta) < 1.2:
+    # if not abs(eta) < 0.8:
         return False
     return True
 

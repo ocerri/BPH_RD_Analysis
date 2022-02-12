@@ -51,7 +51,7 @@ parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of 
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
 parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
 parser.add_argument ('--region', type=str, default='all', choices=['signal', 'trkControl', 'all'], help='Region to skim: signal (0 tracks) or track control (1+)')
-parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
+parser.add_argument ('--cat', type=str, default=['high', 'mid', 'low'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
 parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
 ######## Arguments not for user #####################
 parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
@@ -65,11 +65,12 @@ filesLocMap = {}
 
 root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples_B2DstMu_220201/out_CAND_*.root'
+MCend = 'ntuples_B2DstMu_220209/out_CAND_*.root'
+# MCend = 'ntuples_B2DstMu_220201/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
-              'Bd_MuNuDstPiPi_v3',  'Bu_MuNuDstPiPi_v3',#  'Bd_MuNuDstPiPi',
+              'Bd_MuNuDstPiPi_v3',  'Bu_MuNuDstPiPi_v3',
               'Bu_TauNuDstPi',   'Bd_TauNuDstPi',
               'Bd_TauNuDstPiPi', 'Bu_TauNuDstPiPi',
               'Bs_MuNuDstK',     'Bs_TauNuDstK',
@@ -83,14 +84,14 @@ MC_samples = ['Bd_MuNuDst',
 sampleFile = '/storage/af/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml'
 samples = yaml.load(open(sampleFile))['samples']
 for s in MC_samples:
-    # if s == 'Bd_MuNuDst':
-    #     filesLocMap[s] = join(MCloc, samples[s]['dataset'], 'ntuples_B2DstMu_wOC/out_CAND_*.root')
+    # if s.endswith('_v3'):
+    #     filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend.replace('220201', '220201_ffD2S'))
     # else:
     filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
 # filesLocMap['data'] = join(RDloc, '*_B2DstMu_220113_CAND.root')
-filesLocMap['data'] = join(RDloc, '*_B2DstMu_220121_CAND.root')
+filesLocMap['data'] = join(RDloc, '*_B2DstMu_220209_CAND.root')
 # filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_211014_CAND.root')
 
 def getTLVfromField(ev, n, idx, mass):
@@ -508,9 +509,11 @@ def makeSelection(inputs):
                    ev.trgMu_HLT_Mu12_IP6[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu12_IP6') else ev.trgObj_HLT_Mu12_IP6[idxTrg],
                    ev.trgMu_HLT_Mu9_IP6[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu9_IP6') else ev.trgObj_HLT_Mu9_IP6[idxTrg],
                    ev.trgMu_HLT_Mu7_IP4[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu7_IP4') else ev.trgObj_HLT_Mu7_IP4[idxTrg],
-                   ev.N_vertexes, ev.localVertexDensity[j],
+                   ev.N_vertexes, ev.N_goodVtx[j], ev.PV_chi2[j], ev.PV_ndof[j], ev.localVertexDensity[j],
                    ev.localVertexDensity_10mm[j], ev.localVertexDensity_5mm[j], ev.localVertexDensity_1mm[j],
                    ev.localVertexDensity_cos800[j], ev.localVertexDensity_cos990[j], ev.localVertexDensity_cos999[j],
+                   ev.vtx_PV_x[j], ev.vtx_PV_y[j], ev.vtx_PV_z[j],
+                   ev.vtx_B_decay_x[j], ev.vtx_B_decay_y[j], ev.vtx_B_decay_z[j],
                   )
             if not 'data' in n:
                 muSisPdgId = []
@@ -573,6 +576,12 @@ def makeSelection(inputs):
                         ev.wh_DststW_BLReig1Down, ev.wh_DststW_BLReig1Up,
                         ev.wh_DststW_BLReig2Down, ev.wh_DststW_BLReig2Up,
                         ev.wh_DststW_BLReig3Down, ev.wh_DststW_BLReig3Up,
+                        ev.wh_D2S_BLOPCentral,
+                        ev.wh_D2S_BLOPRhoSqDown, ev.wh_D2S_BLOPRhoSqUp,
+                        ev.wh_D2S_BLOPchi11Down, ev.wh_D2S_BLOPchi11Up,
+                        ev.wh_D2S_BLOPchi21Down, ev.wh_D2S_BLOPchi21Up,
+                        ev.wh_D2S_BLOPchi31Down, ev.wh_D2S_BLOPchi31Up,
+                        ev.wh_D2S_BLOPeta1Down, ev.wh_D2S_BLOPeta1Up,
                        )
 
                 id_0, id_1 = np.abs(muSisPdgId).astype(np.int)[:2]
@@ -681,15 +690,15 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
             print filepath
             raise
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
-        # N_evts_per_job = 100000 # looser tracks
-        N_evts_per_job = 150000
+        N_evts_per_job = 100000
     else:
         d = join(os.path.dirname(filepath),'skimmed'+args.skimTag+'/')
         if not os.path.isdir(d):
             os.makedirs(d)
         fskimmed_name = d + catName
-        N_evts_per_job = 30000 # looser tracks
-        # N_evts_per_job = 40000
+        N_evts_per_job = 25000 # looser tracks
+        if n == 'Bd_MuNuDst':
+            N_evts_per_job = 40000
     if not skipCut == []:
         print 'Skipping cut(s)', skipCut
         if skipCut == 'all':
@@ -718,11 +727,13 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         filenames = glob(filepath)
         print "Analyzing %i files matching '%s'" % (len(filenames),filepath)
         pb = ProgressBar(maxEntry=len(filenames))
+        nTryMax = 10 if 'test' in args.skimTag else 500
+        print 'Merging vertexes histograms from the first {} files.'.format(nTryMax)
         for i, fn in enumerate(filenames):
             pb.show(i)
             try:
                 tree.Add(fn)
-                if i < 500:
+                if i < nTryMax:
                     fAux = rt.TFile.Open(fn, 'READ')
                     hAux = fAux.Get('trgF/hAllNvts')
                     hAllNvtx.Add(hAux)
@@ -788,9 +799,11 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'EmissTks', 'PmissTks', 'UmissTks',
                        'cat_low', 'cat_mid', 'cat_high',
                        'muPass_Mu12_IP6', 'muPass_Mu9_IP6', 'muPass_Mu7_IP4',
-                       'N_vtx', 'localVertexDensity',
+                       'N_vtx', 'N_goodVtx', 'PV_chi2', 'PV_ndof', 'localVertexDensity',
                        'localVertexDensity_10mm', 'localVertexDensity_5mm', 'localVertexDensity_1mm',
                        'localVertexDensity_cos800', 'localVertexDensity_cos990', 'localVertexDensity_cos999',
+                       'vtx_PV_x', 'vtx_PV_y', 'vtx_PV_z',
+                       'vtx_B_decay_x', 'vtx_B_decay_y', 'vtx_B_decay_z',
                       ]
         if not 'data' in n:
             leafs_names += [
@@ -842,6 +855,12 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'wh_DststW_BLReig1Down', 'wh_DststW_BLReig1Up',
                             'wh_DststW_BLReig2Down', 'wh_DststW_BLReig2Up',
                             'wh_DststW_BLReig3Down', 'wh_DststW_BLReig3Up',
+                            'wh_D2S_BLOPCentral',
+                            'wh_D2S_BLOPRhoSqDown', 'wh_D2S_BLOPRhoSqUp',
+                            'wh_D2S_BLOPchi11Down', 'wh_D2S_BLOPchi11Up',
+                            'wh_D2S_BLOPchi21Down', 'wh_D2S_BLOPchi21Up',
+                            'wh_D2S_BLOPchi31Down', 'wh_D2S_BLOPchi31Up',
+                            'wh_D2S_BLOPeta1Down', 'wh_D2S_BLOPeta1Up',
                             'DststProc_id'
                             ]
 
@@ -989,7 +1008,7 @@ def createSubmissionFile(tmpDir, njobs):
         fsub.write('periodic_release =  (NumJobStarts < 2) && ((CurrentTime - EnteredCurrentStatus) > (60*20))\n')
         fsub.write('+PeriodicRemove = ((JobStatus =?= 2) && ((MemoryUsage =!= UNDEFINED && MemoryUsage > 2.5*RequestMemory)))\n')
         fsub.write('max_retries    = 3\n')
-        fsub.write('requirements   = Machine =!= LastRemoteHost && regexp("blade-.*", TARGET.Machine)\n')
+        fsub.write('requirements   = Machine =!= LastRemoteHost\n')
         fsub.write('universe = vanilla\n')
         fsub.write('queue %i\n' % njobs)
         fsub.close()
