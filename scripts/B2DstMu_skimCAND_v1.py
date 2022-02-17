@@ -690,7 +690,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
             print filepath
             raise
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
-        N_evts_per_job = 100000
+        N_evts_per_job = 75000
     else:
         d = join(os.path.dirname(filepath),'skimmed'+args.skimTag+'/')
         if not os.path.isdir(d):

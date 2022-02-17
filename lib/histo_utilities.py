@@ -273,6 +273,12 @@ def rootTH2_to_np(h, cut = None, Norm = False):
             pos[iy, ix] = [x,y]
     return arr, pos
 
+def rootTH1_to_np(h):
+    out = []
+    for i in range(1, h.GetNbinsX() + 1):
+        out.append([h.GetBinCenter(i), h.GetBinContent(i), h.GetBinError(i)])
+    return np.array(out)
+
 def make_ratio_plot(h_list_in, in_pad = None, title = "", label = "", in_tags = None,
                     ratio_bounds = [0.1, 4], ratioUncertainty=True,
                     draw_opt = 'E1',
