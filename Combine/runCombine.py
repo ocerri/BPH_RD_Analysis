@@ -20,6 +20,7 @@ from prettytable import PrettyTable
 import numpy as np
 import pandas as pd
 from scipy.stats import chi2 as scipy_chi2
+from scipy.stats import crystalball
 import matplotlib.pyplot as plt
 from array import array
 
@@ -331,7 +332,7 @@ def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
     # candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
-    candDir='ntuples_B2DstMu_220201'
+    candDir='ntuples_B2DstMu_220209'
     print 'Using candDir =', candDir
     print 'Using skim = skimmed'+args.skimmedTag
     MCsample = {
@@ -343,7 +344,7 @@ def loadDatasets(category, loadRD):
     'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     # 'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi_v3', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi_v3', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_TauDstPiPi': DSetLoader('Bd_TauNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
@@ -365,6 +366,7 @@ def loadDatasets(category, loadRD):
     print 'mcType:', mcType
     if not args.maxEventsToLoad is None:
         print 'Limiting events per MC sample to', args.maxEventsToLoad
+
     for n, s in MCsample.iteritems():
         if not n in processOrder:
             print n, 'not declarted in processOrder'
@@ -401,7 +403,8 @@ def loadDatasets(category, loadRD):
         print 'Skipping on the flight cuts (if any).'
     else:
         addCuts = [
-        ['M2_miss', 0.4, 1e3],
+        ['M2_miss', -1, 1e3],
+        ['mu_eta', -0.8, 0.8],
         # ['B_eta', -1., 1.],
         # ['K_pt', 1., 1e3],
         # ['pi_pt', 1., 1e3],
@@ -537,6 +540,25 @@ def createHistograms(category):
     from pileup_utilities import pileupReweighter
     skimmedFile_loc = MCsample['tau'].skimmed_dir + '/{}_{}.root'.format(category.name, mcType)
     puReweighter = pileupReweighter(skimmedFile_loc, 'hAllNTrueIntMC', trg=category.trg)
+
+    def doubleCrystalball(x, mu, sigma, beta, m):
+        left = crystalball.pdf(x-mu, beta, m, loc=0, scale=sigma)
+        right = crystalball.pdf(mu-x, beta, m, loc=0, scale=sigma)
+        return np.where(x < m, left, right)
+    def getBeamSpotWeights(ds, axis, parNew, parOld):
+        x = 1e4*(ds['vtx_PV_'+axis] - np.mean(ds['vtx_PV_'+axis]))
+        return doubleCrystalball(x, *parNew)/doubleCrystalball(x, *parOld)
+    def getBeamSpotCorrectionWeights(ds, param, dmu_x=0, dmu_y=0):
+        mu, sigma, beta, m = param['x']['data']
+        mu += dmu_x
+        out = getBeamSpotWeights(ds, 'x', [mu, sigma, beta, m], param['x']['MC'])
+
+        mu, sigma, beta, m = param['y']['data']
+        mu += dmu_y
+        out *= getBeamSpotWeights(ds, 'y', [mu, sigma, beta, m], param['y']['MC'])
+        return out
+    fname = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v0_'+category.name.capitalize()+'.yaml'
+    beamSpotParam = yaml.load(open(fname, 'r'))
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data'
     decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors_v2.pickle', 'rb'))
@@ -815,6 +837,9 @@ def createHistograms(category):
             print 'Including pileup reweighting'
             weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
 
+            print 'Including beam spot correction'
+            weights['beamSpot'] = getBeamSpotCorrectionWeights(ds, beamSpotParam)
+
             print 'Including trigger corrections'
             nameSF = 'trg{}SF'.format(category.trg)
             weights[nameSF], wSfUp, wSfDw = computeTrgSF(ds, hTriggerSF)
@@ -886,13 +911,71 @@ def createHistograms(category):
         # Form factor correction
         ############################
         if n in ['mu', 'tau'] and schemeFF != 'NoFF':
-            print 'Including FF corrections (Hammer)'
+            print 'Including B-> D*EllNu FF corrections (Hammer)'
             weights['B2DstFF'] = ds['wh_'+schemeFF+'Central']*sMC.effCand['rate_den']/sMC.effCand['rate_'+schemeFF+'Central']
             for nPar in FreeParFF:
                 for var in ['Up', 'Down']:
                     tag = schemeFF + nPar + var
                     wVar['B2Dst'+tag] = ds['wh_'+tag]/ds['wh_'+schemeFF+'Central']
                     wVar['B2Dst'+tag] *= sMC.effCand['rate_'+schemeFF+'Central']/sMC.effCand['rate_' + tag]
+                    wVar['B2Dst'+tag][np.isnan(wVar['B2Dst'+tag])] = 0.
+
+        if '_MuDstPi' in n:
+            print 'Including B -> D**MuNu FF corrections (Hammer)'
+            weights['purgeUwantedEvts'] = np.array(ds['DststProc_id'] >= 0).astype(np.int)
+            DststProc_id = np.array(ds['DststProc_id']).astype(np.int)
+
+            ratesRatio = np.ones(50)
+            ratesRatio[1] = sMC.effCand['rate_den_D1']/sMC.effCand['rate_D1BLR_central']
+            ratesRatio[2] = sMC.effCand['rate_den_D1st']/sMC.effCand['rate_D1stBLR_central']
+            ratesRatio[3] = sMC.effCand['rate_den_D2st']/sMC.effCand['rate_D2stBLR_central']
+            selDstst = np.logical_and(DststProc_id >= 1, DststProc_id <= 3)
+            weights['B2DststFF'] = np.where(selDstst, ds['wh_Dstst_BLRCentral']*ratesRatio[DststProc_id], 1.)
+
+            selDstst = np.logical_or(DststProc_id == 1, DststProc_id == 3)
+            for nEig in [1,2,3,4]:
+                for var in ['Up', 'Down']:
+                    tag = 'DststN_BLReig'+str(nEig)+var
+                    ratesRatio = np.ones(50)
+                    ratesRatio[1] = sMC.effCand['rate_D1BLR_central']/sMC.effCand['rate_D1BLR_eig'+str(nEig)+var]
+                    ratesRatio[3] = sMC.effCand['rate_D2stBLR_central']/sMC.effCand['rate_D2stBLR_eig'+str(nEig)+var]
+                    wVar['FF_B2'+tag] = np.where(selDstst, (ds['wh_'+tag]/ds['wh_Dstst_BLRCentral'])*ratesRatio[DststProc_id], 1.)
+                    wVar['FF_B2'+tag][np.isnan(wVar['FF_B2'+tag])] = 0.
+
+            selDstst = DststProc_id == 2
+            for nEig in [1,2,3]:
+                for var in ['Up', 'Down']:
+                    tag = 'DststW_BLReig'+str(nEig)+var
+                    ratesRatio = sMC.effCand['rate_D1stBLR_central']/sMC.effCand['rate_D1stBLR_eig'+str(nEig)+var]
+                    wVar['FF_B2'+tag] = np.where(selDstst, (ds['wh_'+tag]/ds['wh_Dstst_BLRCentral'])*ratesRatio, 1.)
+                    wVar['FF_B2'+tag][np.isnan(wVar['FF_B2'+tag])] = 0.
+
+        if n.endswith('_MuDstPiPi'):
+            print 'Including B -> D(2S)MuNu FF corrections (Hammer)'
+            DststProc_id = np.array(ds['DststProc_id']).astype(np.int)
+
+            ratesRatio = np.ones(50)
+            ratesRatio[4] = sMC.effCand['rate_den_D2sst']/sMC.effCand['rate_D2sstBLOP_central']
+            ratesRatio[11] = ratesRatio[4]
+            ratesRatio[12] = ratesRatio[4]
+            ratesRatio[13] = ratesRatio[4]
+            ratesRatio[23] = sMC.effCand['rate_den_D2s']/sMC.effCand['rate_D2sBLOP_central']
+
+            selDstst = np.logical_and(DststProc_id >= 4, DststProc_id <= 23)
+            weights['B2D2S_FF'] = np.where(selDstst, ds['wh_D2S_BLOPCentral']*ratesRatio[DststProc_id], 1.)
+
+            for parName in ['RhoSq', 'chi11', 'chi21', 'chi31', 'eta1']:
+                for var in ['Up', 'Down']:
+                    tag = 'D2S_BLOP'+parName+var
+                    ratesRatio = np.ones(50)
+                    ratesRatio[4] = sMC.effCand['rate_D2sstBLOP_central']/sMC.effCand['rate_D2sstBLOP_'+parName+var]
+                    ratesRatio[11] = ratesRatio[4]
+                    ratesRatio[12] = ratesRatio[4]
+                    ratesRatio[13] = ratesRatio[4]
+                    ratesRatio[23] = sMC.effCand['rate_D2sBLOP_central']/sMC.effCand['rate_D2sBLOP_'+parName+var]
+                    wVar['FF_B2'+tag] = np.where(selDstst, (ds['wh_'+tag]/ds['wh_D2S_BLOPCentral'])*ratesRatio[DststProc_id], 1.)
+                    wVar['FF_B2'+tag][np.isnan(wVar['FF_B2'+tag])] = 0.
+
 
         ############################
         # Dstst resonance mix
@@ -900,7 +983,7 @@ def createHistograms(category):
         if not re.search('DstPi\Z', n) is None:
             print 'Including D**->D*Pi branching ratio and width variations'
 
-            infate = 3
+            infate = 2
             _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10423}, infate*0.2/3.0)
             _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413}, infate*0.14/1.40)
             wVar['brB_D2420MuNuUp'] = wNeuUp * wChUp
@@ -943,32 +1026,68 @@ def createHistograms(category):
                                                                                        relScale=0.15)
             weights['D2460_width'] = w
 
-        if not re.search('DstPiPi\Z', n) is None:
-            print 'Including D**->D*PiPi width variations'
-            widthMods = [[x, 2.640, 0.400] for x in [100413, 100423]]
+        if not re.search('MuDstPiPi\Z', n) is None:
+            print 'Including B -> MuNuD*PiPi width and Br variations'
+            widthMods = [[x, 2.640, 0.300] for x in [100413, 100423, 100411, 100421]]
             uncN = 'Dst2S_width'
             weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.3)
 
             keepNorm=False
-            wNeu, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
-            wCh, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
-            wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
-            wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
-            weights['DstPiPi_test'] = wNeu*wCh
+            nnn = 'brDstPiPi_NR'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 0}, relScale=0.5, centralVal=1., keepNorm=keepNorm)
 
-            w, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.1, keepNorm=keepNorm)
-            wVar['brD2420_DstPiPiUp'], wVar['brD2420_DstPiPiDown'] = wD1Up, wD1Dw
-            weights['DstPiPi_test'] *= w
-            w, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=3.0, keepNorm=keepNorm)
-            wVar['brD2460_DstPiPiUp'], wVar['brD2460_DstPiPiDown'] = wD2Up, wD2Dw
-            weights['DstPiPi_test'] *= w
+            nnn = 'brDstPiPi_D1'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 1}, relScale=0.5, centralVal=1., keepNorm=keepNorm)
 
-            w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
-            wVar['brD2430_DstPiPiUp'], wVar['brD2430_DstPiPiDown'] = wUp, wDw
-            weights['DstPiPi_test'] *= w
-            w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 100413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
-            wVar['brDst2S_DstPiPiUp'], wVar['brDst2S_DstPiPiDown'] = wUp, wDw
-            weights['DstPiPi_test'] *= w
+            nnn = 'brDstPiPi_D1st'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 2}, relScale=0.5, centralVal=1., keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2st'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 3}, relScale=0.5, centralVal=1., keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2Sst'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 4}, relScale=0.5, centralVal=1., keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2Sst_D1Pi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 11}, relScale=0.5, centralVal=0.5, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2Sst_D1stPi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 12}, relScale=0.5, centralVal=0.5, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2Sst_D2stPi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 13}, relScale=0.5, centralVal=0.5, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2S_D2stPi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 23}, relScale=0.5, centralVal=0.5, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D1Pi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 31}, relScale=0.5, centralVal=1.0, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D1stPi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 32}, relScale=0.5, centralVal=1.0, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2stPi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 33}, relScale=0.5, centralVal=1.0, keepNorm=keepNorm)
+
+            # wNeu, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
+            # wCh, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
+            # wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
+            # wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
+            # weights['DstPiPi_test'] = wNeu*wCh
+            #
+            # w, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.1, keepNorm=keepNorm)
+            # wVar['brD2420_DstPiPiUp'], wVar['brD2420_DstPiPiDown'] = wD1Up, wD1Dw
+            # weights['DstPiPi_test'] *= w
+            # w, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=3.0, keepNorm=keepNorm)
+            # wVar['brD2460_DstPiPiUp'], wVar['brD2460_DstPiPiDown'] = wD2Up, wD2Dw
+            # weights['DstPiPi_test'] *= w
+            #
+            # w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
+            # wVar['brD2430_DstPiPiUp'], wVar['brD2430_DstPiPiDown'] = wUp, wDw
+            # weights['DstPiPi_test'] *= w
+            # w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 100413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
+            # wVar['brDst2S_DstPiPiUp'], wVar['brDst2S_DstPiPiDown'] = wUp, wDw
+            # weights['DstPiPi_test'] *= w
 
 
         ############################
@@ -1323,6 +1442,9 @@ def createHistograms(category):
             print 'Including pileup reweighting'
             weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
 
+            print 'Including beam spot correction'
+            weights['beamSpot'] = getBeamSpotCorrectionWeights(ds, beamSpotParam)
+
             print 'Including trigger corrections'
             nameSF = 'trg{}SF'.format(category.trg)
             weights[nameSF], wSfUp, wSfDw = computeTrgSF(ds, hTriggerSF)
@@ -1406,6 +1528,64 @@ def createHistograms(category):
                     tag = schemeFF + nPar + var
                     wVar['B2Dst'+tag] = ds['wh_'+tag]/ds['wh_'+schemeFF+'Central']
                     wVar['B2Dst'+tag] *= sMC.effCand['rate_'+schemeFF+'Central']/sMC.effCand['rate_' + tag]
+                    wVar['B2Dst'+tag][np.isnan(wVar['B2Dst'+tag])] = 0.
+
+
+        if '_MuDstPi' in n:
+            print 'Including B -> D**MuNu FF corrections (Hammer)'
+            weights['purgeUwantedEvts'] = np.array(ds['DststProc_id'] >= 0).astype(np.int)
+            DststProc_id = np.array(ds['DststProc_id']).astype(np.int)
+
+            ratesRatio = np.ones(50)
+            ratesRatio[1] = sMC.effCand['rate_den_D1']/sMC.effCand['rate_D1BLR_central']
+            ratesRatio[2] = sMC.effCand['rate_den_D1st']/sMC.effCand['rate_D1stBLR_central']
+            ratesRatio[3] = sMC.effCand['rate_den_D2st']/sMC.effCand['rate_D2stBLR_central']
+            selDstst = np.logical_and(DststProc_id >= 1, DststProc_id <= 3)
+            weights['B2DststFF'] = np.where(selDstst, ds['wh_Dstst_BLRCentral']*ratesRatio[DststProc_id], 1.)
+
+            selDstst = np.logical_or(DststProc_id == 1, DststProc_id == 3)
+            for nEig in [1,2,3,4]:
+                for var in ['Up', 'Down']:
+                    tag = 'DststN_BLReig'+str(nEig)+var
+                    ratesRatio = np.ones(50)
+                    ratesRatio[1] = sMC.effCand['rate_D1BLR_central']/sMC.effCand['rate_D1BLR_eig'+str(nEig)+var]
+                    ratesRatio[3] = sMC.effCand['rate_D2stBLR_central']/sMC.effCand['rate_D2stBLR_eig'+str(nEig)+var]
+                    wVar['FF_B2'+tag] = np.where(selDstst, (ds['wh_'+tag]/ds['wh_Dstst_BLRCentral'])*ratesRatio[DststProc_id], 1.)
+                    wVar['FF_B2'+tag][np.isnan(wVar['FF_B2'+tag])] = 0.
+
+            selDstst = DststProc_id == 2
+            for nEig in [1,2,3]:
+                for var in ['Up', 'Down']:
+                    tag = 'DststW_BLReig'+str(nEig)+var
+                    ratesRatio = sMC.effCand['rate_D1stBLR_central']/sMC.effCand['rate_D1stBLR_eig'+str(nEig)+var]
+                    wVar['FF_B2'+tag] = np.where(selDstst, (ds['wh_'+tag]/ds['wh_Dstst_BLRCentral'])*ratesRatio, 1.)
+                    wVar['FF_B2'+tag][np.isnan(wVar['FF_B2'+tag])] = 0.
+
+        if n.endswith('_MuDstPiPi'):
+            print 'Including B -> D(2S)MuNu FF corrections (Hammer)'
+            DststProc_id = np.array(ds['DststProc_id']).astype(np.int)
+
+            ratesRatio = np.ones(50)
+            ratesRatio[4] = sMC.effCand['rate_den_D2sst']/sMC.effCand['rate_D2sstBLOP_central']
+            ratesRatio[11] = ratesRatio[4]
+            ratesRatio[12] = ratesRatio[4]
+            ratesRatio[13] = ratesRatio[4]
+            ratesRatio[23] = sMC.effCand['rate_den_D2s']/sMC.effCand['rate_D2sBLOP_central']
+
+            selDstst = np.logical_and(DststProc_id >= 4, DststProc_id <= 23)
+            weights['B2D2S_FF'] = np.where(selDstst, ds['wh_D2S_BLOPCentral']*ratesRatio[DststProc_id], 1.)
+
+            for parName in ['RhoSq', 'chi11', 'chi21', 'chi31', 'eta1']:
+                for var in ['Up', 'Down']:
+                    tag = 'D2S_BLOP'+parName+var
+                    ratesRatio = np.ones(50)
+                    ratesRatio[4] = sMC.effCand['rate_D2sstBLOP_central']/sMC.effCand['rate_D2sstBLOP_'+parName+var]
+                    ratesRatio[11] = ratesRatio[4]
+                    ratesRatio[12] = ratesRatio[4]
+                    ratesRatio[13] = ratesRatio[4]
+                    ratesRatio[23] = sMC.effCand['rate_D2sBLOP_central']/sMC.effCand['rate_D2sBLOP_'+parName+var]
+                    wVar['FF_B2'+tag] = np.where(selDstst, (ds['wh_'+tag]/ds['wh_D2S_BLOPCentral'])*ratesRatio[DststProc_id], 1.)
+                    wVar['FF_B2'+tag][np.isnan(wVar['FF_B2'+tag])] = 0.
 
         ############################
         # Dstst resonance mix
@@ -1413,7 +1593,7 @@ def createHistograms(category):
         if not re.search('DstPi\Z', n) is None:
             print 'Including D**->D*Pi branching ratio and width variations'
 
-            infate = 3
+            infate = 2
             _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10423}, infate*0.2/3.0)
             _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413}, infate*0.14/1.40)
             wVar['brB_D2420MuNuUp'] = wNeuUp * wChUp
@@ -1456,32 +1636,74 @@ def createHistograms(category):
                                                                                        relScale=0.15)
             weights['D2460_width'] = w
 
-        if not re.search('DstPiPi\Z', n) is None:
-            print 'Including D**->D*PiPi width variations'
-            widthMods = [[x, 2.640, 0.400] for x in [100413, 100423]]
+        if not re.search('MuDstPiPi\Z', n) is None:
+            print 'Including B -> MuNuD*PiPi width and Br variations'
+            widthMods = [[x, 2.640, 0.300] for x in [100413, 100423, 100411, 100421]]
             uncN = 'Dst2S_width'
-            weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.5)
+            weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.3)
 
             keepNorm=False
-            wNeu, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
-            wCh, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
-            wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
-            wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
-            weights['DstPiPi_test'] = wNeu*wCh
+            nnn = 'brDstPiPi_NR'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 0}, relScale=0.5, centralVal=1., keepNorm=keepNorm)
 
-            w, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.1, keepNorm=keepNorm)
-            wVar['brD2420_DstPiPiUp'], wVar['brD2420_DstPiPiDown'] = wD1Up, wD1Dw
-            weights['DstPiPi_test'] *= w
-            w, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=3.0, keepNorm=keepNorm)
-            wVar['brD2460_DstPiPiUp'], wVar['brD2460_DstPiPiDown'] = wD2Up, wD2Dw
-            weights['DstPiPi_test'] *= w
+            nnn = 'brDstPiPi_D1'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 1}, relScale=0.5, centralVal=1., keepNorm=keepNorm)
 
-            w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
-            wVar['brD2430_DstPiPiUp'], wVar['brD2430_DstPiPiDown'] = wUp, wDw
-            weights['DstPiPi_test'] *= w
-            w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 100413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
-            wVar['brDst2S_DstPiPiUp'], wVar['brDst2S_DstPiPiDown'] = wUp, wDw
-            weights['DstPiPi_test'] *= w
+            nnn = 'brDstPiPi_D1st'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 2}, relScale=0.5, centralVal=1., keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2st'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 3}, relScale=0.5, centralVal=1., keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2Sst'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 4}, relScale=0.5, centralVal=1., keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2Sst_D1Pi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 11}, relScale=0.5, centralVal=0.5, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2Sst_D1stPi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 12}, relScale=0.5, centralVal=0.5, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2Sst_D2stPi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 13}, relScale=0.5, centralVal=0.5, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2S_D2stPi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 23}, relScale=0.5, centralVal=0.5, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D1Pi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 31}, relScale=0.5, centralVal=1.0, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D1stPi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 32}, relScale=0.5, centralVal=1.0, keepNorm=keepNorm)
+
+            nnn = 'brDstPiPi_D2stPi'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 33}, relScale=0.5, centralVal=1.0, keepNorm=keepNorm)
+
+            # print 'Including D**->D*PiPi width variations'
+            # widthMods = [[x, 2.640, 0.400] for x in [100413, 100423]]
+            # uncN = 'Dst2S_width'
+            # weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.5)
+            #
+            # keepNorm=False
+            # wNeu, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
+            # wCh, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
+            # wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
+            # wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
+            # weights['DstPiPi_test'] = wNeu*wCh
+            #
+            # w, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.1, keepNorm=keepNorm)
+            # wVar['brD2420_DstPiPiUp'], wVar['brD2420_DstPiPiDown'] = wD1Up, wD1Dw
+            # weights['DstPiPi_test'] *= w
+            # w, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=3.0, keepNorm=keepNorm)
+            # wVar['brD2460_DstPiPiUp'], wVar['brD2460_DstPiPiDown'] = wD2Up, wD2Dw
+            # weights['DstPiPi_test'] *= w
+            #
+            # w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
+            # wVar['brD2430_DstPiPiUp'], wVar['brD2430_DstPiPiDown'] = wUp, wDw
+            # weights['DstPiPi_test'] *= w
+            # w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 100413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
+            # wVar['brDst2S_DstPiPiUp'], wVar['brDst2S_DstPiPiDown'] = wUp, wDw
+            # weights['DstPiPi_test'] *= w
 
 
         ############################
@@ -1805,7 +2027,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
 
     print 'Creating signal region grid'
     cAux = plot_gridVarQ2(CMS_lumi, binning, hDic, draw_pulls=True,
-                          pullsRatio=True, pulls_ylim=[0.7, 1.1],
+                          pullsRatio=True, pulls_ylim=[0.85, 1.1],
                           scale_dic=scale_dic,
                           categoryText=catName, cNameTag=tag,
                           iq2_maskData=[] if args.unblinded else [2, 3])
@@ -2188,6 +2410,8 @@ def drawShapeVarPlots(card, tag=''):
         region = os.path.basename(fn).replace(card+'_', '').replace('.root', '')
         if region.startswith('h2D'):
             continue
+        if not region.startswith('ctrl_p') and not region.stratswith('M2_miss'):
+            continue
         print ' ', region
 
         auxOut = os.path.join(plotsDir, region)
@@ -2524,7 +2748,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     ##
     card += brScaleSys('DstKBr', ['Bs_MuDstK', 'Bs_TauDstK'], relUnc=1.5/5.9)
 
-    card += brScaleSys('RDs_stst', ['Bu_TauDstPi', 'Bd_TauDstPi', 'Bd_TauDstPiPi', 'Bu_TauDstPiPi', 'Bs_TauDstK'], relUnc=0.5)
+    card += brScaleSys('RDs_stst', ['Bu_TauDstPi', 'Bd_TauDstPi', 'Bd_TauDstPiPi', 'Bu_TauDstPiPi', 'Bs_TauDstK'], relUnc=0.3)
 
     card += brScaleSys('DuMuBr', ['Bd_DstDu', 'Bu_DstDu'], relUnc=2.5/60.8)
     card += brScaleSys('DdMuBr', ['Bd_DstDd', 'Bu_DstDd'], relUnc=2.7/158.8)
@@ -2608,6 +2832,28 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             card += 'B2Dst'+schemeFF+'{} shape'.format(n_pFF) + aux*nCat + '\n'
 
 
+    aux = ''
+    for p in processes:
+        if '_MuDstPi' in p:
+            aux += ' 1.'
+        else:
+            aux += ' -'
+    for nEig in [1,2,3,4]:
+        card += 'FF_B2DststN_BLReig{} shape'.format(nEig) + aux*nCat + '\n'
+        if nEig <= 3:
+            card += 'FF_B2DststW_BLReig{} shape'.format(nEig) + aux*nCat + '\n'
+
+
+    aux = ''
+    for p in processes:
+        if '_MuDstPiPi' in p:
+            aux += ' 1.'
+        else:
+            aux += ' -'
+    for parName in ['RhoSq', 'chi11', 'chi21', 'chi31', 'eta1']:
+        card += 'FF_B2D2S_BLOP{} shape'.format(parName) + aux*nCat + '\n'
+
+
     # Dstst mix composition
     aux = ''
     for p in processes:
@@ -2623,15 +2869,21 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
 
     aux = ''
     for p in processes:
-        if not re.search('DstPiPi\Z', p) is None:
+        if not re.search('MuDstPiPi\Z', p) is None:
             aux += ' 1.'
         else: aux += ' -'
-    card += 'Dst2S_width shape' + aux*nCat + '\n'
-    card += 'brDstst_DststPi shape' + aux*nCat + '\n'
-    card += 'brD2420_DstPiPi shape' + aux*nCat + '\n'
-    card += 'brD2430_DstPiPi shape' + aux*nCat + '\n'
-    card += 'brD2460_DstPiPi shape' + aux*nCat + '\n'
-    card += 'brDst2S_DstPiPi shape' + aux*nCat + '\n'
+    for nnn in ['Dst2S_width',
+                'brDstPiPi_NR',
+                'brDstPiPi_D1', 'brDstPiPi_D1st', 'brDstPiPi_D2st', 'brDstPiPi_D2Sst', 'brDstPiPi_D2Sst_D1Pi', 'brDstPiPi_D2Sst_D1stPi', 'brDstPiPi_D2Sst_D2stPi',
+                'brDstPiPi_D2S_D2stPi',
+                'brDstPiPi_D1Pi', 'brDstPiPi_D1stPi', 'brDstPiPi_D2stPi']:
+        card += nnn + ' shape'  + aux*nCat + '\n'
+    # card += 'Dst2S_width shape' + aux*nCat + '\n'
+    # card += 'brDstst_DststPi shape' + aux*nCat + '\n'
+    # card += 'brD2420_DstPiPi shape' + aux*nCat + '\n'
+    # card += 'brD2430_DstPiPi shape' + aux*nCat + '\n'
+    # card += 'brD2460_DstPiPi shape' + aux*nCat + '\n'
+    # card += 'brDst2S_DstPiPi shape' + aux*nCat + '\n'
 
     # Hc mix composition
     def brShapeSys(relevantSamples=[], shapeNames=[]):
