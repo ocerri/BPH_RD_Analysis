@@ -44,16 +44,18 @@ parser.add_argument ('--version', '-v', default='test', help='Version name.')
 
 parser.add_argument ('--dataset', '-d', type=str, default='MC', choices=['RD', 'MC'], help='Dataset to use.')
 parser.add_argument ('--trigger', '-t', type=str, default='Mu7_IP4', choices=['Mu7_IP4', 'Mu9_IP6', 'Mu12_IP6'], help='Trigger to probe.')
-parser.add_argument ('--tagTrigger', type=str, default='', choices=['Mu7_IP4', 'Mu9_IP6', 'Mu12_IP6'], help='Trigger of the tag muon.')
+parser.add_argument ('--tagTrigger', type=str, default='', choices=['Mu7_IP4', 'Mu9_IP6', 'Mu12_IP6', ''], help='Trigger of the tag muon.')
 parser.add_argument ('--method', '-M', type=str, default='count', choices=['count', 'fit'], help='Method used to estimate signal yield.')
 parser.add_argument ('--refIP', type=str, default='BS', choices=['BS', 'PV'], help='Reference point for the impact parameter.')
+parser.add_argument ('--muonID', type=str, default='medium', choices=['soft', 'medium'], help='Muon ID')
 
 parser.add_argument ('--dR_TagProbe', type=float, default=0.2, help='Minimum delta R between tag and probe muon.')
 parser.add_argument ('--mJpsiWindow', type=float, default=-1, help='Width around J/psi mass to be considered. Default 0.1 (count) or 0.25 (fit).')
-parser.add_argument ('--parallel', '-p', type=int, default=10, help='Number of parallel CPU to use.')
+parser.add_argument ('--parallel', '-p', type=int, default=15, help='Number of parallel CPU to use.')
 
+parser.add_argument ('--test_bin', default=False, action='store_true', help='Run also test bin')
 parser.add_argument ('--verbose', default=False, action='store_true', help='Verbose switch.')
-# parser.add_argument ('--submit', default=False, action='store_true', help='Submit a job instead of running the call interactively.')
+# Example with loop: for t in "Mu7_IP4" "Mu9_IP6" "Mu12_IP6"; do ./triggerEfficiencies.py -v test_fit -t $t -M fit -d RD; done;
 
 
 args = parser.parse_args()
@@ -94,11 +96,11 @@ colors = [rt.kBlack, rt.kAzure+1, rt.kRed-4, rt.kGreen+1, rt.kViolet-7]
 
 
 branchesToLoad = ['mTag_pt', 'mTag_eta', 'mTag_phi', 'mTag_sigdxy_BS', 'mTag_sigdxy_PV',
-                  'mTag_softID', 'mTag_tightID',
+                  'mTag_softID', 'mTag_mediumID',
                   'mTag_HLT_Mu7_IP4', 'mTag_HLT_Mu9_IP6', 'mTag_HLT_Mu12_IP6',
                   'mProbe_pt', 'mProbe_eta', 'mProbe_phi', 'mProbe_sigdxy_BS', 'mProbe_sigdxy_PV',
                   'mProbe_L1_pt', 'mProbe_L1_eta', 'mProbe_L1_dR',
-                  'mProbe_softID', 'mProbe_tightID',
+                  'mProbe_softID', 'mProbe_mediumID',
                   'mProbe_HLT_Mu7_IP4', 'mProbe_HLT_Mu9_IP6', 'mProbe_HLT_Mu12_IP6',
                   'deltaR_tagProbe', 'massMuMu', 'vtx_isGood', 'massMuMu_refit',
                   'prescaleMu7_IP4', 'prescaleMu9_IP6', 'prescaleMu12_IP6', 'nVtx',
@@ -106,35 +108,43 @@ branchesToLoad = ['mTag_pt', 'mTag_eta', 'mTag_phi', 'mTag_sigdxy_BS', 'mTag_sig
 
 
 def loadDF(loc, branches):
+    print 'Loading', args.dataset, 'from', len(loc), 'files'
+    if len(loc) == 0:
+        raise
     dfL = []
-    for l in loc:
-        print l
+    pb = ProgressBar(len(loc))
+    for il, l in enumerate(loc):
         dfL.append(pd.DataFrame(rtnp.root2array(l, branches=branches)))
+        pb.show(il)
     if len(dfL) == 1:
         return dfL[0]
     else:
         return pd.concat(dfL)
 
 
-
 if args.dataset == 'RD':
-    dataDir = '../data/cmsRD'
-    RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_210423_CAND.root')
+    dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
+    RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_220217_CAND.root')
     df = loadDF(RDdsLoc, branchesToLoad)
-    print 'Data probe muons:', df.shape[0]
     CMS_lumi.extraText = "     Internal"
 elif args.dataset == 'MC':
-    mcDir = '../data/cmsMC_private/BP_Tag-Probe_B0_JpsiKst_Hardbbbar_evtgen_HELAMP_PUc0_10-2-3'
-    # MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger_Jpsi/merged/out_CAND.root')
-    MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger/merged/out_CAND.root')
-    df = loadDF(MCdsLoc, branchesToLoad + ['sfMuonID', 'nTrueIntMC'])
-    print 'MC probe muons:', df.shape[0]
-
+    mcDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'
+    MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger_220217/out_CAND_*.root')
+    df = loadDF(MCdsLoc, branchesToLoad + ['sfMediumMuonID', 'sfSoftMuonID', 'nTrueIntMC', 'MC_mProbe_pt', 'MC_mProbe_eta', 'MC_mProbe_phi'])
     puRew = pileupReweighter(MCdsLoc[0], 'TnP/hAllNTrueIntMC', trg=args.trigger)
     df['wPileup'] = puRew.getPileupWeights(df['nTrueIntMC'])
-
-    df['w'] = df['sfMuonID']*df['wPileup']
+    df['w'] = df['sf'+args.muonID.capitalize()+'MuonID']*df['wPileup']
     CMS_lumi.extraText = "     Simulation Internal"
+print 'Applying quality selection'
+df = df[ df['prescale'+args.trigger] > 0 ]
+df = df[ df['mProbe_'+args.muonID+'ID'] > 0.5 ]
+df = df[ df['deltaR_tagProbe'] > args.dR_TagProbe ]
+# df = df[ np.abs(df['massMuMu'] - 3.09691) < args.mJpsiWindow ]
+df = df[ df['vtx_isGood'] > 0.5 ]
+df = df[ np.abs(df['massMuMu_refit'] - 3.09691) < args.mJpsiWindow ]
+if args.tagTrigger:
+    df = df[ df['mTag_HLT_' + args.tagTrigger] == 1 ]
+print 'Total number of probe muons:', df.shape[0]
 
 def fitJpsi(xMass, passSel, canvasTag='', weights=None, mJpsiWindow=0.25, mBins=100, verbose=False):
     mJpsi = 3.096916
@@ -290,7 +300,6 @@ def fitJpsi(xMass, passSel, canvasTag='', weights=None, mJpsiWindow=0.25, mBins=
     return c, [nSigAll.getVal(), nSigAll.getError()], [nSigPass.getVal(), nSigPass.getError()], pvalJointModel
 
 def analyzeBin(idx, verbose=False):
-    print idx, 'started'
     lim = {}
     selTot = None
     st = time.time()
@@ -305,15 +314,6 @@ def analyzeBin(idx, verbose=False):
             selTot = sel
         else:
             selTot = np.logical_and(sel, selTot)
-    selTot = np.logical_and(selTot, df['prescale'+probeTrigger[4:]] > 0)
-    selTot = np.logical_and(selTot, df['mProbe_softID'] > 0.5)
-    selTot = np.logical_and(selTot, df['deltaR_tagProbe'] > args.dR_TagProbe)
-    # selTot = np.logical_and(selTot, np.abs(df['massMuMu'] - 3.09691) < args.mJpsiWindow)
-    selTot = np.logical_and(selTot, df['vtx_isGood'] > 0.5)
-    selTot = np.logical_and(selTot, np.abs(df['massMuMu_refit'] - 3.09691) < args.mJpsiWindow)
-    if args.tagTrigger:
-        selTot = np.logical_and(selTot, df['mTag_HLT_' + args.tagTrigger] == 1)
-
 
     ## Require L1 mathing
     # dptRel = np.abs(df['mProbe_L1_pt']/df['mProbe_pt']) - 1
@@ -333,17 +333,17 @@ def analyzeBin(idx, verbose=False):
 
     if args.method == 'count':
         if args.dataset == 'RD':
-            nSigTot = np.sum(selTot)
+            nSigTot = [np.sum(selTot), np.sqrt(np.sum(selTot))]
         else:
-            nSigTot = np.sum(df['w'][selTot])
+            nSigTot = [np.sum(df['w'][selTot]), np.sqrt(np.sum(np.square(df['w'][selTot])))]
         if verbose:
             print 'Time: {:.1f} s'.format(time.time()-st)
             print ' --- Passed ---'
 
         if args.dataset == 'RD':
-            nSigPass = np.sum(selPass)
+            nSigPass = [np.sum(selPass), np.sqrt(np.sum(selPass))]
         else:
-            nSigPass = np.sum(df['w'][selPass])
+            nSigPass = [np.sum(df['w'][selPass]), np.sqrt(np.sum(np.square(df['w'][selPass])))]
     elif args.method == 'fit':
         canvTag = ''
         for n, i in idx.iteritems(): canvTag += n+str(i)
@@ -361,7 +361,7 @@ def analyzeBin(idx, verbose=False):
 
     if verbose:
         print 'Time: {:.1f} s'.format(time.time()-st)
-    print idx, '{:.1f}/{:.1f}'.format(nSigPass, nSigTot), 'done'
+    print idx, '{:.1f}/{:.1f}'.format(nSigPass[0], nSigTot[0]), 'done'
     return idx, nSigTot, nSigPass
 
 
@@ -392,12 +392,12 @@ for var, cat in itertools.product(['N', 'Chi2'], ['tot', 'pass']):
                           len(binning['sigdxy_'+args.refIP])-1, binning['sigdxy_'+args.refIP],
                           len(binning['eta'])-1, binning['eta'],)
 
-
-start = time.time()
-testOutput = analyzeBin({'pt': 2, 'sigdxy_'+args.refIP:2, 'eta':0}, verbose=True)
-print testOutput
-print 'Total time: {:.1f} sec'.format((time.time() - start))
-
+if args.test_bin or args.verbose:
+    print 'Test bin'
+    start = time.time()
+    testOutput = analyzeBin({'pt': 2, 'sigdxy_'+args.refIP:2, 'eta':0}, verbose=True)
+    print testOutput
+    print 'Total time: {:.1f} sec'.format((time.time() - start))
 
 inputs = []
 for ipt in range(len(binning['pt'])-1):
@@ -427,16 +427,10 @@ for idx, nSigTot, nSigPass in output:
     ip = idx['pt']+1
     ii = idx['sigdxy_'+args.refIP]+1
     ie = idx['eta']+1
-    if args.method == 'count':
-        h2['Ntot'].SetBinContent(ip, ii, ie, nSigTot)
-        h2['Ntot'].SetBinError(h2['Ntot'].GetBin(ip, ii, ie), np.sqrt(nSigTot))
-        h2['Npass'].SetBinContent(ip, ii, ie, nSigPass)
-        h2['Npass'].SetBinError(h2['Npass'].GetBin(ip, ii, ie), np.sqrt(nSigPass))
-    elif args.method =='fit':
-        h2['Ntot'].SetBinContent(ip, ii, ie, nSigTot[0])
-        h2['Ntot'].SetBinError(h2['Ntot'].GetBin(ip, ii, ie), nSigTot[1])
-        h2['Npass'].SetBinContent(ip, ii, ie, nSigPass[0])
-        h2['Npass'].SetBinError(h2['Npass'].GetBin(ip, ii, ie), nSigPass[1])
+    h2['Ntot'].SetBinContent(ip, ii, ie, nSigTot[0])
+    h2['Ntot'].SetBinError(h2['Ntot'].GetBin(ip, ii, ie), nSigTot[1])
+    h2['Npass'].SetBinContent(ip, ii, ie, nSigPass[0])
+    h2['Npass'].SetBinError(h2['Npass'].GetBin(ip, ii, ie), nSigPass[1])
 
 
 
@@ -445,7 +439,8 @@ pEff = rt.TEfficiency(h2['Npass'], h2['Ntot'])
 pEff.SetStatisticOption(rt.TEfficiency.kFCP)
 pEff.SetNameTitle('eff_'+probeTrigger, 'Efficience for '+probeTrigger)
 
-tf = rt.TFile('../data/calibration/triggerScaleFactors/{}_{}_{}.root'.format(probeTrigger, args.dataset, args.version), 'RECREATE')
+loc = '/storage/af/group/rdst_analysis/BPhysics/data/calibration'
+tf = rt.TFile(loc+'/triggerScaleFactors/{}_{}_{}.root'.format(probeTrigger, args.dataset, args.version), 'RECREATE')
 pEff.Write()
 for h in h2.values():
     h.Write()
@@ -472,8 +467,6 @@ for iz in range(1, hRef.GetNbinsZ()+1):
         gr.SetName('gr_{}_{}'.format(iy,iz))
         for ix in range(1, hRef.GetNbinsX()+1):
             idx = pEff.GetGlobalBin(ix, iy, iz)
-            # if iz == 3 and iy==1:
-            #     print ix, iy, pEff.GetEfficiency(idx)
             x = binning['pt'][ix-1] + 0.5*(binning['pt'][ix] - binning['pt'][ix-1])
             gr.SetPoint(ix-1, x, pEff.GetEfficiency(idx))
             gr.SetPointError(ix-1, x-binning['pt'][ix-1], binning['pt'][ix]-x,
@@ -491,10 +484,6 @@ for iz in range(1, hRef.GetNbinsZ()+1):
     gr2draw[0].GetYaxis().SetTitle('Efficiency')
     gr2draw[0].GetXaxis().SetTitle('Muon p_{T} [GeV]')
     leg.Draw()
-#     c.SetLogx()
-#     c.SetLogy()
-#     m = 1e-3
-#     M = 5
     gr2draw[0].GetXaxis().SetTitleOffset(1.1)
 
     trgThr = float(re.search(r'_Mu[0-9]+_', probeTrigger).group(0)[3:-1])
@@ -513,7 +502,5 @@ for iz in range(1, hRef.GetNbinsZ()+1):
     text.SetTextFont(42)
     text.DrawLatexNDC(0.6, 0.9, title);
 
-    imgLoc = '../data/calibration/triggerScaleFactors/figEff/'
-    c.SaveAs(imgLoc + probeTrigger+ '_' + args.dataset + '_eta{}_{}.png'.format(iz-1, args.version))
-    c.SaveAs(webFolder+'/eff_'+probeTrigger+ '_' + args.dataset + '_eta{}_{}.png'.format(iz-1, args.version))
+    c.SaveAs(webFolder+'/eff_'+probeTrigger+ '_' + args.dataset + '_eta{}.png'.format(iz-1))
     outCanvases.append([c, gr2draw, leg])
