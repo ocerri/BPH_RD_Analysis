@@ -29,6 +29,7 @@ from histo_utilities import create_TH1D, create_TH2D, std_color_list, SetMaxToMa
 from progressBar import ProgressBar
 from lumi_utilities import getLumiByTrigger
 from pileup_utilities import pileupReweighter
+from beamSpot_calibration import getBeamSpotCorrectionWeights
 
 from categoriesDef import categories
 from analysis_utilities import drawOnCMSCanvas, DSetLoader
@@ -44,6 +45,13 @@ parser.add_argument ('--showPlots', default=False, action='store_true', help='Sh
 parser.add_argument ('--draw_precal', default=False, action='store_true', help='Draw also precal plots')
 parser.add_argument ('--verbose', default=False, action='store_true', help='Verbose')
 args = parser.parse_args()
+
+print '\n'+40*'#'
+print 'Kinematic calibration of Bd -> JpsiK*'
+print 'Category:', args.category
+print 40*'#'
+
+# Example with loop: for cat in "low" "mid" "high"; do ./kinematicCalibration_Bd_JpsiKst.py -c $cat; done;
 
 if not args.showPlots:
     rt.gROOT.SetBatch(True)
@@ -119,7 +127,7 @@ def getPolyCorrection(hNum, hDen, deg, tag, verbose=False):
         plt.plot(x, yM, '--', color=colors[i])
 
     plt.grid()
-    plt.ylim(0.7, 1.3)
+    # plt.ylim(0.7, 1.3)
     plt.ylabel('data/MC')
     plt.xlabel('B '+tag.split('_')[0])
     plt.legend(loc='best', numpoints=1)
@@ -130,7 +138,7 @@ def getPolyCorrection(hNum, hDen, deg, tag, verbose=False):
 
 
 # # Load MC
-mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_B2JpsiKst')
+mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_220217')
 dsetMC_loc = mcSample.skimmed_dir + '/{}_bare.root'.format(cat.name)
 dfMC = pd.DataFrame(rtnp.root2array(dsetMC_loc))
 
@@ -152,8 +160,12 @@ print 'Expected evts/fb: {:.0f} +/- {:.0f}'.format(xsec_eff, dxsec)
 puRew = pileupReweighter(dsetMC_loc, 'hAllNTrueIntMC', trg=cat.trg)
 dfMC['wPU'] = puRew.getPileupWeights(dfMC['MC_nInteractions'])
 
+beamSpotCalLoc = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v1_'+args.category.capitalize()+'.yaml'
+paramBeamSpotCorr = yaml.load(open(beamSpotCalLoc, 'r'))
+dfMC['wBeamSpot'] = getBeamSpotCorrectionWeights(dfMC, paramBeamSpotCorr)
+
 loc = dataLoc+'calibration/triggerScaleFactors/'
-fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v21count.root', 'READ')
+fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v22_count.root', 'READ')
 hTriggerSF = fTriggerSF.Get('hSF_HLT_' + cat.trg)
 
 ptmax = hTriggerSF.GetXaxis().GetXmax() - 0.01
@@ -176,7 +188,7 @@ for i, (pt, eta, ip) in enumerate(dfMC[['trgMu_pt', 'trgMu_eta', 'trgMu_sigdxy']
 # Muon ID scale factor
 loc = dataLoc+'calibration/muonIDscaleFactors/Run2018ABCD_SF_MuonID_Jpsi.root'
 fMuonIDSF = rt.TFile.Open(loc, 'READ')
-hMuonIDSF = fMuonIDSF.Get('NUM_SoftID_DEN_genTracks_pt_abseta')
+hMuonIDSF = fMuonIDSF.Get('NUM_MediumID_DEN_genTracks_pt_abseta')
 
 dfMC['muonSF'] = np.ones(dfMC.shape[0])
 for i, (ptp, etap, ptm, etam) in enumerate(dfMC[['MC_mup_pt', 'MC_mup_eta', 'MC_mum_pt', 'MC_mum_eta']].values):
@@ -188,7 +200,7 @@ for i, (ptp, etap, ptm, etam) in enumerate(dfMC[['MC_mup_pt', 'MC_mup_eta', 'MC_
     wm = hMuonIDSF.GetBinContent(ix, iy)
     dfMC.at[i, 'muonSF'] = wp * wm
 
-dfMC['w'] = dfMC['wPU']*dfMC['muonSF']*dfMC['trgSF']
+dfMC['w'] = dfMC['wPU']*dfMC['wBeamSpot']*dfMC['muonSF']*dfMC['trgSF']
 
 
 dpt_rel = np.abs(dfMC['B_pt']/dfMC['MC_B_pt'] - 1)
@@ -202,17 +214,17 @@ print 'MC purity (idx match): {:.1f}%'.format(100*np.sum(dfMC['MC_idxMatch'] == 
 
 
 # # Load data
-datasets_loc = glob(dataLoc + 'cmsRD/ParkingBPH*/*2018*B2JpsiKst_210501*')
-lumi_tot = getLumiByTrigger(datasets_loc, cat.trg, verbose=True)
-if not lumi_tot:
-    expectedLumi = {'Low':6.4, 'Mid':20., 'High':26.} #fb^-1
-    lumi_tot = expectedLumi[cat.name]
-    print 'Total lumi (estimated): {:.1f} fb^-1'.format(lumi_tot)
+# datasets_loc = glob(dataLoc + 'cmsRD/ParkingBPH*/*2018*B2JpsiKst_210501*')
+# lumi_tot = getLumiByTrigger(datasets_loc, cat.trg, verbose=True)
+# if not lumi_tot:
+expectedLumi = {'Low':6.4, 'Mid':20., 'High':26.} #fb^-1
+lumi_tot = expectedLumi[cat.name]
+print 'Total lumi (estimated): {:.1f} fb^-1'.format(lumi_tot)
 CMS_lumi.integrated_lumi = lumi_tot
 
 
 
-dsetRD_loc = dataLoc+'cmsRD/skimmed/B2JpsiKst_210501_{}_corr.root'.format(cat.name)
+dsetRD_loc = dataLoc+'cmsRD/skimmed/B2JpsiKst_220217_{}_corr.root'.format(cat.name)
 dfRD = pd.DataFrame(rtnp.root2array(dsetRD_loc))
 N_sel_per_fb = float(dfRD.shape[0])/lumi_tot
 print 'Selected events per fb: {:.0f}'.format(N_sel_per_fb)
@@ -221,8 +233,6 @@ print 'Selected events per fb: {:.0f}'.format(N_sel_per_fb)
 cuts = [
     ['B_eta', [-1, 1]],
     [mB_var, [5.24, 5.34]],
-    ['K_pt', [1., 100.]],
-    ['pi_pt', [1., 100.]],
 ]
 
 fout = open(webFolder + 'additionalSelection.txt', 'w')
@@ -565,7 +575,7 @@ pad.SetLeftMargin(0.15)
 pad.Draw('same')
 pad.cd()
 h_dr.GetYaxis().SetTitle('RD/MC')
-t = 0.1
+t = 0.15
 h_dr.GetYaxis().SetRangeUser(1 - 3*t, 1 + 3*t)
 h_dr.GetYaxis().SetTitleOffset(0.5)
 h_dr.GetYaxis().SetTitleSize(0.14)

@@ -34,7 +34,7 @@ from Bd2JpsiKst_selection import candidate_selection, category_selection
 
 import argparse
 parser = argparse.ArgumentParser()
-#Example: python B2JpsiKst_skimCAND_v1.py -d CP_general --maxEvents 80000 --applyCorr
+#Example: python B2JpsiKst_skimCAND_v1.py -d MC --maxEvents 80000 --applyCorr
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'none'], default='jobs', help='Function to perform')
@@ -52,12 +52,12 @@ args = parser.parse_args()
 ####                          Datset declaration                         ####
 #############################################################################
 MCloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/'
-MCend = '/ntuples_B2JpsiKst/out_CAND_*.root'
+MCend = '/ntuples_Bd2JpsiKst_220217/out_CAND_*.root'
 RDloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {
-'CP_general'    : MCloc+'CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'+MCend,
-'data'          : RDloc+'*2018*B2JpsiKst_210501_CAND.root',
+'MC'    : MCloc+'CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'+MCend,
+'data'  : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_Bd2JpsiKst_220217_CAND.root',
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -226,7 +226,8 @@ def makeSelection(inputs):
 
             N_acc += 1
 
-            aux = (evEx.trgMu_pt, evEx.trgMu_eta, evEx.trgMu_sigdxy,
+            aux = (ev.runNum, ev.lumiNum, ev.eventNum,
+                   evEx.trgMu_pt, evEx.trgMu_eta, evEx.trgMu_sigdxy,
                    evEx.otherMu_pt, evEx.otherMu_eta, evEx.otherMu_phi,
                    evEx.mum_pt, evEx.mum_eta, evEx.mum_phi, ev.mum_dxy_PV[j],
                    evEx.mup_pt, evEx.mup_eta, evEx.mup_phi, ev.mup_dxy_PV[j],
@@ -245,7 +246,9 @@ def makeSelection(inputs):
                    category_selection(j, ev, evEx, categories['low']),
                    category_selection(j, ev, evEx, categories['mid']),
                    category_selection(j, ev, evEx, categories['high']),
-                   ev.N_vertexes
+                   ev.N_vertexes,
+                   ev.vtx_PV_x[j], ev.vtx_PV_y[j], ev.vtx_PV_z[j],
+                   ev.vtx_B_decay_x[j], ev.vtx_B_decay_y[j], ev.vtx_B_decay_z[j],
                   )
             if not 'data' in n:
                 aux += (ev.MC_B_pt, ev.MC_B_eta, ev.MC_B_phi,
@@ -291,12 +294,12 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
     print n, catName
     if 'data' in n:
         loc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/skimmed/B2JpsiKst'+ n.replace('data', '')
-        out = re.search('21[01][1-9][0-3][0-9]', filepath)
+        out = re.search('2[12][01][1-9][0-3][0-9]', filepath)
         if out is None:
             print filepath
             raise
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
-        N_evts_per_job = 70000
+        N_evts_per_job = 60000
     else:
         d = os.path.dirname(filepath) + '/skimmed/'
         if not os.path.isdir(d):
@@ -321,6 +324,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
     else:
         tree = rt.TChain('outA/Tevts')
         hAllNvtx = rt.TH1D('hAllNvtx', 'hAllNvtx', 101, -0.5, 100.5)
+        hAllVtxX = rt.TH1D('hAllVtxX', 'hAllVtxX', 500, -0.05, 0.125)
+        hAllVtxY = rt.TH1D('hAllVtxY', 'hAllVtxY', 500, -0.1, 0.07)
         hAllVtxZ = rt.TH1D('hAllVtxZ', 'hAllVtxZ', 100, -25, 25)
         hAllNTrueIntMC = rt.TH1D('hAllNTrueIntMC', 'hAllNTrueIntMC', 101, -0.5, 100.5)
 
@@ -329,6 +334,10 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
             fAux = rt.TFile.Open(fn, 'READ')
             hAux = fAux.Get('trgF/hAllNvts')
             hAllNvtx.Add(hAux)
+            hAux = fAux.Get('trgF/hAllVtxX')
+            hAllVtxX.Add(hAux)
+            hAux = fAux.Get('trgF/hAllVtxY')
+            hAllVtxY.Add(hAux)
             hAux = fAux.Get('trgF/hAllVtxZ')
             hAllVtxZ.Add(hAux)
 
@@ -342,7 +351,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         N_cand_in = min(maxEvents, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
 
-        leafs_names = [ 'trgMu_pt', 'trgMu_eta', 'trgMu_sigdxy',
+        leafs_names = [ 'runNum', 'lumiNum', 'eventNum',
+                        'trgMu_pt', 'trgMu_eta', 'trgMu_sigdxy',
                         'otherMu_pt', 'otherMu_eta', 'otherMu_phi',
                         'mum_pt', 'mum_eta', 'mum_phi', 'mum_dxy',
                         'mup_pt', 'mup_eta', 'mup_phi', 'mup_dxy',
@@ -359,7 +369,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                         'mass_mumuKpi', 'mass_mumuKpi_cJpsi', 'mass_mumuKpi_cJpsi_cKst',
                         'isAntiB', 'mass_candKst', 'mass_candB',
                         'cat_low', 'cat_mid', 'cat_high',
-                        'N_vtx'
+                        'N_vtx',
+                        'vtx_PV_x', 'vtx_PV_y', 'vtx_PV_z',
+                        'vtx_B_decay_x', 'vtx_B_decay_y', 'vtx_B_decay_z',
                       ]
         if not 'data' in n:
             leafs_names += ['MC_B_pt', 'MC_B_eta', 'MC_B_phi',
@@ -443,6 +455,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         rtnp.array2root(dset.to_records(), fskimmed_name, treename='Tevts', mode='RECREATE')
         fAux = rt.TFile.Open(fskimmed_name, 'UPDATE')
         hAllNvtx.Write()
+        hAllVtxX.Write()
+        hAllVtxY.Write()
         hAllVtxZ.Write()
         if not 'data' in n:
             hAllNTrueIntMC.Write()
@@ -516,7 +530,7 @@ def createSubmissionFile(tmpDir, njobs):
     fsub.write('\n')
     fsub.write('max_retries    = 3')
     fsub.write('\n')
-    fsub.write('requirements   = Machine =!= LastRemoteHost && regexp("blade-.*", TARGET.Machine)')
+    fsub.write('requirements   = Machine =!= LastRemoteHost')
     fsub.write('\n')
     fsub.write('universe = vanilla')
     fsub.write('\n')

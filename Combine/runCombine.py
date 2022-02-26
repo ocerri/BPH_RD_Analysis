@@ -403,7 +403,7 @@ def loadDatasets(category, loadRD):
         print 'Skipping on the flight cuts (if any).'
     else:
         addCuts = [
-        ['M2_miss', -1, 1e3],
+        ['M2_miss', 0.2, 1e3],
         ['mu_eta', -0.8, 0.8],
         # ['B_eta', -1., 1.],
         # ['K_pt', 1., 1e3],
