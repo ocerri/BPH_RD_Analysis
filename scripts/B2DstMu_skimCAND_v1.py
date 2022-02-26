@@ -65,8 +65,7 @@ filesLocMap = {}
 
 root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples_B2DstMu_220209/out_CAND_*.root'
-# MCend = 'ntuples_B2DstMu_220201/out_CAND_*.root'
+MCend = 'ntuples_B2DstMu_220220/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
@@ -90,8 +89,7 @@ for s in MC_samples:
     filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
-# filesLocMap['data'] = join(RDloc, '*_B2DstMu_220113_CAND.root')
-filesLocMap['data'] = join(RDloc, '*_B2DstMu_220209_CAND.root')
+filesLocMap['data'] = join(RDloc, '*_B2DstMu_220220_CAND.root')
 # filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_211014_CAND.root')
 
 def getTLVfromField(ev, n, idx, mass):
@@ -261,6 +259,7 @@ def extractEventInfos(j, ev, corr=None):
 
     e.N_goodAddTks = 0
     e.tkCharge = []
+    e.tkPdgId = []
     e.tkPt = []
     e.tkPtError = []
     e.tkEta = []
@@ -328,6 +327,7 @@ def extractEventInfos(j, ev, corr=None):
             e.tk_lostInnerHits.insert(idx, ev.tksAdd_lostInnerHits[jj])
             e.tk_pval.insert(idx, ev.tksAdd_pval[jj])
             e.tkCharge.insert(idx, ev.tksAdd_charge[jj]*ev.mu_charge[j])
+            e.tkPdgId.insert(idx, ev.tksAdd_pdgId[jj])
             e.massVis_wTk.insert(idx, mVis_wTk)
             e.massHad_wTk.insert(idx, (p4_Dst + p4_tk).M())
             e.massMuTk.insert(idx, (p4_mu + p4_tk).M())
@@ -404,8 +404,86 @@ def extractEventInfos(j, ev, corr=None):
 
 
     if e.N_goodAddTks < 3:
-        auxList = [e.tkCharge, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.tk_lostInnerHits, e.tk_pval, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.massDTk, e.mass2MissTk, e.UmissTk]
+        auxList = [e.tkCharge, e.tkPdgId, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.tk_lostInnerHits, e.tk_pval, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.massDTk, e.mass2MissTk, e.UmissTk]
         auxList += [e.MC_tkFlag, e.MC_tkFromMainB, e.MC_tkPdgId, e.MC_tkMotherPdgId, e.MC_tkMotherMotherPdgId, e.MC_tk_dphi, e.MC_tk_deta, e.MC_tk_dpt]
+        for l in auxList:
+            l += [0, 0, 0]
+
+
+    #----------------- Additional neutrals -------------------#
+    idx_st = 0
+    for jjj in range(j):
+        idx_st += int(ev.nNeuAdd[jjj])
+    idx_stop = int(idx_st + ev.nNeuAdd[j])
+
+    e.N_goodAddNeu = 0
+    e.neuPdgId = []
+    e.neuPt = []
+    e.neuEta = []
+    e.neuPhi = []
+    e.neuEnergy = []
+    e.neuEt2 = []
+    e.massVis_wNeu = []
+    e.massHad_wNeu = []
+    e.massMuNeu = []
+
+    p4_sumGoodNeu = rt.TLorentzVector()
+    for jj in range(idx_st, idx_stop):
+
+        eta = ev.neuAdd_eta[jj]
+        if np.abs(eta) >= 2.4:
+            continue
+        phi = ev.neuAdd_phi[jj]
+        pt = ev.neuAdd_pt[jj]
+
+        pdgId = ev.neuAdd_pdgId[jj]
+
+        #Avoid duplicates
+        duplicate = False
+        for n in ['mu', 'pi', 'K', 'pis']:
+            dphi = phi - getattr(e, n+'_phi')
+            if dphi > np.pi: dphi -= 2*np.pi
+            if dphi < -np.pi: dphi += 2*np.pi
+            dR = np.hypot(dphi, eta - getattr(e, n+'_eta'))
+            dPt = np.abs(getattr(e, n+'_pt') - pt)/getattr(e, n+'_pt')
+            if dPt < 0.03 and dR < 0.001:
+                duplicate=True
+                break
+        if duplicate:
+            continue
+
+        if pdgId == 22: # photon
+            m_neu = 0
+        elif pdgId == 130: # Neutral hadron, a K_L
+            m_neu = 0.497611
+        else:
+            print 'Pdg not recognized in add neutral:', pdgId
+            raise
+        p4_neu = rt.TLorentzVector()
+        p4_neu.SetPtEtaPhiM(pt, eta, phi, m_pi)
+
+        mVis_wNeu = (p4_vis + p4_neu).M()
+
+        e.N_goodAddNeu += 1
+        idx, e.neuPt = insertOrdered(e.neuPt, pt)
+        e.neuEta.insert(idx, eta)
+        e.neuPhi.insert(idx, phi)
+        e.neuPdgId.insert(idx, pdgId)
+        e.neuEnergy.insert(idx, ev.neuAdd_energy[jj])
+        e.neuEt2.insert(idx, ev.neuAdd_et2[jj])
+        e.massVis_wNeu.insert(idx, mVis_wNeu)
+        e.massHad_wNeu.insert(idx, (p4_Dst + p4_neu).M())
+        e.massMuNeu.insert(idx, (p4_mu + p4_neu).M())
+
+        p4_sumGoodNeu += p4_neu
+
+
+    p4_vis_wNeu = p4_vis + p4_sumGoodNeu
+    e.massVisNeu = p4_vis_wNeu.M()
+    e.massHadNeu = (p4_Dst + p4_sumGoodNeu).M()
+
+    if e.N_goodAddNeu < 3:
+        auxList = [e.neuPdgId, e.neuPt, e.neuEta, e.neuPhi, e.neuEnergy, e.neuEt2, e.massVis_wNeu, e.massHad_wNeu, e.massMuNeu]
         for l in auxList:
             l += [0, 0, 0]
 
@@ -464,6 +542,7 @@ def makeSelection(inputs):
                    ev.mu_dcaT_vtxDst[j], ev.mu_sigdcaT_vtxDst[j],
                    ev.mu_dca_vtxDstMu[j], ev.mu_sigdca_vtxDstMu[j],
                    ev.mu_dcaT_vtxDstMu[j], ev.mu_sigdcaT_vtxDstMu[j],
+                   ev.mu_lostInnerHits[j],
                    ev.mu_kickFinder[j], ev.mu_segmentCompatibility[j],
                    ev.mu_trackerStandalonePosLocalChi2[j], ev.mu_tightId[j],
                    evEx.B_pt, evEx.B_eta, evEx.B_phi,
@@ -486,6 +565,7 @@ def makeSelection(inputs):
                    ev.cos_D0pismu_PV[j], ev.cosT_D0pismu_PV[j],
                    evEx.N_goodAddTks,
                    evEx.tkCharge[0], evEx.tkCharge[1], evEx.tkCharge[2],
+                   evEx.tkPdgId[0], evEx.tkPdgId[1], evEx.tkPdgId[2],
                    evEx.tkPt[0], evEx.tkPt[1], evEx.tkPt[2],
                    evEx.tkPtError[0], evEx.tkPtError[1], evEx.tkPtError[2],
                    evEx.tkEta[0], evEx.tkEta[1], evEx.tkEta[2],
@@ -503,6 +583,17 @@ def makeSelection(inputs):
                    evEx.massHadTks,
                    evEx.massHadTks_DstMassConstraint,
                    evEx.EmissTks, evEx.PmissTks, evEx.UmissTks,
+                   evEx.N_goodAddNeu,
+                   evEx.neuPdgId[0], evEx.neuPdgId[1], evEx.neuPdgId[2],
+                   evEx.neuPt[0], evEx.neuPt[1], evEx.neuPt[2],
+                   evEx.neuEta[0], evEx.neuEta[1], evEx.neuEta[2],
+                   evEx.neuPhi[0], evEx.neuPhi[1], evEx.neuPhi[2],
+                   evEx.neuEnergy[0], evEx.neuEnergy[1], evEx.neuEnergy[2],
+                   evEx.neuEt2[0], evEx.neuEt2[1], evEx.neuEt2[2],
+                   evEx.massVis_wNeu[0], evEx.massVis_wNeu[1], evEx.massVis_wNeu[2],
+                   evEx.massHad_wNeu[0], evEx.massHad_wNeu[1], evEx.massHad_wNeu[2],
+                   evEx.massMuNeu[0], evEx.massMuNeu[1], evEx.massMuNeu[2],
+                   evEx.massVisNeu, evEx.massHadNeu,
                    trigger_selection(idxTrg, ev, evEx, categories['low']),
                    trigger_selection(idxTrg, ev, evEx, categories['mid']),
                    trigger_selection(idxTrg, ev, evEx, categories['high']),
@@ -758,6 +849,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'mu_dcaT_vtxDst', 'mu_sigdcaT_vtxDst',
                        'mu_dca_vtxDstMu', 'mu_sigdca_vtxDstMu',
                        'mu_dcaT_vtxDstMu', 'mu_sigdcaT_vtxDstMu',
+                       'mu_lostInnerHits',
                        'mu_kickFinder', 'mu_segmentCompatibility',
                        'mu_trackerStandalonePosLocalChi2', 'mu_tightId',
                        'B_pt', 'B_eta', 'B_phi',
@@ -780,6 +872,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'cos_D0pismu_PV', 'cosT_D0pismu_PV',
                        'N_goodAddTks',
                        'tkCharge_0', 'tkCharge_1', 'tkCharge_2',
+                       'tkPdgId_0', 'tkPdgId_1', 'tkPdgId_2',
                        'tkPt_0', 'tkPt_1', 'tkPt_2',
                        'tkPtError_0', 'tkPtError_1', 'tkPtError_2',
                        'tkEta_0', 'tkEta_1', 'tkEta_2',
@@ -797,6 +890,17 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'massHadTks',
                        'massHadTks_DstMassConstraint',
                        'EmissTks', 'PmissTks', 'UmissTks',
+                       'N_goodAddNeu',
+                       'neuPdgId_0', 'neuPdgId_1', 'neuPdgId_2',
+                       'neuPt_0', 'neuPt_1', 'neuPt_2',
+                       'neuEta_0', 'neuEta_1', 'neuEta_2',
+                       'neuPhi_0', 'neuPhi_1', 'neuPhi_2',
+                       'neuEnergy_0', 'neuEnergy_1', 'neuEnergy_2',
+                       'neuEt2_0', 'neuEt2_1', 'neuEt2_2',
+                       'massVis_wNeu_0', 'massVis_wNeu_1', 'massVis_wNeu_2',
+                       'massHad_wNeu_0', 'massHad_wNeu_1', 'massHad_wNeu_2',
+                       'massMuNeu_0', 'massMuNeu_1', 'massMuNeu_2',
+                       'massVisNeu', 'massHadNeu',
                        'cat_low', 'cat_mid', 'cat_high',
                        'muPass_Mu12_IP6', 'muPass_Mu9_IP6', 'muPass_Mu7_IP4',
                        'N_vtx', 'N_goodVtx', 'PV_chi2', 'PV_ndof', 'localVertexDensity',
