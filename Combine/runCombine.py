@@ -33,6 +33,7 @@ import root_numpy as rtnp
 from progressBar import ProgressBar
 from categoriesDef import categories as categoriesDef
 from analysis_utilities import drawOnCMSCanvas, getEff, DSetLoader
+from beamSpot_calibration import getBeamSpotCorrectionWeights
 from pT_calibration_reader import pTCalReader as kinCalReader
 from histo_utilities import create_TH1D, create_TH2D, std_color_list, make_ratio_plot
 from gridVarQ2Plot import plot_gridVarQ2, plot_SingleCategory, getControlXtitle, getControlSideText
@@ -66,7 +67,7 @@ parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], hel
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu', 'U_miss'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
-parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pm_mVis', 'pp_mHad', 'mm_mHad'], help='Control regions to use', nargs='+')
+parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pm_mHad', 'pp_mHad', 'mm_mHad'], help='Control regions to use', nargs='+')
 
 parser.add_argument ('--correlate_tkPVfrac', default=False, action='store_true', help='Correlate tkPVfrac in all categories.')
 parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
@@ -138,7 +139,7 @@ if len(args.step) == 0:
         args.step = defaultPipelineComb
     else: args.step = defaultPipelineSingle
 
-    if args.cardTag == 'test_' and not args.submit:
+    if args.cardTag == 'test_' and (not args.submit) and (not args.runInJob):
         args.step = ['clean'] + args.step
 
     if not args.unblinded:
@@ -332,7 +333,7 @@ def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
     # candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
-    candDir='ntuples_B2DstMu_220209'
+    candDir='ntuples_B2DstMu_220225'
     print 'Using candDir =', candDir
     print 'Using skim = skimmed'+args.skimmedTag
     MCsample = {
@@ -390,8 +391,7 @@ def loadDatasets(category, loadRD):
     if loadRD:
         print 'Loading real data datasets'
 
-        # creation_date = '211205'
-        creation_date = '220121'
+        creation_date = '220220'
         locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
         dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
         dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
@@ -403,18 +403,20 @@ def loadDatasets(category, loadRD):
         print 'Skipping on the flight cuts (if any).'
     else:
         addCuts = [
-        ['M2_miss', 0.2, 1e3],
+        ['M2_miss', 0.4, 1e3],
         ['mu_eta', -0.8, 0.8],
+        # ['mu_eta', -1.5, 1.5],
         # ['B_eta', -1., 1.],
         # ['K_pt', 1., 1e3],
         # ['pi_pt', 1., 1e3],
         # ['pis_pt', 1., 1e3],
+        ['mu_lostInnerHits', -2, 1],
         ['K_lostInnerHits', -2, 1],
         ['pi_lostInnerHits', -2, 1],
         ['pis_lostInnerHits', -2, 1],
         # ['ctrl_tk_pval_0', 0.2, 1.0],
         # ['ctrl_tk_pval_1', 0.2, 1.0],
-        ['ctrl_pm_massVisTks', 0, 3.8],
+        # ['ctrl_pm_massVisTks', 0, 3.8],
         # ['ctrl_pm_massHadTks', 2.6, 10],
         # ['ctrl_pm_index', 3, 0],
         ]
@@ -432,6 +434,9 @@ def loadDatasets(category, loadRD):
                 sel = np.ones_like(dSet[k]['q2']).astype(np.bool)
                 for var, low, high in addCuts:
                     if var.startswith('ctrl_'): continue
+                    if var not in dSet[k].columns:
+                        print var, 'not in', k, 'main dataset'
+                        raise
                     sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
 
                 dSet[k] = dSet[k][sel]
@@ -445,6 +450,9 @@ def loadDatasets(category, loadRD):
                         if re.match('[pm][pm_]_', var[:3]):
                             region = var[:2]
                             var = var[3:]
+                    if var not in dSetTkSide[k].columns:
+                        print var, 'not in', k, 'control regions dataset'
+                        raise
                     if var == 'index':
                         thisSel = np.mod(dSetTkSide[k][var], low) <= high
                     else:
@@ -541,30 +549,14 @@ def createHistograms(category):
     skimmedFile_loc = MCsample['tau'].skimmed_dir + '/{}_{}.root'.format(category.name, mcType)
     puReweighter = pileupReweighter(skimmedFile_loc, 'hAllNTrueIntMC', trg=category.trg)
 
-    def doubleCrystalball(x, mu, sigma, beta, m):
-        left = crystalball.pdf(x-mu, beta, m, loc=0, scale=sigma)
-        right = crystalball.pdf(mu-x, beta, m, loc=0, scale=sigma)
-        return np.where(x < m, left, right)
-    def getBeamSpotWeights(ds, axis, parNew, parOld):
-        x = 1e4*(ds['vtx_PV_'+axis] - np.mean(ds['vtx_PV_'+axis]))
-        return doubleCrystalball(x, *parNew)/doubleCrystalball(x, *parOld)
-    def getBeamSpotCorrectionWeights(ds, param, dmu_x=0, dmu_y=0):
-        mu, sigma, beta, m = param['x']['data']
-        mu += dmu_x
-        out = getBeamSpotWeights(ds, 'x', [mu, sigma, beta, m], param['x']['MC'])
-
-        mu, sigma, beta, m = param['y']['data']
-        mu += dmu_y
-        out *= getBeamSpotWeights(ds, 'y', [mu, sigma, beta, m], param['y']['MC'])
-        return out
-    fname = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v0_'+category.name.capitalize()+'.yaml'
+    fname = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v1_'+category.name.capitalize()+'.yaml'
     beamSpotParam = yaml.load(open(fname, 'r'))
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data'
     decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors_v2.pickle', 'rb'))
 
     loc = dataDir+'/calibration/triggerScaleFactors/'
-    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v21count.root', 'READ')
+    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v22_count.root', 'READ')
     hTriggerSF = fTriggerSF.Get('hSF_HLT_' + category.trg)
     def computeTrgSF(ds, hSF, selection=None):
         trgSF = np.ones_like(ds['q2'])
@@ -620,9 +612,9 @@ def createHistograms(category):
     if args.calBpT == 'none':
         print 'Not using any B pT calibration'
     elif args.calBpT == 'poly':
-        cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v1.pkl')
+        cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v2.pkl')
 
-    cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v0.pkl')
+    cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v2.pkl')
 
 
     def computeKinCalWeights(ds, var, tag, kinCal):
@@ -1198,7 +1190,10 @@ def createHistograms(category):
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
-        for w in weights.values():
+        for wName, w in weights.iteritems():
+            if np.max(np.abs(w)) > 3:
+                iMax = np.argmax(np.abs(w))
+                print '[WARNING] Max weights', wName, ': {:.3}'.format(w[iMax])
             weightsCentral *= w
         print 'N tot expected (after weights): {:.3f}k'.format(1e-3*nTotExp*np.sum(weightsCentral)/nTotSelected)
         totalCounting[0] += 1e-3*nTotExp*np.sum(weightsCentral)/nTotSelected
@@ -1339,6 +1334,9 @@ def createHistograms(category):
     ctrlVar['ctrl_p__mHad'] = 'massHadTks'
     binning['ctrl_p__mHad'] = [35, 2.13, 2.83]
 
+    ctrlVar['ctrl_p_mVis'] = 'massVisTks'
+    binning['ctrl_p_mVis'] = array('d', [2.8] + list(np.arange(3., 5.5, 0.12)) + [5.5] )
+
     ctrlVar['ctrl_m__mHad'] = 'massHadTks'
     binning['ctrl_m__mHad'] = [40, 2.1, 3.3]
 
@@ -1383,6 +1381,9 @@ def createHistograms(category):
 
         ctrlVar['ctrl_'+s+'_M2miss'] = 'M2_miss'
         binning['ctrl_'+s+'_M2miss'] = [25, -2, 8]
+
+        ctrlVar['ctrl_'+s+'_q2'] = 'M2_miss'
+        binning['ctrl_'+s+'_q2'] = [50, -2, 15]
 
         if not s[1] == '_':
             ctrlVar['ctrl_'+s+'_mPiPi'] = 'massTks_pipi'
@@ -1513,7 +1514,7 @@ def createHistograms(category):
 
             # Correct the amount of random tracks from PV
             aux = '' if args.correlate_tkPVfrac else category.name
-            weights['tkPVfrac'], wVar['tkPVfrac'+aux+'Up'], wVar['tkPVfrac'+aux+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=2.5)
+            weights['tkPVfrac'], wVar['tkPVfrac'+aux+'Up'], wVar['tkPVfrac'+aux+'Down'] = computeTksPVweights(ds, relScale=0.3, centralVal=1.4)
             # weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.05, centralVal=2.3)
             print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
 
@@ -2410,7 +2411,8 @@ def drawShapeVarPlots(card, tag=''):
         region = os.path.basename(fn).replace(card+'_', '').replace('.root', '')
         if region.startswith('h2D'):
             continue
-        if not region.startswith('ctrl_p') and not region.stratswith('M2_miss'):
+        # if not region.startswith('ctrl_p') and not region.stratswith('M2_miss'):
+        if not region.startswith('ctrl_m'):
             continue
         print ' ', region
 

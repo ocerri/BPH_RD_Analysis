@@ -58,6 +58,9 @@ parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directo
 parser.add_argument ('--jN', type=int, default=None, help='Job number')
 args = parser.parse_args()
 
+
+# python B2DstMu_skimCAND_v1.py -d "B[us]" "Bd_Dst" "Bd_Tau" "Bd_MuNuDstPi"
+
 #############################################################################
 ####                          Datset declaration                         ####
 #############################################################################
@@ -65,7 +68,7 @@ filesLocMap = {}
 
 root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples_B2DstMu_220220/out_CAND_*.root'
+MCend = 'ntuples_B2DstMu_220225/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
