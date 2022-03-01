@@ -608,6 +608,7 @@ def makeSelection(inputs):
                    ev.localVertexDensity_cos800[j], ev.localVertexDensity_cos990[j], ev.localVertexDensity_cos999[j],
                    ev.vtx_PV_x[j], ev.vtx_PV_y[j], ev.vtx_PV_z[j],
                    ev.vtx_B_decay_x[j], ev.vtx_B_decay_y[j], ev.vtx_B_decay_z[j],
+                   ev.beamSpot_x, ev.beamSpot_y, ev.beamSpot_z,
                   )
             if not 'data' in n:
                 muSisPdgId = []
@@ -911,6 +912,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'localVertexDensity_cos800', 'localVertexDensity_cos990', 'localVertexDensity_cos999',
                        'vtx_PV_x', 'vtx_PV_y', 'vtx_PV_z',
                        'vtx_B_decay_x', 'vtx_B_decay_y', 'vtx_B_decay_z',
+                       'beamSpot_x', 'beamSpot_y', 'beamSpot_z',
                       ]
         if not 'data' in n:
             leafs_names += [

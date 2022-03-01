@@ -247,6 +247,7 @@ def makeSelection(inputs):
                    category_selection(j, ev, evEx, categories['mid']),
                    category_selection(j, ev, evEx, categories['high']),
                    ev.N_vertexes,
+                   ev.beamSpot_x, ev.beamSpot_y, ev.beamSpot_z,
                    ev.vtx_PV_x[j], ev.vtx_PV_y[j], ev.vtx_PV_z[j],
                    ev.vtx_B_decay_x[j], ev.vtx_B_decay_y[j], ev.vtx_B_decay_z[j],
                   )
@@ -370,6 +371,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                         'isAntiB', 'mass_candKst', 'mass_candB',
                         'cat_low', 'cat_mid', 'cat_high',
                         'N_vtx',
+                        'beamSpot_x', 'beamSpot_y', 'beamSpot_z',
                         'vtx_PV_x', 'vtx_PV_y', 'vtx_PV_z',
                         'vtx_B_decay_x', 'vtx_B_decay_y', 'vtx_B_decay_z',
                       ]
