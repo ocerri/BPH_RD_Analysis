@@ -23,6 +23,8 @@ from scipy.stats import chi2 as scipy_chi2
 from scipy.stats import crystalball
 import matplotlib.pyplot as plt
 from array import array
+import subprocess
+from os.path import join
 
 import uproot as ur
 import ROOT as rt
@@ -254,6 +256,15 @@ if not args.submit:
         f.write( yaml.dump(args.__dict__) )
         f.write(5*'<'+'\n')
         f.write(50*'-'+ '\n')
+
+# Write git sha1 and any uncommited changes to the web directory
+diff = subprocess.check_output(['git','diff'])
+with open(join(webFolder,"git_diff.txt"),"wb") as f:
+    f.write(diff)
+
+sha1 = subprocess.check_output(['git','show-ref','--head','--hash=8'])
+with open(join(webFolder,"git_sha1.txt"),"w") as f:
+    f.write(sha1.decode("utf-8").split('\n')[0])
 
 def runCommandSafe(command, printCommand=True):
     if printCommand:
