@@ -24,7 +24,6 @@ from scipy.stats import crystalball
 import matplotlib.pyplot as plt
 from array import array
 import subprocess
-from os.path import join
 
 import uproot as ur
 import ROOT as rt
@@ -259,12 +258,13 @@ if not args.submit:
 
 # Write git sha1 and any uncommited changes to the web directory
 diff = subprocess.check_output(['git','diff'])
-with open(join(webFolder,"git_diff.txt"),"wb") as f:
+with open(os.path.join(webFolder,'git_diff.txt'), 'a') as f:
+    f.write('\n', datetime.now().strftime('%Y-%m-%d %H:%M:%S') + '\n')
     f.write(diff)
 
 sha1 = subprocess.check_output(['git','show-ref','--head','--hash=8'])
-with open(join(webFolder,"git_sha1.txt"),"w") as f:
-    f.write(sha1.decode("utf-8").split('\n')[0])
+with open(os.path.join(webFolder,'git_sha1.txt'), 'a') as f:
+    f.write(datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ' --> ' + sha1.decode("utf-8").split('\n')[0])
 
 def runCommandSafe(command, printCommand=True):
     if printCommand:
