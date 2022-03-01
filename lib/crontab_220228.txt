@@ -1,0 +1,17 @@
+HOME=/storage/af/user/ocerri
+PATH=/usr/bin
+
+*/10 * * * * condor_q > ~/public_html/condor_q_login-2.txt 2>&1; python /storage/af/user/ocerri/BPH_RD_Analysis/bin/dumpCondorHeldJobs.py
+
+#30 * * * * source $HOME/.bash_profile; source /cvmfs/cms.cern.ch/cmsset_default.sh; cd $HOME/work/CMSSW_10_2_3/src; eval `scramv1 runtime -sh`; cd ntuplizer/BPH_RDntuplizer; ./jobSubmission/submit-condor-jobs --max-jobs 15000 --loglevel notice --logfile $HOME/submit.log 2>&1 >> $HOME/crontab.log
+
+#37 * * * * date 2>&1 > ~/public_html/ntuplizer_jobs_state.txt; sqlite3 -column -header ~/state.db -cmd "select batch_name, state, count(*) from ntuplizer_jobs group by batch_name, state;" ".exit" 2>&1 >> ~/public_html/ntuplizer_jobs_state.txt
+
+#15,45 * * * * date 2>&1 > ~/public_html/data_crab_ntuplization.txt; source $HOME/.bash_profile; source /cvmfs/cms.cern.ch/cmsset_default.sh; cd $HOME/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer; eval `scramv1 runtime -sh`; cd jobSubmission/; python checkCrabStatus.py tmp/*_2202* --short 2>&1 >> ~/public_html/data_crab_ntuplization.txt
+
+#35 */2 * * * date 2>&1 > ~/public_html/data_crab_resubmission.txt; source $HOME/.bash_profile; source /cvmfs/cms.cern.ch/cmsset_default.sh; cd $HOME/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer; eval `scramv1 runtime -sh`; cd jobSubmission/; python resubmitCrabDir.py tmp/*_2202* 2>&1 >> ~/public_html/data_crab_resubmission.txt
+
+#5 * * * * date 2>&1 > ~/public_html/MC_generation.txt; source $HOME/.bash_profile; source /cvmfs/cms.cern.ch/cmsset_default.sh; cd $HOME/generation/CMSSW_10_2_3/src; eval `scramv1 runtime -sh`; cd $HOME/BPH_CMSMCGen/; python checkCrabStatus.py tmp/*_2202* --short 2>&1 >> ~/public_html/MC_generation.txt
+
+55 * * * * find /tmp -maxdepth 1 -user ocerri -name "curl*" -delete
+55 * * * * find /tmp -maxdepth 1 -user ocerri -name "status*" -delete

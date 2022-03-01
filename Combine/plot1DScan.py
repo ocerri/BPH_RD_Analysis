@@ -6,6 +6,7 @@ import CombineHarvester.CombineTools.plotting as plot
 import json
 import argparse
 import os.path
+import numpy as np
 
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 ROOT.gROOT.SetBatch(ROOT.kTRUE)
@@ -45,6 +46,11 @@ def BuildScan(scan, param, files, color, yvals, ycut):
     NAMECOUNTER += 1
     func.SetLineColor(color)
     func.SetLineWidth(3)
+    if bestfit is None:
+        aux_y = [graph.GetY()[i] for i in xrange(graph.GetN())]
+        idx = np.argmin(aux_y)
+        bestfit = graph.GetX()[idx]
+        print '[WARNING] NLL minimum not zero: ({:.4f}, {:.4f})'.format(bestfit, aux_y[idx])
     assert(bestfit is not None)
     crossings = {}
     cross_1sig = None

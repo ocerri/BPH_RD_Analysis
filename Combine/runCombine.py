@@ -3257,7 +3257,7 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=3
         json.dump({'r': 'R(D*)'}, open(out+'renameDicLikelihoodScan.json', 'w'))
 
         cmd = 'cd ' + out + '; '
-        cmd += 'plot1DScan.py higgsCombine{t}.MultiDimFit.mH120.root -o scan{t}'.format(t=tag)
+        cmd += '../../plot1DScan.py higgsCombine{t}.MultiDimFit.mH120.root -o scan{t}'.format(t=tag)
         cmd += ' --main-label "{} {}'.format('Obs.' if not args.asimov else 'Asimov', catName)
         if not args.unblinded: cmd += ' (blinded)'
         cmd += '"'
@@ -4222,7 +4222,7 @@ jdlTemplate = '\n'.join([
               'on_exit_hold      = (ExitBySignal == True) || (ExitCode != 0)',
               # 'periodic_release  =  (NumJobStarts < 2) && ((CurrentTime - EnteredCurrentStatus) > (60*5))',
               '+PeriodicRemove   = ((JobStatus =?= 2) && ((MemoryUsage =!= UNDEFINED && MemoryUsage > 5*RequestMemory)))',
-              'max_retries       = 3',
+              # 'max_retries       = 3',
               'requirements      = Machine =!= LastRemoteHost',
               'universe          = vanilla',
               'queue 1',''])
