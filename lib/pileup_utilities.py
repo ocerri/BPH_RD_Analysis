@@ -37,11 +37,11 @@ class pileupReweighter(object):
         fData.Close()
         fMC.Close()
 
-    def getPileupWeights(self, arrNvtx, selection=None):
+    def getPileupWeights(self, arrNvtx, selection=None, clip_range=(0,10)):
         x = np.rint(arrNvtx).astype(np.int)
         if not selection is None:
             x = x[selection]
-        return self.weightsPileupMC[x.astype(np.int)]
+        return np.clip(self.weightsPileupMC[x.astype(np.int)], clip_range[0], clip_range[1])
 
 # class pileupReweighter(object):
 #     def __init__(self, mcSkimFile, cat, histoName='hAllNvtx', dataDate='200515'):

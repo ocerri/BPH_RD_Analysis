@@ -560,7 +560,7 @@ def createHistograms(category):
     skimmedFile_loc = MCsample['tau'].skimmed_dir + '/{}_{}.root'.format(category.name, mcType)
     puReweighter = pileupReweighter(skimmedFile_loc, 'hAllNTrueIntMC', trg=category.trg)
 
-    fname = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v1_'+category.name.capitalize()+'.yaml'
+    fname = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v2_bs_'+category.name.capitalize()+'.yaml'
     beamSpotParam = yaml.load(open(fname, 'r'))
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data'
@@ -623,8 +623,10 @@ def createHistograms(category):
     if args.calBpT == 'none':
         print 'Not using any B pT calibration'
     elif args.calBpT == 'poly':
+        # cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v1.pkl') # No beamSpot calibration
         cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v2.pkl')
 
+    # cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v0.pkl') # No beamSpot calibration
     cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v2.pkl')
 
 
@@ -841,7 +843,11 @@ def createHistograms(category):
             weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
 
             print 'Including beam spot correction'
-            weights['beamSpot'] = getBeamSpotCorrectionWeights(ds, beamSpotParam)
+            weights['beamSpot'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs')
+            wVar[category.name+'BSyUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=8)/weights['beamSpot']
+            wVar[category.name+'BSyDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=-8)/weights['beamSpot']
+            wVar[category.name+'BSxUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=4, dmu_y=0)/weights['beamSpot']
+            wVar[category.name+'BSxDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=-4, dmu_y=0)/weights['beamSpot']
 
             print 'Including trigger corrections'
             nameSF = 'trg{}SF'.format(category.trg)
@@ -1455,7 +1461,11 @@ def createHistograms(category):
             weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
 
             print 'Including beam spot correction'
-            weights['beamSpot'] = getBeamSpotCorrectionWeights(ds, beamSpotParam)
+            weights['beamSpot'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs')
+            wVar[category.name+'BSyUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=8)/weights['beamSpot']
+            wVar[category.name+'BSyDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=-8)/weights['beamSpot']
+            wVar[category.name+'BSxUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=4, dmu_y=0)/weights['beamSpot']
+            wVar[category.name+'BSxDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=-4, dmu_y=0)/weights['beamSpot']
 
             print 'Including trigger corrections'
             nameSF = 'trg{}SF'.format(category.trg)
@@ -2778,6 +2788,9 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     for p in processes:
         if 'data' in p: mcProcStr += ' -'
         else: mcProcStr += ' 1.'
+
+    for ax in ['x', 'y']:
+        card += category.name+'BS'+ax+' shape' + mcProcStr*nCat + '\n'
 
     nameSF = 'trg{}SF'.format(category.trg)
     counter = 0
@@ -4294,6 +4307,7 @@ if __name__ == "__main__":
                 n = len(glob(os.path.join(histo_file_dir, card_name.replace('comb', c)) + '_*.root'))
                 if n>50:
                     present = True
+                    print 'Accepting', n, 'bins from', c
                 else:
                     print 'Waiting for ' + c
                     time.sleep(60*10)

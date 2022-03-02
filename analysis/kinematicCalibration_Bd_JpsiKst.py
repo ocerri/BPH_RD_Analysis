@@ -160,9 +160,9 @@ print 'Expected evts/fb: {:.0f} +/- {:.0f}'.format(xsec_eff, dxsec)
 puRew = pileupReweighter(dsetMC_loc, 'hAllNTrueIntMC', trg=cat.trg)
 dfMC['wPU'] = puRew.getPileupWeights(dfMC['MC_nInteractions'])
 
-beamSpotCalLoc = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v1_'+args.category.capitalize()+'.yaml'
+beamSpotCalLoc = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v2_bs_'+args.category.capitalize()+'.yaml'
 paramBeamSpotCorr = yaml.load(open(beamSpotCalLoc, 'r'))
-dfMC['wBeamSpot'] = getBeamSpotCorrectionWeights(dfMC, paramBeamSpotCorr)
+dfMC['wBeamSpot'] = getBeamSpotCorrectionWeights(dfMC, paramBeamSpotCorr, ref='bs')
 
 loc = dataLoc+'calibration/triggerScaleFactors/'
 fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v22_count.root', 'READ')
@@ -231,7 +231,7 @@ print 'Selected events per fb: {:.0f}'.format(N_sel_per_fb)
 
 # # Clean sets
 cuts = [
-    ['B_eta', [-1, 1]],
+    # ['B_eta', [-1, 1]],
     [mB_var, [5.24, 5.34]],
 ]
 

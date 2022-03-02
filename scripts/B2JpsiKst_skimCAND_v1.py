@@ -52,12 +52,12 @@ args = parser.parse_args()
 ####                          Datset declaration                         ####
 #############################################################################
 MCloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/'
-MCend = '/ntuples_Bd2JpsiKst_220217/out_CAND_*.root'
+MCend = '/ntuples_Bd2JpsiKst_220228/out_CAND_*.root'
 RDloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {
 'MC'    : MCloc+'CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'+MCend,
-'data'  : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_Bd2JpsiKst_220217_CAND.root',
+'data'  : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_Bd2JpsiKst_220228_CAND.root',
 }
 
 def getTLVfromField(ev, n, idx, mass):
