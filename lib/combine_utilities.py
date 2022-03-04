@@ -95,7 +95,7 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
             print nll_l
             print '[ERROR] Likelihood not convex (X array not sorted)'
             l, l2 = 0, 0
-            raise
+            # raise
 
 
         if np.all(nll_u[:-1] <= nll_u[1:]):

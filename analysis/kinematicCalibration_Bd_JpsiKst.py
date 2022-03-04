@@ -127,7 +127,8 @@ def getPolyCorrection(hNum, hDen, deg, tag, verbose=False):
         plt.plot(x, yM, '--', color=colors[i])
 
     plt.grid()
-    # plt.ylim(0.7, 1.3)
+    ymin, ymax = plt.ylim()
+    plt.ylim(max(0, ymin), min(8, ymax))
     plt.ylabel('data/MC')
     plt.xlabel('B '+tag.split('_')[0])
     plt.legend(loc='best', numpoints=1)
@@ -138,7 +139,7 @@ def getPolyCorrection(hNum, hDen, deg, tag, verbose=False):
 
 
 # # Load MC
-mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_220217')
+mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_220228')
 dsetMC_loc = mcSample.skimmed_dir + '/{}_bare.root'.format(cat.name)
 dfMC = pd.DataFrame(rtnp.root2array(dsetMC_loc))
 
@@ -224,7 +225,7 @@ CMS_lumi.integrated_lumi = lumi_tot
 
 
 
-dsetRD_loc = dataLoc+'cmsRD/skimmed/B2JpsiKst_220217_{}_corr.root'.format(cat.name)
+dsetRD_loc = dataLoc+'cmsRD/skimmed/B2JpsiKst_220228_{}_corr.root'.format(cat.name)
 dfRD = pd.DataFrame(rtnp.root2array(dsetRD_loc))
 N_sel_per_fb = float(dfRD.shape[0])/lumi_tot
 print 'Selected events per fb: {:.0f}'.format(N_sel_per_fb)
@@ -628,7 +629,7 @@ b = {'Low': array('d', list(np.arange(7, 9.4, 0.1)) + [9.4]),
      'High': array('d', list(10+np.logspace(np.log10(12.2-10), np.log10(50), 30)))
     }
 makePlot('trgMu_pt', binning=b[cat.name],  wMC=[dfMC['w'], dfMC['w']*dfMC['wEta']*dfMC['wPt']], legMC=['MC precal', 'MC postcal'],
-         axis_title=['trigger muon p_{T}', 'Normalized entries'], saveFig='trgMu_pt_postcal_'+cat.name+'.png')
+         axis_title=['trigger muon p_{T} [GeV]', 'Normalized entries'], saveFig='trgMu_pt_postcal_'+cat.name+'.png')
 
 for n in ['otherMu', 'K', 'pi', 'Jpsi', 'Kst']:
     makePlot(n+'_pt', binning=3*[None], axis_title=[n+' p_{T}', 'Normalized entries'],
@@ -638,3 +639,65 @@ for n in ['otherMu', 'K', 'pi', 'Jpsi', 'Kst']:
 for n in ['trgMu', 'otherMu', 'K', 'pi', 'Jpsi', 'Kst']:
     makePlot(n+'_eta', binning=[50, -2, 2], axis_title=[n+' #eta', 'Normalized entries'],
               wMC=[dfMC['w'], dfMC['w']*dfMC['wEta']*dfMC['wPt']], legMC=['MC precal', 'MC postcal'], saveFig=n+'_eta_postcal_'+cat.name+'.png')
+
+
+################ Additional tracks ###################
+
+selMC = np.array(dfMC['N_goodAddTks'] == 1).astype(np.int)
+selRD = np.array(dfRD['N_goodAddTks'] == 1).astype(np.int)
+# makePlot('tkPt_0', binning=[50, 0.5, 7.5],  wMC=[selMC*dfMC['w'], selMC*dfMC['w']*dfMC['wEta']*dfMC['wPt']], wRD=selRD,
+#          legMC=['MC precal', 'MC cal (B p_{T} & #eta)'],
+#          axis_title=['Additonal track p_{T} [GeV]', 'Normalized entries'], saveFig='addTk_pt_precal_'+cat.name+'.png')
+
+makePlot('massVis_wTk_0', binning=[50, 4.5, 8.5],  wMC=[selMC*dfMC['w'], selMC*dfMC['w']*dfMC['wEta']*dfMC['wPt']], wRD=selRD,
+         legMC=['MC precal', 'MC cal (B p_{T} & #eta)'],
+         axis_title=['Visible mass with add. track [GeV]', 'Normalized entries'], saveFig='addTk_mVis_precal_'+cat.name+'.png')
+
+# Calibration
+
+b=[40,0.5,6.5]
+binWdith = (b[2] - b[1])/float(b[0])
+hRD = create_TH1D(dfRD['tkPt_0'], name='hRD', title='data', weights=selRD,
+                  axis_title=['Additional track p_{T} (reco) [GeV]',
+                              '1/#sigma d#sigma/dp_{T} / '+'({:.2f})'.format(binWdith)],
+                  binning=b, scale_histo='norm', opt='overflow+underflow'
+                 )
+hRD.SetMarkerStyle(15)
+
+hMC = create_TH1D(dfMC['tkPt_0'], name='hMC', weights=selMC*dfMC['w']*dfMC['wEta']*dfMC['wPt'],
+                  axis_title=['Additional track p_{T} (reco) [GeV]',
+                              '1/#sigma d#sigma/dp_{T} / '+'({:.2f})'.format(binWdith)],
+                  title = 'B#rightarrow J/#psi K*',
+                  scale_histo='norm', color=0,
+                  h2clone=hRD, opt='overflow+underflow')
+
+getPolyCorrection(hRD, hMC, 1, 'addTk_pt_polyCoeff', args.verbose)
+cal_addTK_pt = calibrationReader(calibration_file=dataLoc+'calibration/kinematicCalibration_Bd/addTk_pt_polyCoeff_{}_{}.pkl'.format(cat.name, version))
+dfMC['wTkPt'] = cal_addTK_pt.getWeights(dfMC['tkPt_0'])
+print 'Add tk calibration: q={:.3f} m={:.3f}'.format(*(cal_addTK_pt.beta))
+
+hMC_corr = create_TH1D(dfMC['tkPt_0'], name='hMC', weights=selMC*dfMC['w']*dfMC['wEta']*dfMC['wPt']*dfMC['wTkPt'],
+                       axis_title=['Additional track p_{T} (reco) [GeV]',
+                                   '1/#sigma d#sigma/dp_{T} / '+'({:.2f})'.format(binWdith)],
+                       title = 'B#rightarrow J/#psi K* (corr)',
+                       scale_histo='norm', color=1,
+                       h2clone=hRD, opt='overflow+underflow')
+
+CMS_lumi.extraText = '      Internal'
+c = make_ratio_plot([hRD, hMC, hMC_corr], ratio_bounds='auto', draw_opt='E1')
+
+CMS_lumi.CMS_lumi(c, -1, 0)
+c.pad1.SetTopMargin(0.07)
+c.pad1.SetRightMargin(0.035)
+c.pad2.SetRightMargin(0.035)
+# c.pad2.SetLogy()
+c.leg.SetY1(0.3)
+c.leg.SetY2(0.5)
+c.leg.SetX1(0.35)
+c.leg.SetX2(0.7)
+c.Draw()
+
+c.pad1.cd()
+catText.SetTextSize(0.04)
+catText.DrawLatexNDC(0.9, 0.8, 'Category: {}'.format(cat.name))
+c.SaveAs(webFolder+'addTk_pt_calibration_' + cat.name + '.png')

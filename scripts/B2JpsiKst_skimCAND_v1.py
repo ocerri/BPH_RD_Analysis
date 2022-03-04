@@ -99,6 +99,18 @@ def SumPt(pt1, pt2, phi1, phi2):
     pSq = pt1**2 + pt2**2 + 2*pt1*pt2*np.cos(phi1-phi2)
     return np.sqrt(pSq)
 
+def insertOrdered(list, el):
+    if len(list) == 0:
+        return 0, [el]
+    else:
+        for il in range(len(list)):
+            if list[il] < el:
+                break
+        else:
+            il += 1
+        # list = list[:il] + [el] + list[il:]
+        return il, list[:il] + [el] + list[il:]
+
 def extractEventInfos(j, ev, corr=None):
     m_mu   = 0.105658
     m_pi   = 0.139570
@@ -173,6 +185,136 @@ def extractEventInfos(j, ev, corr=None):
     e.mass_candKst = e.mass_piK
     e.mass_candB = e.mass_mumupiK_cJpsi
 
+    #----------------- Additional tracks -------------------#
+    idx_st = 0
+    for jjj in range(j):
+        idx_st += int(ev.nTksAdd[jjj])
+    idx_stop = int(idx_st + ev.nTksAdd[j])
+
+    e.N_goodAddTks = 0
+    e.tkCharge = []
+    e.tkPdgId = []
+    e.tkPt = []
+    e.tkEta = []
+    e.tkPhi = []
+    e.tk_lostInnerHits = []
+    e.tk_pval = []
+    e.MC_tkFlag = []
+    e.MC_tkFromMainB = []
+    e.MC_tkPdgId = []
+    e.MC_tk_dphi = []
+    e.MC_tk_deta = []
+    e.MC_tk_dpt = []
+    e.MC_tkMotherPdgId = []
+    e.MC_tkMotherMotherPdgId = []
+    e.massVis_wTk = []
+    e.massHad_wTk = []
+
+    p4_sumGoodTks = rt.TLorentzVector()
+    for jj in range(idx_st, idx_stop):
+        pval = ev.tksAdd_pval[jj]
+        if pval < 0.1:
+            continue
+
+        if ev.tksAdd_lostInnerHits[jj] > 0:
+            continue
+
+        eta = ev.tksAdd_eta[jj]
+        if np.abs(eta) >= 2.4:
+            continue
+        phi = ev.tksAdd_phi[jj]
+        pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 2e-3)
+        # if pt < 1.0:
+        if pt < 0.55:
+            continue
+        #Avoid tracks duplicates
+        duplicate = False
+        for n in ['mum', 'mup', 'pi', 'K']:
+            dphi = phi - getattr(e, n+'_phi')
+            if dphi > np.pi: dphi -= 2*np.pi
+            if dphi < -np.pi: dphi += 2*np.pi
+            dR = np.hypot(dphi, eta - getattr(e, n+'_eta'))
+            dPt = np.abs(getattr(e, n+'_pt') - pt)/getattr(e, n+'_pt')
+            if dPt < 0.03 and dR < 0.001:
+                duplicate=True
+                break
+        if duplicate:
+            continue
+        #
+        p4_tk = rt.TLorentzVector()
+        p4_tk.SetPtEtaPhiM(pt, eta, phi, m_pi)
+
+        mVis_wTk = (p4_B + p4_tk).M()
+        # print 'm_vis_wTk: {:.4f} {:.4f}'.format(ev.tksAdd_massVis[jj], mVis_wTk)
+
+        if ev.tksAdd_cos_PV[jj]>0.95:
+            e.N_goodAddTks += 1
+            idx, e.tkPt = insertOrdered(e.tkPt, pt)
+            e.tkEta.insert(idx, eta)
+            e.tkPhi.insert(idx, phi)
+            e.tk_lostInnerHits.insert(idx, ev.tksAdd_lostInnerHits[jj])
+            e.tk_pval.insert(idx, ev.tksAdd_pval[jj])
+            e.tkCharge.insert(idx, ev.tksAdd_charge[jj])
+            e.tkPdgId.insert(idx, ev.tksAdd_pdgId[jj])
+            e.massVis_wTk.insert(idx, mVis_wTk)
+            e.massHad_wTk.insert(idx, (p4_pi + p4_K + p4_tk).M())
+            if hasattr(ev, 'MC_addTkFlag'):
+                e.MC_tkFlag.insert(idx, ev.MC_addTkFlag[jj])
+                e.MC_tkFromMainB.insert(idx, ev.MC_addTk_fromMainB[jj])
+                e.MC_tk_dphi.insert(idx, ev.MC_addTk_dPhi[jj])
+                e.MC_tk_deta.insert(idx, ev.MC_addTk_dEta[jj])
+                e.MC_tk_dpt.insert(idx, ev.MC_addTk_dPt[jj])
+                e.MC_tkPdgId.insert(idx, ev.MC_addTk_pdgId[jj])
+                e.MC_tkMotherPdgId.insert(idx, ev.MC_addTk_pdgIdMother[jj])
+                e.MC_tkMotherMotherPdgId.insert(idx, ev.MC_addTk_pdgIdMotherMother[jj])
+
+            p4_sumGoodTks += p4_tk
+
+
+    p4_vis_wTks = p4_B + p4_sumGoodTks
+    e.massVisTks = p4_vis_wTks.M()
+    e.massHadTks = (p4_pi + p4_K + p4_sumGoodTks).M()
+
+    if e.N_goodAddTks == 2:
+        e.massTks_pipi = p4_sumGoodTks.M()
+
+        tk0_pi = rt.TLorentzVector()
+        tk0_pi.SetPtEtaPhiM(e.tkPt[0], e.tkEta[0], e.tkPhi[0], m_pi)
+
+        tk0_K = rt.TLorentzVector()
+        tk0_K.SetPtEtaPhiM(e.tkPt[0], e.tkEta[0], e.tkPhi[0], m_K)
+
+        tk1_pi = rt.TLorentzVector()
+        tk1_pi.SetPtEtaPhiM(e.tkPt[1], e.tkEta[1], e.tkPhi[1], m_pi)
+
+        tk1_K = rt.TLorentzVector()
+        tk1_K.SetPtEtaPhiM(e.tkPt[1], e.tkEta[1], e.tkPhi[1], m_K)
+
+        e.massTks_KK = (tk0_K + tk1_K).M()
+
+        if e.tkCharge[0] > 0 and e.tkCharge[1] < 0:
+            e.massTks_piK = (tk0_pi + tk1_K).M()
+            e.massTks_Kpi = (tk0_K + tk1_pi).M()
+        elif e.tkCharge[0] < 0 and e.tkCharge[1] > 0:
+            e.massTks_Kpi = (tk0_pi + tk1_K).M()
+            e.massTks_piK = (tk0_K + tk1_pi).M()
+        else:
+            e.massTks_piK = (tk0_pi + tk1_K).M()
+            e.massTks_Kpi = (tk0_K + tk1_pi).M()
+    else:
+        e.massTks_pipi = 0
+        e.massTks_KK = 0
+        e.massTks_piK = 0
+        e.massTks_Kpi = 0
+
+
+
+    if e.N_goodAddTks < 3:
+        auxList = [e.tkCharge, e.tkPdgId, e.tkPt, e.tkEta, e.tkPhi, e.tk_lostInnerHits, e.tk_pval, e.massVis_wTk, e.massHad_wTk]
+        auxList += [e.MC_tkFlag, e.MC_tkFromMainB, e.MC_tkPdgId, e.MC_tkMotherPdgId, e.MC_tkMotherMotherPdgId, e.MC_tk_dphi, e.MC_tk_deta, e.MC_tk_dpt]
+        for l in auxList:
+            l += [0, 0, 0]
+
     return e
 
 def makeSelection(inputs):
@@ -243,6 +385,18 @@ def makeSelection(inputs):
                    ev.cos_B_PV_mumupiK[j], ev.sigd_vtxB_PV_mumupiK[j], ev.sigdxy_vtxB_PV[j],
                    evEx.mass_mumuKpi, evEx.mass_mumuKpi_cJpsi, evEx.mass_mumuKpi_cJpsi_cKst,
                    evEx.isAntiB, evEx.mass_candKst, evEx.mass_candB,
+                   evEx.N_goodAddTks,
+                   evEx.tkCharge[0], evEx.tkCharge[1], evEx.tkCharge[2],
+                   evEx.tkPdgId[0], evEx.tkPdgId[1], evEx.tkPdgId[2],
+                   evEx.tkPt[0], evEx.tkPt[1], evEx.tkPt[2],
+                   evEx.tkEta[0], evEx.tkEta[1], evEx.tkEta[2],
+                   evEx.tkPhi[0], evEx.tkPhi[1], evEx.tkPhi[2],
+                   evEx.tk_lostInnerHits[0], evEx.tk_lostInnerHits[1], evEx.tk_lostInnerHits[2],
+                   evEx.tk_pval[0], evEx.tk_pval[1], evEx.tk_pval[2],
+                   evEx.massVis_wTk[0], evEx.massVis_wTk[1], evEx.massVis_wTk[2],
+                   evEx.massHad_wTk[0], evEx.massHad_wTk[1], evEx.massHad_wTk[2],
+                   evEx.massTks_pipi, evEx.massTks_KK, evEx.massTks_piK, evEx.massTks_Kpi,
+                   evEx.massVisTks, evEx.massHadTks,
                    category_selection(j, ev, evEx, categories['low']),
                    category_selection(j, ev, evEx, categories['mid']),
                    category_selection(j, ev, evEx, categories['high']),
@@ -258,6 +412,14 @@ def makeSelection(inputs):
                         ev.MC_mum_pt, ev.MC_mum_eta,
                         ev.MC_d_vtxB, ev.MC_dxy_vtxB,
                         ev.d_vtxB_PV_mumupiK[j], ev.dxy_vtxB_PV[j],
+                        evEx.MC_tkFlag[0], evEx.MC_tkFlag[1],
+                        evEx.MC_tkFromMainB[0], evEx.MC_tkFromMainB[1],
+                        evEx.MC_tk_dpt[0], evEx.MC_tk_dpt[1],
+                        evEx.MC_tk_deta[0], evEx.MC_tk_deta[1],
+                        evEx.MC_tk_dphi[0], evEx.MC_tk_dphi[1],
+                        evEx.MC_tkPdgId[0], evEx.MC_tkPdgId[1],
+                        evEx.MC_tkMotherPdgId[0], evEx.MC_tkMotherPdgId[1],
+                        evEx.MC_tkMotherMotherPdgId[0], evEx.MC_tkMotherMotherPdgId[1],
                         ev.nTrueIntMC
                         )
             ev_output.append(aux)
@@ -314,7 +476,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         else:
             fskimmed_name += '_skip'+'-'.join([str(i) for i in skipCut])
     if applyCorrections:
-        print 'Appling corrections'
+        print 'Applying corrections'
         fskimmed_name += '_corr'
     else:
         fskimmed_name += '_bare'
@@ -369,6 +531,18 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                         'cos_B_PV', 'sigd_vtxB_PV', 'sigdxy_vtxB_PV',
                         'mass_mumuKpi', 'mass_mumuKpi_cJpsi', 'mass_mumuKpi_cJpsi_cKst',
                         'isAntiB', 'mass_candKst', 'mass_candB',
+                        'N_goodAddTks',
+                        'tkCharge_0', 'tkCharge_1', 'tkCharge_2',
+                        'tkPdgId_0', 'tkPdgId_1', 'tkPdgId_2',
+                        'tkPt_0', 'tkPt_1', 'tkPt_2',
+                        'tkEta_0', 'tkEta_1', 'tkEta_2',
+                        'tkPhi_0', 'tkPhi_1', 'tkPhi_2',
+                        'tk_lostInnerHits_0', 'tk_lostInnerHits_1', 'tk_lostInnerHits_2',
+                        'tk_pval_0', 'tk_pval_1', 'tk_pval_2',
+                        'massVis_wTk_0', 'massVis_wTk_1', 'massVis_wTk_2',
+                        'massHad_wTk_0', 'massHad_wTk_1', 'massHad_wTk_2',
+                        'massTks_pipi', 'massTks_KK', 'massTks_piK', 'massTks_Kpi',
+                        'massVisTks', 'massHadTks',
                         'cat_low', 'cat_mid', 'cat_high',
                         'N_vtx',
                         'beamSpot_x', 'beamSpot_y', 'beamSpot_z',
@@ -382,6 +556,14 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                             'MC_mum_pt', 'MC_mum_eta',
                             'MC_d_vtxB', 'MC_dxy_vtxB',
                             'd_vtxB_PV', 'dxy_vtxB_PV',
+                            'MC_tkFlag_0', 'MC_tkFlag_1',
+                            'MC_tkFromMainB_0', 'MC_tkFromMainB_1',
+                            'MC_tk_dpt_0', 'MC_tk_dpt_1',
+                            'MC_tk_deta_0', 'MC_tk_deta_1',
+                            'MC_tk_dphi_0', 'MC_tk_dphi_1',
+                            'MC_tkPdgId_0', 'MC_tkPdgId_1',
+                            'MC_tkMotherPdgId_0', 'MC_tkMotherPdgId_1',
+                            'MC_tkMotherMotherPdgId_0', 'MC_tkMotherMotherPdgId_1',
                             'MC_nInteractions'
                            ]
 

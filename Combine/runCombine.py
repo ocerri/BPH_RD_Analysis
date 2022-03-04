@@ -68,7 +68,7 @@ parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], hel
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu', 'U_miss'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
-parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pm_mHad', 'pp_mHad', 'mm_mHad'], help='Control regions to use', nargs='+')
+parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pp_mHad', 'mm_mHad'], help='Control regions to use', nargs='*')
 
 parser.add_argument ('--correlate_tkPVfrac', default=False, action='store_true', help='Correlate tkPVfrac in all categories.')
 parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
@@ -415,7 +415,8 @@ def loadDatasets(category, loadRD):
     else:
         addCuts = [
         ['M2_miss', 0.4, 1e3],
-        ['mu_eta', -0.8, 0.8],
+        # ['M2_miss', -0.2, 1e3],
+        # ['mu_eta', -0.8, 0.8],
         # ['mu_eta', -1.5, 1.5],
         # ['B_eta', -1., 1.],
         # ['K_pt', 1., 1e3],
@@ -542,8 +543,10 @@ def computeTksPVweights(ds, relScale=0.05, centralVal=0.39/0.10):
     # selPdgID1 = np.logical_or(selPdgID1, ds['MC_tkMotherPdgId_1']==2212)
     # selPdgID1 = np.logical_and( selPdgID1, ds['MC_tkFlag_1'] == 1)
 
-    selPdgID0 = np.logical_and( ds['MC_tkFlag_0'] == 1, ds['MC_tkFromMainB_0'] == 0)
-    selPdgID1 = np.logical_and( ds['MC_tkFlag_1'] == 1, ds['MC_tkFromMainB_1'] == 0)
+    # selPdgID0 = np.logical_and( ds['MC_tkFlag_0'] == 1, ds['MC_tkFromMainB_0'] == 0)
+    # selPdgID1 = np.logical_and( ds['MC_tkFlag_1'] == 1, ds['MC_tkFromMainB_1'] == 0)
+    selPdgID0 = ds['MC_tkFromMainB_0'] < 0.5
+    selPdgID1 = ds['MC_tkFromMainB_1'] < 0.5
     exponent = selPdgID0.astype(np.int) + selPdgID1.astype(np.int)
     w = np.power(centralVal, exponent)
     up = np.power(centralVal*(1+relScale), exponent)/w
@@ -628,6 +631,8 @@ def createHistograms(category):
 
     # cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v0.pkl') # No beamSpot calibration
     cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v2.pkl')
+
+    cal_addTK_pt = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/addTk_pt_polyCoeff_{}_v2.pkl'.format(category.name))
 
 
     def computeKinCalWeights(ds, var, tag, kinCal):
@@ -1158,7 +1163,7 @@ def createHistograms(category):
             # 3.2
             _, wVar['brBd_DstDsstUp'], wVar['brBd_DstDsstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 433}, inflateRate*0.14/17.7)
             # 3.3
-            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.7/1.5)
+            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.6/1.5)
         if n == 'Bu_DstDu': #4
             # 4.1
             _, wVar['brBu_DstDuKUp'], wVar['brBu_DstDuKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421,
@@ -1351,8 +1356,8 @@ def createHistograms(category):
     ctrlVar['ctrl_p__mHad'] = 'massHadTks'
     binning['ctrl_p__mHad'] = [35, 2.13, 2.83]
 
-    ctrlVar['ctrl_p_mVis'] = 'massVisTks'
-    binning['ctrl_p_mVis'] = array('d', [2.8] + list(np.arange(3., 5.5, 0.12)) + [5.5] )
+    ctrlVar['ctrl_p__mVis'] = 'massVisTks'
+    binning['ctrl_p__mVis'] = array('d', [2.8] + list(np.arange(3., 5.5, 0.12)) + [5.5] )
 
     ctrlVar['ctrl_m__mHad'] = 'massHadTks'
     binning['ctrl_m__mHad'] = [40, 2.1, 3.3]
@@ -1535,9 +1540,19 @@ def createHistograms(category):
 
             # Correct the amount of random tracks from PV
             aux = '' if args.correlate_tkPVfrac else category.name
-            weights['tkPVfrac'], wVar['tkPVfrac'+aux+'Up'], wVar['tkPVfrac'+aux+'Down'] = computeTksPVweights(ds, relScale=0.3, centralVal=1.4)
-            # weights['tkPVfrac'], wVar['tkPVfrac'+category.name+'Up'], wVar['tkPVfrac'+category.name+'Down'] = computeTksPVweights(ds, relScale=0.05, centralVal=2.3)
+            weights['tkPVfrac'], wVar['tkPVfrac'+aux+'Up'], wVar['tkPVfrac'+aux+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=1.3)
             print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
+
+            print 'Including additional tracks pT corrections'
+            cname = 'addTk_pt_cali_'+category.name
+            w, auxVarDic = computeKinCalWeights(ds, 'tkPt_0', cname, cal_addTK_pt)
+            # Apply it only if they are not from main B
+            sel = ds['MC_tkFromMainB_0'] < 0.5
+            print 'Affecting {:.1f}% of additional tracks'.format(100*np.sum(ds['MC_tkFromMainB_0'] < 0.5)/float(ds.shape[0]))
+            weights[cname] = np.where(sel, w * np.sum(sel) / np.sum(w[sel]), 1)
+            print 'Normalization change: {:.3f}'.format(np.sum(weights[cname])/ float(weights[cname].shape[0]))
+            for k in auxVarDic.keys():
+                wVar[k] = np.where(sel, auxVarDic[k] *  np.sum(sel) / np.sum((weights[cname]*auxVarDic[k])[sel]), 1. )
 
         ############################
         # Form factor correction
@@ -1787,7 +1802,7 @@ def createHistograms(category):
             # 3.2
             _, wVar['brBd_DstDsstUp'], wVar['brBd_DstDsstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 433}, inflateRate*0.14/17.7)
             # 3.3
-            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.7/1.5)
+            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.6/1.5)
         if n == 'Bu_DstDu': #4
             # 4.1
             _, wVar['brBu_DstDuKUp'], wVar['brBu_DstDuKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421,
@@ -2433,8 +2448,8 @@ def drawShapeVarPlots(card, tag=''):
         if region.startswith('h2D'):
             continue
         # if not region.startswith('ctrl_p') and not region.stratswith('M2_miss'):
-        if not region.startswith('ctrl_m'):
-            continue
+        # if not region.startswith('ctrl_m'):
+        #     continue
         print ' ', region
 
         auxOut = os.path.join(plotsDir, region)
@@ -2811,6 +2826,13 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     if '1.' in aux:
         auxTag = '' if args.correlate_tkPVfrac else category.name
         card += 'tkPVfrac'+auxTag+' shape' + aux + '\n'
+
+        cname = 'addTk_pt_cali_'+category.name
+        for k in histo.values()[0].keys():
+            if k.startswith(processOrder[0]+'__'+cname) and k.endswith('Up'):
+                n = k[k.find('__')+2:-2]
+                print n
+                card += n+' shape' + aux + '\n'
 
     # Soft track efficiency
     # card += 'softTrkEff_w shape' + mcProcStr*nCat + '\n'
@@ -4171,7 +4193,7 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 
     # Run the test stat toy distribution
     cmdToys = cmd.replace('-n Obs', '-n Toys')
-    nToysPerRep = 40 if args.runInJob else 10
+    nToysPerRep = 40 if args.runInJob else 8
     cmdToys = cmdToys.replace('-t 0 -s 100', '-t {} -s -1'.format(nToysPerRep))
     print cmdToys
 
