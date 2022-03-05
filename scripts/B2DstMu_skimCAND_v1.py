@@ -93,7 +93,7 @@ for s in MC_samples:
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
 filesLocMap['data'] = join(RDloc, '*_B2DstMu_220220_CAND.root')
-# filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_211014_CAND.root')
+filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_220301_CAND.root')
 
 def getTLVfromField(ev, n, idx, mass):
     v = rt.TLorentzVector()
@@ -745,6 +745,117 @@ def makeSelection(inputs):
                     raise
 
                 aux += (process,)
+            if re.match('B[usd]_DstD[usd]', n):
+                id_0, id_1 = np.abs(muSisPdgId).astype(np.int)[:2]
+                m_Dst = np.abs(int(ev.MC_DstMotherPdgId))
+                m_mu = np.abs(int(ev.MC_muMotherPdgId))
+                sis_c = np.abs(ev.MC_CharmedDstSisPdgId)
+                sis_s = np.abs(ev.MC_StrangeDstSisPdgId)
+
+                if (m_Dst == 511 and sis_c == 421 and sis_s == 321):
+                    process = 101
+                elif (m_Dst == 511 and sis_c == 421 and sis_s == 323):
+                    process = 102
+                elif (m_Dst == 511 and sis_c == 423 and sis_s == 321):
+                    process = 103
+                elif (m_Dst == 511 and sis_c == 423 and sis_s == 323):
+                    process = 104
+                elif (m_Dst == 511 and sis_c == 413 and sis_s == 311):
+                    process = 105 # 1.5, 1.8
+                elif (m_Dst == 511 and sis_c == 413 and sis_s == 313):
+                    process = 106 # 1.6, 1.9
+                elif (m_Dst == 511 and sis_c == 413 and sis_s == 0):
+                    process = 107 # 1.7, 1.10
+
+                elif (m_Dst == 511 and sis_c == 411 and sis_s == 311):
+                    process = 201 # 2.1, 2.2
+                elif (m_Dst == 511 and sis_c == 411 and sis_s == 313):
+                    process = 203 # 2.3, 2.4
+                elif (m_Dst == 511 and sis_c == 413 and sis_s == 311):
+                    process = 205 # 2.5, 2.8
+                elif (m_Dst == 511 and sis_c == 413 and sis_s == 313):
+                    process = 206 # 2.6, 2.9
+                elif (m_Dst == 511 and sis_c == 413 and sis_s == 0):
+                    process = 207 # 2.7, 2.10
+                elif (m_Dst == 511 and sis_c == 411 and sis_s == 0):
+                    process = 211 # 2.11, 2.12
+
+                elif (m_Dst == 511 and sis_c == 431 and sis_s == 0):
+                    process = 301
+                elif (m_Dst == 511 and sis_c == 433 and sis_s == 0):
+                    process = 302
+                elif (m_Dst == 511 and sis_c == 10431 and sis_s == 0):
+                    process = 303
+
+                elif (m_Dst == 521 and sis_c == 421 and sis_s == 311):
+                    process = 401
+                elif (m_Dst == 521 and sis_c == 421 and sis_s == 313):
+                    process = 402
+                elif (m_Dst == 521 and sis_c == 423 and sis_s == 311):
+                    process = 403
+                elif (m_Dst == 521 and sis_c == 423 and sis_s == 313):
+                    process = 404
+                elif (m_Dst == 521 and sis_c == 413 and sis_s == 321):
+                    process = 405 # 4.5, 4.7
+                elif (m_Dst == 521 and sis_c == 413 and sis_s == 323):
+                    process = 406 # 4.6, 4.8
+                elif (m_Dst == 521 and sis_c == 421 and sis_s == 0):
+                    process = 409
+                elif (m_Dst == 521 and sis_c == 423 and sis_s == 0):
+                    process = 410
+
+                elif (m_Dst == 521 and sis_c == 411 and sis_s == 321):
+                    process = 501 # 5.1, 5.3
+                elif (m_Dst == 521 and sis_c == 411 and sis_s == 323):
+                    process = 502 # 5.2, 5.4
+                elif (m_Dst == 521 and sis_c == 413 and sis_s == 321):
+                    process = 505 # 5.5, 5.7
+                elif (m_Dst == 521 and sis_c == 413 and sis_s == 323):
+                    process = 506 # 5.6, 5.8
+
+                elif (m_Dst == 531 and sis_c == 433 and sis_s == 311):
+                    process = 601
+                elif (m_Dst == 531 and sis_c == 433 and sis_s == 313):
+                    process = 602
+                elif (m_Dst == 531 and sis_c == 431 and sis_s == 311):
+                    process = 603
+                elif (m_Dst == 531 and sis_c == 431 and sis_s == 313):
+                    process = 604
+                elif (m_Dst == 531 and sis_c == 431 and sis_s == 0):
+                    process = 605
+                elif (m_Dst == 531 and sis_c == 433 and sis_s == 0):
+                    process = 606
+
+                elif (m_Dst == 511 and sis_c == 20433 and sis_s == 0):
+                    process = 701
+                # elif (m_Dst == 511 and sis_c == 10433 and sis_s == 0): # Be carefull becaus ethere are 2 variants of this with the mu coming from the D* or the D_s
+                #     process = 702
+
+                # No MC decay matching
+                elif len(ev.MC_decay) == 0:
+                    process = -1
+                # B -> D* mu nu (slipped in)
+                elif id_0 == 413 and (id_1 in [0, 22, 111, 211]) and (m_Dst in [511, 521]) and (m_mu == m_Dst):
+                    process = -2
+                # B -> D* tau nu (slipped in)
+                elif list(np.sort(np.abs(ev.MC_decay)[2:])[::-1].astype(np.int)) == [511, 413, 16, 15, 0]:
+                    process = -3
+                # B -> D** mu nu (slipped in)
+                elif (m_mu in [511, 521]) and (id_0 in [10413, 10423, 20413, 20423, 415, 425]) and (id_1 in [0, 22]) and (m_Dst == id_0):
+                        process = -4
+                # Bs -> Ds** mu nu (slipped in)
+                elif (m_mu == 531) and (id_0 in [10433, 435]) and (id_1 in [0, 22]) and (m_Dst == id_0):
+                        process = -5
+                else:
+                    print '\n\nUnrecognized decay'
+                    print 'Mu sisters:', id_0, id_1
+                    print 'Mu mother:', m_mu
+                    print 'Dst sisters:', sis_c, sis_s
+                    print 'Dst mother:', m_Dst
+                    print [x for x in ev.MC_decay]
+                    raise
+
+                aux += (process,)
             ev_output.append(aux)
 
         N_acc = len(ev_output)
@@ -955,7 +1066,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'wh_BLPReig5Down', 'wh_BLPReig5Up',
                             'wh_BLPReig6Down', 'wh_BLPReig6Up',
                             ]
-        if 'MuNuDstPi' in n:
+        elif 'MuNuDstPi' in n:
             leafs_names += ['wh_Dstst_BLRCentral',
                             'wh_DststN_BLReig1Down', 'wh_DststN_BLReig1Up',
                             'wh_DststN_BLReig2Down', 'wh_DststN_BLReig2Up',
@@ -972,6 +1083,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'wh_D2S_BLOPeta1Down', 'wh_D2S_BLOPeta1Up',
                             'DststProc_id'
                             ]
+        elif re.match('B[usd]_DstD[usd]', n):
+            leafs_names += ['DstD_procId']
 
         applyCorr = None
         if applyCorrections:
