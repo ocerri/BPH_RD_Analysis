@@ -49,8 +49,10 @@ flog.write(50*'-' + '\n')
 
 if not output:
 	exit()
+print 'Total jobs {}: {}'.format(args.jobsStatus, len(jobs))
 if len(jobs) > args.maxDump:
-	 jobs = random.sample(jobs, args.maxDump)
+    print 'Randomly selecting', args.maxDump, 'jobs to dump'
+    jobs = random.sample(jobs, args.maxDump)
 
 for job in sorted(jobs):
 	cid, pid, name, logLoc = job.split(' ')

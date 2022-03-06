@@ -193,7 +193,7 @@ processOrder = [
     'Bd_DstDu', 'Bu_DstDu',
     'Bd_DstDd', 'Bu_DstDd',
     'Bd_DstDs', 'Bs_DstDs',
-    # 'dataSS_DstMu'
+    'dataSS_DstMu'
 ]
 
 
@@ -393,10 +393,9 @@ def loadDatasets(category, loadRD):
                                     )
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
-    # locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_211014_{}'.format(category.name)
-    # locRD = dataDir+'/skimmed/B2DstMu_SS_211014_{}'.format(category.name)
-    # dSet['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
-    # dSetTkSide['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
+    locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_220301_{}'.format(category.name)
+    dSet['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
+    dSetTkSide['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
 
 
     if loadRD:
@@ -1163,7 +1162,7 @@ def createHistograms(category):
             # 3.2
             _, wVar['brBd_DstDsstUp'], wVar['brBd_DstDsstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 433}, inflateRate*0.14/17.7)
             # 3.3
-            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.6/1.5)
+            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.6/1.5, centralVal=11.)
         if n == 'Bu_DstDu': #4
             # 4.1
             _, wVar['brBu_DstDuKUp'], wVar['brBu_DstDuKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421,
@@ -1802,7 +1801,7 @@ def createHistograms(category):
             # 3.2
             _, wVar['brBd_DstDsstUp'], wVar['brBd_DstDsstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 433}, inflateRate*0.14/17.7)
             # 3.3
-            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.6/1.5)
+            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.6/1.5, centralVal=11.)
         if n == 'Bu_DstDu': #4
             # 4.1
             _, wVar['brBu_DstDuKUp'], wVar['brBu_DstDuKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421,
@@ -1880,8 +1879,8 @@ def createHistograms(category):
             sel[k] = selFun(ds)
             nTotSel = float(np.sum(sel[k]))
             nExp = nTotExp * nTotSel / sel[k].shape[0]
-            if n == 'dataSS_DstMu' and k == 'mm':
-                nExp *= 1e-3
+            # if n == 'dataSS_DstMu' and k == 'mm':
+            #     nExp *= 1e-3
             nAux = nTotExp * np.sum(weightsCentral[sel[k]]) / sel[k].shape[0]
             table.add_row([k] + '{:.0f} {:.0f} {:.0f}'.format(nTotSel, nExp, nAux).split(' '))
             latexTableString[k] = '{:.0f} ({:.0f})'.format(nAux, nTotSel)
@@ -2741,7 +2740,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             aux += val
         else:
             aux += ' -'
-    # card += 'normDataSS'+category.trg+' lnN' + aux*nCat + '\n'
+    if val in aux:
+        card += 'normDataSS'+category.trg+' lnN' + aux*nCat + '\n'
 
     #### Tracking efficiency uncertainty
     uncVal = 1.03

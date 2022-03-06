@@ -752,6 +752,8 @@ def makeSelection(inputs):
                 sis_c = np.abs(ev.MC_CharmedDstSisPdgId)
                 sis_s = np.abs(ev.MC_StrangeDstSisPdgId)
 
+                decayRawList = list(np.sort(np.abs(ev.MC_decay)[2:])[::-1].astype(np.int))[:-1]
+
                 if (m_Dst == 511 and sis_c == 421 and sis_s == 321):
                     process = 101
                 elif (m_Dst == 511 and sis_c == 421 and sis_s == 323):
@@ -838,21 +840,30 @@ def makeSelection(inputs):
                 elif id_0 == 413 and (id_1 in [0, 22, 111, 211]) and (m_Dst in [511, 521]) and (m_mu == m_Dst):
                     process = -2
                 # B -> D* tau nu (slipped in)
-                elif list(np.sort(np.abs(ev.MC_decay)[2:])[::-1].astype(np.int)) == [511, 413, 16, 15, 0]:
+                elif decayRawList == [511, 413, 16, 15]:
                     process = -3
                 # B -> D** mu nu (slipped in)
                 elif (m_mu in [511, 521]) and (id_0 in [10413, 10423, 20413, 20423, 415, 425]) and (id_1 in [0, 22]) and (m_Dst == id_0):
-                        process = -4
+                    process = -4
                 # Bs -> Ds** mu nu (slipped in)
                 elif (m_mu == 531) and (id_0 in [10433, 435]) and (id_1 in [0, 22]) and (m_Dst == id_0):
-                        process = -5
+                    process = -5
+                # D** tau nu splipped in
+                elif (m_mu == 15) and (m_Dst in [10413, 10423, 20413, 20423, 415, 425]) and decayRawList[1:] == [m_Dst, 16, 15]:
+                    process = -6
+                # 4 or more bodies decay
+                elif len(decayRawList[1:]) > 3:
+                    process = -100
+                # D* from D**
+                elif m_Dst in [10413, 10423, 20413, 20423, 415, 425]:
+                    process = -101
                 else:
                     print '\n\nUnrecognized decay'
                     print 'Mu sisters:', id_0, id_1
                     print 'Mu mother:', m_mu
                     print 'Dst sisters:', sis_c, sis_s
                     print 'Dst mother:', m_Dst
-                    print [x for x in ev.MC_decay]
+                    print [int(x) for x in ev.MC_decay]
                     raise
 
                 aux += (process,)
@@ -902,7 +913,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         if not os.path.isdir(d):
             os.makedirs(d)
         fskimmed_name = d + catName
-        N_evts_per_job = 25000 # looser tracks
+        N_evts_per_job = 20000 # looser tracks
         if n == 'Bd_MuNuDst':
             N_evts_per_job = 40000
     if not skipCut == []:
