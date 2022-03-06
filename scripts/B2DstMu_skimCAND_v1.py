@@ -752,7 +752,7 @@ def makeSelection(inputs):
                 sis_c = np.abs(ev.MC_CharmedDstSisPdgId)
                 sis_s = np.abs(ev.MC_StrangeDstSisPdgId)
 
-                decayRawList = list(np.sort(np.abs(ev.MC_decay)[2:])[::-1].astype(np.int))[:-1]
+                decayRawList = list(np.sort(np.abs(ev.MC_decay)[4:])[::-1].astype(np.int))
 
                 if (m_Dst == 511 and sis_c == 421 and sis_s == 321):
                     process = 101
@@ -814,6 +814,9 @@ def makeSelection(inputs):
                     process = 505 # 5.5, 5.7
                 elif (m_Dst == 521 and sis_c == 413 and sis_s == 323):
                     process = 506 # 5.6, 5.8
+                # Not present in our MC
+                elif (m_Dst == 521 and sis_c == 433 and sis_s == 0):
+                    process = 520
 
                 elif (m_Dst == 531 and sis_c == 433 and sis_s == 311):
                     process = 601
@@ -827,11 +830,16 @@ def makeSelection(inputs):
                     process = 605
                 elif (m_Dst == 531 and sis_c == 433 and sis_s == 0):
                     process = 606
+                # Not present in out MC
+                elif (m_Dst == 531 and sis_c == 421 and sis_s == 321):
+                    process = 620
+                elif (m_Dst == 531 and sis_c == 411 and sis_s == 311):
+                    process = 621
 
                 elif (m_Dst == 511 and sis_c == 20433 and sis_s == 0):
                     process = 701
-                # elif (m_Dst == 511 and sis_c == 10433 and sis_s == 0): # Be carefull becaus ethere are 2 variants of this with the mu coming from the D* or the D_s
-                #     process = 702
+                elif (m_Dst == 511 and sis_c == 10433 and sis_s == 0):
+                    process = 702
 
                 # No MC decay matching
                 elif len(ev.MC_decay) == 0:
@@ -840,7 +848,7 @@ def makeSelection(inputs):
                 elif id_0 == 413 and (id_1 in [0, 22, 111, 211]) and (m_Dst in [511, 521]) and (m_mu == m_Dst):
                     process = -2
                 # B -> D* tau nu (slipped in)
-                elif decayRawList == [511, 413, 16, 15]:
+                elif decayRawList == [413, 16, 15]:
                     process = -3
                 # B -> D** mu nu (slipped in)
                 elif (m_mu in [511, 521]) and (id_0 in [10413, 10423, 20413, 20423, 415, 425]) and (id_1 in [0, 22]) and (m_Dst == id_0):
@@ -849,13 +857,13 @@ def makeSelection(inputs):
                 elif (m_mu == 531) and (id_0 in [10433, 435]) and (id_1 in [0, 22]) and (m_Dst == id_0):
                     process = -5
                 # D** tau nu splipped in
-                elif (m_mu == 15) and (m_Dst in [10413, 10423, 20413, 20423, 415, 425]) and decayRawList[1:] == [m_Dst, 16, 15]:
+                elif (m_mu == 15) and (m_Dst in [10413, 10423, 20413, 20423, 415, 425, 10433]) and decayRawList == [m_Dst, 16, 15]:
                     process = -6
                 # 4 or more bodies decay
-                elif len(decayRawList[1:]) > 3:
+                elif len(decayRawList) > 3:
                     process = -100
                 # D* from D**
-                elif m_Dst in [10413, 10423, 20413, 20423, 415, 425]:
+                elif m_Dst in [10413, 10423, 20413, 20423, 415, 425, 10433]:
                     process = -101
                 else:
                     print '\n\nUnrecognized decay'
@@ -863,7 +871,8 @@ def makeSelection(inputs):
                     print 'Mu mother:', m_mu
                     print 'Dst sisters:', sis_c, sis_s
                     print 'Dst mother:', m_Dst
-                    print [int(x) for x in ev.MC_decay]
+                    print 'Raw decay list:', decayRawList
+                    print ' '.join([str(int(x)) for x in ev.MC_decay])
                     raise
 
                 aux += (process,)
