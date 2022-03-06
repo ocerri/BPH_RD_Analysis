@@ -715,7 +715,7 @@ def createHistograms(category):
 
     histo = {}
     eventCountingStr = {}
-    data_to_MC_prescale = 0.8
+    data_to_MC_prescale = 0.7
 
     ######################################################
     ########## Signal region
@@ -1629,7 +1629,7 @@ def createHistograms(category):
         if not re.search('DstPi\Z', n) is None:
             print 'Including D**->D*Pi branching ratio and width variations'
 
-            infate = 2
+            infate = 2.5
             _, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10423}, infate*0.2/3.0)
             _, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413}, infate*0.14/1.40)
             wVar['brB_D2420MuNuUp'] = wNeuUp * wChUp
@@ -1714,33 +1714,6 @@ def createHistograms(category):
 
             nnn = 'brDstPiPi_D2stPi'
             weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 33}, relScale=0.5, centralVal=1.0, keepNorm=keepNorm)
-
-            # print 'Including D**->D*PiPi width variations'
-            # widthMods = [[x, 2.640, 0.400] for x in [100413, 100423]]
-            # uncN = 'Dst2S_width'
-            # weights[uncN], wVar[uncN+'Up'], wVar[uncN+'Down'] = computeWidthVarWeights(ds, selItems=widthMods, relScale=0.5)
-            #
-            # keepNorm=False
-            # wNeu, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
-            # wCh, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
-            # wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
-            # wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
-            # weights['DstPiPi_test'] = wNeu*wCh
-            #
-            # w, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.1, keepNorm=keepNorm)
-            # wVar['brD2420_DstPiPiUp'], wVar['brD2420_DstPiPiDown'] = wD1Up, wD1Dw
-            # weights['DstPiPi_test'] *= w
-            # w, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=3.0, keepNorm=keepNorm)
-            # wVar['brD2460_DstPiPiUp'], wVar['brD2460_DstPiPiDown'] = wD2Up, wD2Dw
-            # weights['DstPiPi_test'] *= w
-            #
-            # w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
-            # wVar['brD2430_DstPiPiUp'], wVar['brD2430_DstPiPiDown'] = wUp, wDw
-            # weights['DstPiPi_test'] *= w
-            # w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 100413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
-            # wVar['brDst2S_DstPiPiUp'], wVar['brDst2S_DstPiPiDown'] = wUp, wDw
-            # weights['DstPiPi_test'] *= w
-
 
         ############################
         # Hc mix variations
@@ -1876,6 +1849,10 @@ def createHistograms(category):
         table = PrettyTable()
         table.field_names = ['Region', 'Selected', 'Exp. bare', 'Exp. weights']
         for k, selFun in controlRegSel.iteritems():
+            if n == 'dataSS_DstMu' and k == 'mm':
+                selFun = controlRegSel['pm']
+            elif n == 'dataSS_DstMu' and k == 'pm':
+                selFun = controlRegSel['mm']
             sel[k] = selFun(ds)
             nTotSel = float(np.sum(sel[k]))
             nExp = nTotExp * nTotSel / sel[k].shape[0]
@@ -2744,8 +2721,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         card += 'normDataSS'+category.trg+' lnN' + aux*nCat + '\n'
 
     #### Tracking efficiency uncertainty
-    uncVal = 1.03
-    card += 'trkEff lnN'
+    uncVal = 1.05
+    card += 'ctrlNormSF_'+category.name+' lnN'
     for c in categories:
         val = ''
         if re.match('ctrl_[pm]__', c):
