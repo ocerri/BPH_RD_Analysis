@@ -71,13 +71,14 @@ MCloc = join(root,'cmsMC/')
 MCend = 'ntuples_B2DstMu_220225/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
-              'Bu_MuNuDstPi',    'Bd_MuNuDstPi',
+              'Bu_MuNuDstPi',       'Bd_MuNuDstPi',
               'Bd_MuNuDstPiPi_v3',  'Bu_MuNuDstPiPi_v3',
-              'Bu_TauNuDstPi',   'Bd_TauNuDstPi',
-              'Bd_TauNuDstPiPi', 'Bu_TauNuDstPiPi',
-              'Bs_MuNuDstK',     'Bs_TauNuDstK',
-              'Bd_DstDu',        'Bd_DstDd',        'Bd_DstDs',
-              'Bu_DstDu',        'Bu_DstDd',        'Bs_DstDs',
+              'Bu_TauNuDstPi',      'Bd_TauNuDstPi',
+              'Bd_TauNuDstPiPi',    'Bu_TauNuDstPiPi',
+              'Bs_MuNuDstK',        'Bs_TauNuDstK',
+              'Bd_DstDu',           'Bd_DstDd',          'Bd_DstDs',
+              'Bu_DstDu',           'Bu_DstDd',          'Bs_DstDs',
+              'Bd_DDs1',            'Bu_DDs1',           'B_DstDXX',
               # Others
               # 'DstKu_KuToMu',
               # 'Mu_Enriched'

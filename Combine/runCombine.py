@@ -415,7 +415,7 @@ def loadDatasets(category, loadRD):
         addCuts = [
         ['M2_miss', 0.4, 1e3],
         # ['M2_miss', -0.2, 1e3],
-        # ['mu_eta', -0.8, 0.8],
+        ['mu_eta', -0.8, 0.8],
         # ['mu_eta', -1.5, 1.5],
         # ['B_eta', -1., 1.],
         # ['K_pt', 1., 1e3],
@@ -534,18 +534,21 @@ def computeWidthVarWeights(ds, selItems=[], newGamma=None, relScale=0.1, keepNor
         down *=  float(w.shape[0])/np.sum(down)
     return w, up/w, down/w
 
-def computeTksPVweights(ds, relScale=0.05, centralVal=0.39/0.10):
-    # selPdgID0 = np.logical_and(np.abs(ds['MC_tkMotherPdgId_0']) < 6, ds['MC_tkMotherPdgId_0'] != 0)
-    # selPdgID0 = np.logical_or(selPdgID0, ds['MC_tkMotherPdgId_0']==2212)
-    # selPdgID0 = np.logical_and(selPdgID0, ds['MC_tkFlag_0'] == 1)
-    # selPdgID1 = np.logical_and(np.abs(ds['MC_tkMotherPdgId_1']) < 6, ds['MC_tkMotherPdgId_1'] != 0)
-    # selPdgID1 = np.logical_or(selPdgID1, ds['MC_tkMotherPdgId_1']==2212)
-    # selPdgID1 = np.logical_and( selPdgID1, ds['MC_tkFlag_1'] == 1)
-
+def computeRandomTracksWeights(ds, relScale=0.1, centralVal=1., kind=None):
     # selPdgID0 = np.logical_and( ds['MC_tkFlag_0'] == 1, ds['MC_tkFromMainB_0'] == 0)
     # selPdgID1 = np.logical_and( ds['MC_tkFlag_1'] == 1, ds['MC_tkFromMainB_1'] == 0)
-    selPdgID0 = ds['MC_tkFromMainB_0'] < 0.5
-    selPdgID1 = ds['MC_tkFromMainB_1'] < 0.5
+    # Track exists and it is not from the decay of the main B
+    selPdgID0 = np.logical_and(ds['tkPt_0'] > 0.1, ds['MC_tkFromMainB_0'] < 0.5)
+    selPdgID1 = np.logical_and(ds['tkPt_1'] > 0.1, ds['MC_tkFromMainB_1'] < 0.5)
+    if kind == 'PU':
+        selPdgID0 = np.logical_and(selPdgID0, ds['MC_tkFlag_0'] < 0.5)
+        selPdgID1 = np.logical_and(selPdgID1, ds['MC_tkFlag_1'] < 0.5)
+    elif kind == 'PV':
+        selPdgID0 = np.logical_and(selPdgID0, ds['MC_tkFlag_0'] == 1)
+        selPdgID1 = np.logical_and(selPdgID1, ds['MC_tkFlag_1'] == 1)
+    else:
+        print 'Kind', kind, 'not recognized'
+        raise
     exponent = selPdgID0.astype(np.int) + selPdgID1.astype(np.int)
     w = np.power(centralVal, exponent)
     up = np.power(centralVal*(1+relScale), exponent)/w
@@ -1082,32 +1085,12 @@ def createHistograms(category):
             nnn = 'brDstPiPi_D2stPi'
             weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'DststProc_id': 33}, relScale=0.5, centralVal=1.0, keepNorm=keepNorm)
 
-            # wNeu, wNeuUp, wNeuDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 111}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
-            # wCh, wChUp, wChDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_1': 211}, relScale=1.0, centralVal=2., keepNorm=keepNorm)
-            # wVar['brDstst_DststPiUp'] = wNeuUp * wChUp
-            # wVar['brDstst_DststPiDown'] = wNeuDw * wChDw
-            # weights['DstPiPi_test'] = wNeu*wCh
-            #
-            # w, wD1Up, wD1Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 10413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.1, keepNorm=keepNorm)
-            # wVar['brD2420_DstPiPiUp'], wVar['brD2420_DstPiPiDown'] = wD1Up, wD1Dw
-            # weights['DstPiPi_test'] *= w
-            # w, wD2Up, wD2Dw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 415, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=3.0, keepNorm=keepNorm)
-            # wVar['brD2460_DstPiPiUp'], wVar['brD2460_DstPiPiDown'] = wD2Up, wD2Dw
-            # weights['DstPiPi_test'] *= w
-            #
-            # w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 20413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
-            # wVar['brD2430_DstPiPiUp'], wVar['brD2430_DstPiPiDown'] = wUp, wDw
-            # weights['DstPiPi_test'] *= w
-            # w, wUp, wDw = computeBrVarWeights(ds, {'MC_munuSisterPdgId_0': 100413, 'MC_munuSisterPdgId_1': 0}, relScale=1.0, centralVal=0.5, keepNorm=keepNorm)
-            # wVar['brDst2S_DstPiPiUp'], wVar['brDst2S_DstPiPiDown'] = wUp, wDw
-            # weights['DstPiPi_test'] *= w
-
 
         ############################
         # Hc mix variations
         ############################
         # From https://www.overleaf.com/read/ykppfynnfxdt
-        inflateRate = 1.5
+        inflateRate = 2.0
         if n == 'Bd_DstDu': #1
             print 'Including Bd->D*Du br variations'
             # 1.1
@@ -1160,9 +1143,9 @@ def createHistograms(category):
             # 3.1
             _, wVar['brBd_DstDsUp'], wVar['brBd_DstDsDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 431}, inflateRate*1.1/8.0)
             # 3.2
-            _, wVar['brBd_DstDsstUp'], wVar['brBd_DstDsstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 433}, inflateRate*0.14/17.7)
+            weights['brBd_DstDsst'], wVar['brBd_DstDsst'+category.name+'Up'], wVar['brBd_DstDsst'+category.name+'Down'] = computeBrVarWeights(ds, {'DstD_procId': 302}, 0.5, centralVal=8)
             # 3.3
-            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.6/1.5, centralVal=11.)
+            weights['brBd_DstDsst0'], wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.6/1.5, centralVal=11.)
         if n == 'Bu_DstDu': #4
             # 4.1
             _, wVar['brBu_DstDuKUp'], wVar['brBu_DstDuKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421,
@@ -1403,7 +1386,7 @@ def createHistograms(category):
         ctrlVar['ctrl_'+s+'_M2miss'] = 'M2_miss'
         binning['ctrl_'+s+'_M2miss'] = [25, -2, 8]
 
-        ctrlVar['ctrl_'+s+'_q2'] = 'M2_miss'
+        ctrlVar['ctrl_'+s+'_q2'] = 'q2'
         binning['ctrl_'+s+'_q2'] = [50, -2, 15]
 
         if not s[1] == '_':
@@ -1506,14 +1489,6 @@ def createHistograms(category):
             weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
             print 'Including soft track pT corrections'
-            # l = ['K_pt', 'pi_pt', 'pis_pt', 'tkPt_0', 'tkPt_1']
-            # weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
-            # for mod in [+1, -1]:
-            #     varName = 'Up' if mod > 0 else 'Down'
-            #     w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
-            #     wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
-            #     s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
-            #     wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
             partList = ['K_pt', 'pi_pt', 'pis_pt', 'tkPt_0', 'tkPt_1']
             for nBin in range(len(softPtUnc)):
                 refPt = '{:.0f}'.format(np.round(np.mean(softPtUnc[nBin][:-1])*1e3))
@@ -1539,8 +1514,10 @@ def createHistograms(category):
 
             # Correct the amount of random tracks from PV
             aux = '' if args.correlate_tkPVfrac else category.name
-            weights['tkPVfrac'], wVar['tkPVfrac'+aux+'Up'], wVar['tkPVfrac'+aux+'Down'] = computeTksPVweights(ds, relScale=0.5, centralVal=1.3)
-            print 'Average tkPVfrac weight: {:.2f}'.format(np.mean(weights['tkPVfrac']))
+            weights['randTksPV'], wVar['randTksPV'+aux+'Up'], wVar['randTksPV'+aux+'Down'] = computeRandomTracksWeights(ds, relScale=0.5, centralVal=1.3, kind='PV')
+            print 'Average random tracks from PV weight: {:.2f}'.format(np.mean(weights['randTksPV']))
+            weights['randTksPU'], wVar['randTksPU'+aux+'Up'], wVar['randTksPU'+aux+'Down'] = computeRandomTracksWeights(ds, relScale=0.5, centralVal=1.3, kind='PU')
+            print 'Average random tracks from PU weight: {:.2f}'.format(np.mean(weights['randTksPU']))
 
             print 'Including additional tracks pT corrections'
             cname = 'addTk_pt_cali_'+category.name
@@ -1719,7 +1696,7 @@ def createHistograms(category):
         # Hc mix variations
         ############################
         # From https://www.overleaf.com/read/ykppfynnfxdt
-        inflateRate = 1.5
+        inflateRate = 2.0
         if n == 'Bd_DstDu': #1
             print 'Including Bd->D*Du br variations'
             # 1.1
@@ -1772,9 +1749,9 @@ def createHistograms(category):
             # 3.1
             _, wVar['brBd_DstDsUp'], wVar['brBd_DstDsDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 431}, inflateRate*1.1/8.0)
             # 3.2
-            _, wVar['brBd_DstDsstUp'], wVar['brBd_DstDsstDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 433}, inflateRate*0.14/17.7)
+            weights['brBd_DstDsst'], wVar['brBd_DstDsst'+category.name+'Up'], wVar['brBd_DstDsst'+category.name+'Down'] = computeBrVarWeights(ds, {'DstD_procId': 302}, 0.5, centralVal=8)
             # 3.3
-            _, wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.6/1.5, centralVal=11.)
+            weights['brBd_DstDsst0'], wVar['brBd_DstDsst0Up'], wVar['brBd_DstDsst0Down'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 10431}, inflateRate*0.6/1.5, centralVal=11.)
         if n == 'Bu_DstDu': #4
             # 4.1
             _, wVar['brBu_DstDuKUp'], wVar['brBu_DstDuKDown'] = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 421,
@@ -2802,7 +2779,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         else: aux += ' -'*nProc
     if '1.' in aux:
         auxTag = '' if args.correlate_tkPVfrac else category.name
-        card += 'tkPVfrac'+auxTag+' shape' + aux + '\n'
+        card += 'randTksPV'+auxTag+' shape' + aux + '\n'
+        card += 'randTksPU'+auxTag+' shape' + aux + '\n'
 
         cname = 'addTk_pt_cali_'+category.name
         for k in histo.values()[0].keys():
@@ -2926,7 +2904,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
 
     card += brShapeSys(['Bd_DstDu'], ['Bd_DstDuK', 'Bd_DstDustK', 'Bd_DstDust', 'Bd_DstDuKst'])
     card += brShapeSys(['Bd_DstDd'], ['Bd_DstDdK','Bd_DstDdstK','Bd_DstDdst','Bd_DstDd','Bd_DstDdKst'])
-    card += brShapeSys(['Bd_DstDs'], ['Bd_DstDs', 'Bd_DstDsst', 'Bd_DstDsst0'])
+    card += brShapeSys(['Bd_DstDs'], ['Bd_DstDs', 'Bd_DstDsst'+category.name, 'Bd_DstDsst0'])
     card += brShapeSys(['Bu_DstDu'], ['Bu_DstDuK', 'Bu_DstDustK', 'Bu_DstDuKst', 'Bu_DstDu'])
     card += brShapeSys(['Bu_DstDd'], ['Bu_DstDdK', 'Bu_DstDdstK', 'Bu_DstDdKst'])
     card += brShapeSys(['Bs_DstDs'], ['Bs_DstDsKst']) # Threated all together in scale sys above

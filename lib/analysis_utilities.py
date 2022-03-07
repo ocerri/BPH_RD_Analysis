@@ -10,7 +10,10 @@ import os
 import operator
 ops = {'>': operator.gt, '<': operator.lt, }
 
-def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600], mL=None, mR=None, mT=None, mB=None, iPosCMS=0, drawCanvas=True):
+def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600],
+                    mL=None, mR=None, mT=None, mB=None,
+                    makeLegend=False, legPos=[0.7, 0.7, 0.9, 0.9], legNames=None,
+                    iPosCMS=0, drawCanvas=True):
     c = rt.TCanvas('c'+tag, 'c'+tag, 50, 50, size[0], size[1])
     c.SetTickx(0)
     c.SetTicky(0)
@@ -39,6 +42,21 @@ def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600], mL=None,
 
 
     CMS_lumi.CMS_lumi(c, -1, iPosCMS)
+
+    if makeLegend:
+        leg = rt.TLegend(legPos[0], legPos[1], legPos[2], legPos[3])
+        leg.SetBorderSize(0)
+        leg.SetFillStyle(0)
+        leg.SetTextFont(42)
+        leg.SetTextAlign(12)
+
+        for i,o in enumerate(dobj):
+            tag = dobj.GetName() if legNames is None else legNames[i]
+            leg.AddEntry(o, tag, 'lp')
+
+        c.leg= leg
+        c.leg.Draw('same')
+
     c.obj = dobj
     if drawCanvas:
         c.Draw()
