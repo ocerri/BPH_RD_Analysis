@@ -650,6 +650,19 @@ def makeSelection(inputs):
                         ev.nTrueIntMC
                        )
             if n in ['Bd_MuNuDst', 'Bd_TauNuDst']:
+                id_0, id_1 = np.abs(muSisPdgId).astype(np.int)[:2]
+                m_Dst = np.abs(int(ev.MC_DstMotherPdgId))
+                m_mu = np.abs(int(ev.MC_muMotherPdgId))
+                decayRawList = list(np.sort(np.abs(ev.MC_decay)[4:])[::-1].astype(np.int))
+                if (m_mu == 15) and (decayRawList == [413, 16, 15]) and (m_Dst == 511):
+                    process = 0
+                elif id_0 == 413 and (id_1 in [0, 22]) and (m_mu == m_Dst) and (m_mu == 511):
+                    process = 1
+                elif len(ev.MC_decay) == 0:
+                    process = -1
+                else:
+                    process = -2
+
                 aux += (ev.wh_CLNCentral,
                         ev.wh_CLNR0Down, ev.wh_CLNR0Up,
                         ev.wh_CLNeig1Down, ev.wh_CLNeig1Up,
@@ -662,6 +675,7 @@ def makeSelection(inputs):
                         ev.wh_BLPReig4Down, ev.wh_BLPReig4Up,
                         ev.wh_BLPReig5Down, ev.wh_BLPReig5Up,
                         ev.wh_BLPReig6Down, ev.wh_BLPReig6Up,
+                        process
                        )
             if 'MuNuDstPi' in n:
                 aux += (ev.wh_Dstst_BLRCentral,
@@ -1086,6 +1100,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'wh_BLPReig4Down', 'wh_BLPReig4Up',
                             'wh_BLPReig5Down', 'wh_BLPReig5Up',
                             'wh_BLPReig6Down', 'wh_BLPReig6Up',
+                            'procId_signal'
                             ]
         elif 'MuNuDstPi' in n:
             leafs_names += ['wh_Dstst_BLRCentral',
@@ -1102,10 +1117,10 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'wh_D2S_BLOPchi21Down', 'wh_D2S_BLOPchi21Up',
                             'wh_D2S_BLOPchi31Down', 'wh_D2S_BLOPchi31Up',
                             'wh_D2S_BLOPeta1Down', 'wh_D2S_BLOPeta1Up',
-                            'DststProc_id'
+                            'procId_Dstst'
                             ]
         elif re.match('B[usd]_DstD[usd]', n):
-            leafs_names += ['DstD_procId']
+            leafs_names += ['procId_DstHc']
 
         applyCorr = None
         if applyCorrections:
@@ -1169,11 +1184,15 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 print 'All jobs finished'
 
                 outputs = []
+                print 'Fetching jobs output'
+                pb = ProgressBar(len(inputs))
                 for ii in range(len(inputs)):
+                    pb.show(ii)
                     with open(join(tmpDir,'output_%i.p' % ii), 'rb') as f:
                         o = pickle.load(f)
                         outputs.append(o)
 
+            print 'Concatenating the outputs'
             output = np.concatenate(tuple([o[0] for o in outputs]))
             N_accepted_cand = []
             for o in outputs: N_accepted_cand += o[1]
