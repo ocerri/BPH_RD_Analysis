@@ -352,13 +352,6 @@ def extractEventInfos(j, ev, corr=None):
             p4_sumGoodTks += p4_tk
 
 
-        # if e.N_goodAddTks == 1:
-        #     p4_tk1 = p4_tk.Clone('p4_tk1')
-        # elif e.N_goodAddTks == 2:
-        #     e.massVisTk12 = (p4_vis + p4_tk1 + p4_tk).M()
-        #     e.massHadTk12 = (p4_Dst + p4_tk1 + p4_tk).M()
-        #     p_miss = p4_B - p4_vis - p4_tk - p4_tk1
-        #     e.UmissTk12 = p_miss.E() - p_miss.P()
     p4_vis_wTks = p4_vis + p4_sumGoodTks
     e.massVisTks = p4_vis_wTks.M()
     e.massHadTks = (p4_Dst + p4_sumGoodTks).M()
@@ -405,6 +398,9 @@ def extractEventInfos(j, ev, corr=None):
     e.EmissTks = p_miss_wTks.E()
     e.PmissTks = p_miss_wTks.P()
     e.UmissTks = p_miss_wTks.E() - p_miss_wTks.P()
+
+    e.M2missTks = (p4_BwTks - p4_vis_wTks).M2()
+    e.q2Tks = (p4_BwTks - p4_Dst - p4_sumGoodTks).M2()
 
 
     if e.N_goodAddTks < 3:
@@ -583,9 +579,8 @@ def makeSelection(inputs):
                    evEx.mass2MissTk[0], evEx.mass2MissTk[1], evEx.mass2MissTk[2],
                    evEx.UmissTk[0], evEx.UmissTk[1], evEx.UmissTk[2],
                    evEx.massTks_pipi, evEx.massTks_KK, evEx.massTks_piK, evEx.massTks_Kpi,
-                   evEx.massVisTks,
-                   evEx.massHadTks,
-                   evEx.massHadTks_DstMassConstraint,
+                   evEx.massVisTks, evEx.massHadTks, evEx.massHadTks_DstMassConstraint,
+                   evEx.M2missTks, evEx.q2Tks,
                    evEx.EmissTks, evEx.PmissTks, evEx.UmissTks,
                    evEx.N_goodAddNeu,
                    evEx.neuPdgId[0], evEx.neuPdgId[1], evEx.neuPdgId[2],
@@ -821,6 +816,10 @@ def makeSelection(inputs):
                 elif (m_Dst == 521 and sis_c == 423 and sis_s == 0):
                     process = 410
 
+                # Not present in out MC
+                elif (m_Dst == 521 and sis_c == 431 and sis_s == 0):
+                    process = 450
+
                 elif (m_Dst == 521 and sis_c == 411 and sis_s == 321):
                     process = 501 # 5.1, 5.3
                 elif (m_Dst == 521 and sis_c == 411 and sis_s == 323):
@@ -1036,9 +1035,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'tkMassMiss2_0', 'tkMassMiss2_1', 'tkMassMiss2_2',
                        'tkUmiss_0', 'tkUmiss_1', 'tkUmiss_2',
                        'massTks_pipi', 'massTks_KK', 'massTks_piK', 'massTks_Kpi',
-                       'massVisTks',
-                       'massHadTks',
-                       'massHadTks_DstMassConstraint',
+                       'massVisTks', 'massHadTks', 'massHadTks_DstMassConstraint',
+                       'M2missTks', 'q2Tks',
                        'EmissTks', 'PmissTks', 'UmissTks',
                        'N_goodAddNeu',
                        'neuPdgId_0', 'neuPdgId_1', 'neuPdgId_2',

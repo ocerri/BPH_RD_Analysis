@@ -30,7 +30,7 @@ sampleDstst = {
 'TauDstst': ['Bu_TauDstPi', 'Bd_TauDstPi', 'Bd_TauDstPiPi', 'Bu_TauDstPiPi', 'Bs_TauDstK'],
 }
 
-sampleDstHc = ['Bd_DstDu', 'Bu_DstDu', 'Bd_DstDd', 'Bu_DstDd', 'Bd_DstDs', 'Bs_DstDs']
+sampleDstHc = ['Bd_DstDu', 'Bu_DstDu', 'Bd_DstDd', 'Bu_DstDd', 'Bd_DstDs', 'Bs_DstDs', 'Bd_DDs1', 'Bu_DDs1']
 
 
 def createLegend(h_list, h_dic, canvas, loc=[0.65, 0.4, 0.9, 0.7], cat_name='', background=False):
