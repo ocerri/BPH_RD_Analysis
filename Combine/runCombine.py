@@ -67,7 +67,7 @@ parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], hel
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu', 'U_miss'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
-parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pp_mHad', 'mm_mHad'], help='Control regions to use', nargs='*')
+parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pp_mHad', 'mm_mHad', 'pm_mVis'], help='Control regions to use', nargs='*')
 
 parser.add_argument ('--correlate_tkPVfrac', default=False, action='store_true', help='Correlate tkPVfrac in all categories.')
 parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
