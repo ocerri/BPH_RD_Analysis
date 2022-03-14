@@ -35,11 +35,31 @@ git checkout v8.2.0
 scramv1 b clean; scramv1 b -j12 # always make a clean build
 ```
 
+# Install the CombineHarvester Tool
+
+```
+cd CMSSW_10_2_13/src
+cmsenv
+bash <(curl -s https://raw.githubusercontent.com/cms-analysis/CombineHarvester/master/CombineTools/scripts/sparse-checkout-ssh.sh)
+scram b -j12
+```
+
 Before running Combine, make sure to run:
 
 ```
 source ~/RDstAnalysis/CMSSW_10_2_13; cmsenv
 ```
+
+# Update .bashrc
+
+You also want to update your ~/.bash_profile and add the following line:
+
+```
+ulimit -s unlimited
+```
+
+The reason is that at some point combine uses up too much stack space (maybe
+printing to stdout?), and so this change is required to avoid a segfault.
 
 # Utilities
 
