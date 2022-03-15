@@ -68,7 +68,7 @@ filesLocMap = {}
 
 root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples_B2DstMu_220225/out_CAND_*.root'
+MCend = 'ntuples_B2DstMu_220311/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',       'Bd_MuNuDstPi',
@@ -93,8 +93,8 @@ for s in MC_samples:
     filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
-filesLocMap['data'] = join(RDloc, '*_B2DstMu_220220_CAND.root')
-filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_220301_CAND.root')
+filesLocMap['data'] = join(RDloc, '*_B2DstMu_220308_CAND.root')
+filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_220308_CAND.root')
 
 def getTLVfromField(ev, n, idx, mass):
     v = rt.TLorentzVector()
@@ -270,6 +270,7 @@ def extractEventInfos(j, ev, corr=None):
     e.tkPhi = []
     e.tk_lostInnerHits = []
     e.tk_pval = []
+    e.tk_sigIP3D_vtxB = []
     e.MC_tkFlag = []
     e.MC_tkFromMainB = []
     e.MC_tkPdgId = []
@@ -330,6 +331,7 @@ def extractEventInfos(j, ev, corr=None):
             e.tkPhi.insert(idx, phi)
             e.tk_lostInnerHits.insert(idx, ev.tksAdd_lostInnerHits[jj])
             e.tk_pval.insert(idx, ev.tksAdd_pval[jj])
+            e.tk_sigIP3D_vtxB.insert(idx, ev.tksAdd_sigIP3D_vtxB[jj])
             e.tkCharge.insert(idx, ev.tksAdd_charge[jj]*ev.mu_charge[j])
             e.tkPdgId.insert(idx, ev.tksAdd_pdgId[jj])
             e.massVis_wTk.insert(idx, mVis_wTk)
@@ -404,7 +406,7 @@ def extractEventInfos(j, ev, corr=None):
 
 
     if e.N_goodAddTks < 3:
-        auxList = [e.tkCharge, e.tkPdgId, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.tk_lostInnerHits, e.tk_pval, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.massDTk, e.mass2MissTk, e.UmissTk]
+        auxList = [e.tkCharge, e.tkPdgId, e.tkPt, e.tkPtError, e.tkEta, e.tkPhi, e.tk_lostInnerHits, e.tk_pval, e.tk_sigIP3D_vtxB, e.massVis_wTk, e.massHad_wTk, e.massMuTk, e.massDTk, e.mass2MissTk, e.UmissTk]
         auxList += [e.MC_tkFlag, e.MC_tkFromMainB, e.MC_tkPdgId, e.MC_tkMotherPdgId, e.MC_tkMotherMotherPdgId, e.MC_tk_dphi, e.MC_tk_deta, e.MC_tk_dpt]
         for l in auxList:
             l += [0, 0, 0]
@@ -545,6 +547,9 @@ def makeSelection(inputs):
                    ev.mu_lostInnerHits[j],
                    ev.mu_kickFinder[j], ev.mu_segmentCompatibility[j],
                    ev.mu_trackerStandalonePosLocalChi2[j], ev.mu_tightId[j],
+                   ev.mu_IP3D_vtxDst[j], ev.mu_sigIP3D_vtxDst[j],
+                   ev.mu_db_iso04[j], ev.mu_db_corr_iso04[j], ev.mu_db_iso03[j],
+                   ev.mu_db_iso04[j]/evEx.mu_pt, ev.mu_db_corr_iso04[j]/evEx.mu_pt, ev.mu_db_iso03[j]/evEx.mu_pt,
                    evEx.B_pt, evEx.B_eta, evEx.B_phi,
                    evEx.Dst_pt, evEx.Dst_eta, evEx.Dst_phi,
                    evEx.D0_pt, evEx.D0_eta, evEx.D0_phi,
@@ -572,6 +577,7 @@ def makeSelection(inputs):
                    evEx.tkPhi[0], evEx.tkPhi[1], evEx.tkPhi[2],
                    evEx.tk_lostInnerHits[0], evEx.tk_lostInnerHits[1], evEx.tk_lostInnerHits[2],
                    evEx.tk_pval[0], evEx.tk_pval[1], evEx.tk_pval[2],
+                   evEx.tk_sigIP3D_vtxB[0], evEx.tk_sigIP3D_vtxB[1], evEx.tk_sigIP3D_vtxB[2],
                    evEx.massVis_wTk[0], evEx.massVis_wTk[1], evEx.massVis_wTk[2],
                    evEx.massHad_wTk[0], evEx.massHad_wTk[1], evEx.massHad_wTk[2],
                    evEx.massMuTk[0], evEx.massMuTk[1], evEx.massMuTk[2],
@@ -1001,6 +1007,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'mu_lostInnerHits',
                        'mu_kickFinder', 'mu_segmentCompatibility',
                        'mu_trackerStandalonePosLocalChi2', 'mu_tightId',
+                       'mu_IP3D_vtxDst', 'mu_sigIP3D_vtxDst',
+                       'mu_db_iso04', 'mu_db_corr_iso04', 'mu_db_iso03',
+                       'mu_db_iso04_rel', 'mu_db_corr_iso04_rel', 'mu_db_iso03_rel',
                        'B_pt', 'B_eta', 'B_phi',
                        'Dst_pt', 'Dst_eta', 'Dst_phi',
                        'D0_pt', 'D0_eta', 'D0_phi',
@@ -1028,6 +1037,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'tkPhi_0', 'tkPhi_1', 'tkPhi_2',
                        'tk_lostInnerHits_0', 'tk_lostInnerHits_1', 'tk_lostInnerHits_2',
                        'tk_pval_0', 'tk_pval_1', 'tk_pval_2',
+                       'tk_sigIP3D_vtxB_0', 'tk_sigIP3D_vtxB_1', 'tk_sigIP3D_vtxB_2',
                        'tkMassVis_0', 'tkMassVis_1', 'tkMassVis_2',
                        'tkMassHad_0', 'tkMassHad_1', 'tkMassHad_2',
                        'tkMassMuTk_0', 'tkMassMuTk_1', 'tkMassMuTk_2',
