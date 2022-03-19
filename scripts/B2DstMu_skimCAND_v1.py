@@ -59,7 +59,7 @@ parser.add_argument ('--jN', type=int, default=None, help='Job number')
 args = parser.parse_args()
 
 
-# python B2DstMu_skimCAND_v1.py -d "B[us]" "Bd_Dst" "Bd_Tau" "Bd_MuNuDstPi"
+# python B2DstMu_skimCAND_v1.py -d "B[us]" "Bd_Dst" "Bd_DDs1" "Bd_Tau" "Bd_MuNuDstPi"
 
 #############################################################################
 ####                          Datset declaration                         ####
@@ -93,8 +93,8 @@ for s in MC_samples:
     filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
-filesLocMap['data'] = join(RDloc, '*_B2DstMu_220308_CAND.root')
-filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_220308_CAND.root')
+filesLocMap['data'] = join(RDloc, '*_B2DstMu_220311_CAND.root')
+filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_220311_CAND.root')
 
 def getTLVfromField(ev, n, idx, mass):
     v = rt.TLorentzVector()

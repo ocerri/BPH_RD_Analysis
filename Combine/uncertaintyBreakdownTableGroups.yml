@@ -1,29 +1,39 @@
-# - tag: pythiaProcess
-#   title: 'Pythia process'
-#   nuisance:
-#     - rgx{pythiaProcess.*}
-
-- tag: formFactors
-  title: 'Form factors'
+- tag: formFactorsBDstEllNu
+  title: 'Form factors $B \to D^*\ell\nu$'
   nuisance:
     - rgx{B2DstCLN.*}
 
-- tag: templateB2DstHc
-  title: $B\to D^* H_c$ template
+- tag: formFactorsBDststEllNu
+  title: 'Form factors $B \to D^{**}\ell\nu$'
   nuisance:
-    - rgx{brB[uds]_DstD.*}
-    - rgx{D[uds]MuBr}
+    - rgx{FF_B2Dstst.*}
+    - rgx{FF_B2D2S_.*}
 
-- tag: BpTspectrum
-  title: B mesons $p_T$
+- tag: modelB2DstHc
+  title: $B\to D^* H_c$ modeling
   nuisance:
+    - rgx{D[uds]MuBr}
+    - Bs_DstDsBr
+    - Bd_DDs1Br
+    - Bu_DDs1Br
+    - B_DstDXXBr
+    - rgx{brB[uds]_DstD.*}
+    - Bu_DstDXX_frac
+    - rgx{brB[dsu]_DstD.*}
+
+- tag: pythiaProduction
+  title: B mesons production modeling
+  nuisance:
+    - rgx{randTksP[UV].*}
+    - rgx{B_eta.*}
     - rgx{B[ud]pT.*}
 
-- tag: softTracksModeling
-  title: Soft tracks modeling
+- tag: detector_modeling
+  title: Detector modeling
   nuisance:
-    - rgx{softTrk.*}
-    - rgx{tkPVfrac.*}
+    - rgx{.*BS[xy]}
+    - rgx{trgMu[0-9]+_IP[0-9]+SF_pt[0-9]+}
+    - rgx{softTrkEff.*}
 
 # - tag: brB2DstMuNu
 #   title: $B \to D^{*}\mu\nu$ branching fraction
@@ -33,30 +43,37 @@
 - tag: control2signalTransfer
   title: 'Control to signal region transfer factors'
   nuisance:
-    # - B2DstHcTransferFactor
-    - trkEff
+    - rgx{ctrlNormSF.*}
+    - rgx{ctrlNormBTo.*}
 
 - tag: overallNorm
   title: 'Overall normalization'
   nuisance:
     - rgx{overallNorm.*}
+    - rgx{normDataSS.*}
 
-- tag: shapeDstst
-  title: $D^{**}$ resonances shapes
+- tag: modelDstst_DstPi
+  title: $B \to D^{**}(D^*\pi)\ell\nu$ modeling
   nuisance:
-   - rgx{D.*_width}
-   - fDststWide
+    - rgx{brB_D[0-9]+MuNu}
+    - brB_DstPiMuNu
+    - D24[0-9]+_width
 
-
-- tag: B2DststMuNuBranchingFractions
-  title: $B\to D^{**}(D^* + n\pi)\mu\nu$ branching fractions
+- tag: modelDstst_DstPiPi
+  title: $B \to D^{**}(D^*\pi\pi)\ell\nu$ modeling
   nuisance:
-    - DstPiBr
     - DstPiPiBr
-    - DstKBr
+    - Dst2S_width
+    - rgx{brDstPiPi_.*}
 
 
-- tag: brB2DststTauNu
+# - tag: others
+#   title: Others
+#   nuisance:
+#     - DstKBr
+
+
+- tag: DststTauNu
   title: $R(D_{(s)}^{(**)})$
   nuisance:
     - RDs_stst

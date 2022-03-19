@@ -8,12 +8,13 @@ rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import tdrstyle
 tdrstyle.setTDRStyle()
 
-col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'DstHc':rt.kGreen+1, 'BuDstst': rt.kOrange-3, 'BdDstst': rt.kViolet-7, 'BsDstst':rt.kYellow-7, 'TauDstst':rt.kMagenta-9, 'JpsiKst':rt.kYellow-7, 'dataSS_DstMu': rt.kGray+1}
+col_dic = {'mu': rt.kAzure+1, 'tau': rt.kRed-4, 'DstHc':rt.kGreen+1, 'BuDstst': rt.kOrange-3, 'BdDstst': rt.kViolet-7, 'BsDstst':rt.kYellow-7, 'TauDstst':rt.kMagenta-9, 'JpsiKst':rt.kYellow-7, 'dataSS_DstMu': rt.kGray+1, 'B_DstDXX': rt.kRed-8}
 
 label_dic = {'data' : 'Data',
              'mu'   : 'B#rightarrow D*#mu#nu',
              'tau'  : 'B#rightarrow D*#tau#nu',
              'DstHc'   : 'B_{(s)}#rightarrow D*H_{c}(#muX)',
+             'B_DstDXX'   : 'B_DstDXX',
              'BuDstst': 'B^{+}#rightarrow D**#mu#nu',
              'BdDstst': 'B^{0}#rightarrow D**#mu#nu',
              'BsDstst': 'B_{s}#rightarrow D_{s}**#mu#nu',
@@ -362,7 +363,7 @@ def plot_SingleCategory(CMS_lumi,
                         addTextPos=[0.17, 0.85],
                         legLoc=[0.65, 0.4, 0.9, 0.7],
                         legBkg=False,
-                        procOrder = ['tau', 'dataSS_DstMu', 'DstHc', 'Dstst', 'mu'],
+                        procOrder = ['B_DstDXX', 'tau', 'dataSS_DstMu', 'DstHc', 'Dstst', 'mu'],
                         maskData=False,
                         figsize = [600, 450]
                         ):

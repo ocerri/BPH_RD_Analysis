@@ -56,14 +56,14 @@ parser.add_argument ('--HELP', '-H', default=False, action='store_true', help='P
 parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
-parser.add_argument ('--skimmedTag', default='_allMuEta', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTag', default='', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
 parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
 
-parser.add_argument ('--useMVA', default=False, choices=[False, 'v0', 'v1'], help='Use MVA in the fit.')
+parser.add_argument ('--useMVA', default=False, choices=[False, 'v3'], help='Use MVA in the fit.')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu', 'U_miss'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
@@ -84,7 +84,7 @@ availableSteps = ['clean', 'histos', 'preFitPlots', 'shapeVarPlots',
                   'uncBreakdownScan', 'uncBreakdownTable',
                   'externalize',
                   'impacts', 'GoF']
-defaultPipelineSingle = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
+defaultPipelineSingle = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'GoF', 'fitDiag', 'postFitPlots']
 defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'uncBreakdownTable', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
 # histos preFitPlots shapeVarPlots card workspace scan fitDiag postFitPlots uncBreakdownScan GoF
 parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
@@ -192,7 +192,7 @@ processOrder = [
     'Bd_DstDu', 'Bu_DstDu',
     'Bd_DstDd', 'Bu_DstDd',
     'Bd_DstDs', 'Bs_DstDs',
-    'Bd_DDs1', 'Bu_DDs1',
+    'Bd_DDs1', 'Bu_DDs1', 'B_DstDXX',
     'dataSS_DstMu'
 ]
 
@@ -213,7 +213,7 @@ def createCardName(a):
     if a.freezeFF:
         c += 'frozen'
     if a.useMVA:
-        c += '_MVA'+useMVA
+        c += '_MVA'+a.useMVA
     if a.asimov:
         c += '_Asimov'
         if args.lumiMult != 1.:
@@ -345,7 +345,7 @@ def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
     # candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
-    candDir='ntuples_B2DstMu_220225'
+    candDir='ntuples_B2DstMu_220311'
     print 'Using candDir =', candDir
     print 'Using skim = skimmed'+args.skimmedTag
     MCsample = {
@@ -373,6 +373,7 @@ def loadDatasets(category, loadRD):
     'Bs_DstDs': DSetLoader('Bs_DstDs', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_DDs1': DSetLoader('Bd_DDs1', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_DDs1': DSetLoader('Bu_DDs1', candDir=candDir, skimmedTag=args.skimmedTag),
+    'B_DstDXX': DSetLoader('B_DstDXX', candDir=candDir, skimmedTag=args.skimmedTag),
     }
 
     dSet = {}
@@ -396,7 +397,7 @@ def loadDatasets(category, loadRD):
                                     )
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
-    locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_220301_{}'.format(category.name)
+    locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_220311_{}'.format(category.name)
     dSet['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
     dSetTkSide['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
 
@@ -404,10 +405,33 @@ def loadDatasets(category, loadRD):
     if loadRD:
         print 'Loading real data datasets'
 
-        creation_date = '220220'
+        creation_date = '220311'
         locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
         dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
         dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
+
+    if args.useMVA:
+        fname = '/storage/af/group/rdst_analysis/BPhysics/data/kinObsMVA/clfGBC_tauVall_{}{}.p'.format(args.useMVA, category.name)
+        clfGBC = pickle.load(open(fname, 'rb'))
+
+        print 'Computing MVA results'
+        print 'Inputs:', ' '.join(clfGBC.featuresNames)
+        for n in processOrder + ['data']:
+            if args.asimov and n == 'data':
+                continue
+            print n,
+            for v in clfGBC.featuresNames:
+                if np.sum(np.isnan(dSet[n][v])):
+                    print 'Set', n,':', np.sum(np.isnan(dSet[n][v])), 'nan in', v
+                    dSet[n] = dSet[n][np.logical_not(np.isnan(dSet[n][v]))]
+                if np.sum(np.isnan(dSetTkSide[n][v])):
+                    print 'SetTkSide', n,':', np.sum(np.isnan(dSetTkSide[n][v])), 'nan in', v
+                    dSetTkSide[n] = dSetTkSide[n][np.logical_not(np.isnan(dSetTkSide[n][v]))]
+
+
+            dSet[n]['MVA'] = clfGBC.predict_proba(dSet[n][clfGBC.featuresNames])[:,1]
+            dSetTkSide[n]['MVA'] = clfGBC.predict_proba(dSetTkSide[n][clfGBC.featuresNames])[:,1]
+        print '\n'
 
     if args.dumpWeightsTree:
         print 'Skipping on the flight cuts (if any).'
@@ -415,12 +439,13 @@ def loadDatasets(category, loadRD):
         addCuts = [
         ['M2_miss', 0.4, 1e3],
         # ['M2_miss', -0.2, 1e3],
-        ['mu_eta', -0.8, 0.8],
+        # ['mu_eta', -0.8, 0.8],
         # ['mu_eta', -1.5, 1.5],
         # ['B_eta', -1., 1.],
         # ['K_pt', 1., 1e3],
         # ['pi_pt', 1., 1e3],
         # ['pis_pt', 1., 1e3],
+        ['mu_db_iso04', 0, 80],
         ['mu_lostInnerHits', -2, 1],
         ['K_lostInnerHits', -2, 1],
         ['pi_lostInnerHits', -2, 1],
@@ -431,6 +456,11 @@ def loadDatasets(category, loadRD):
         # ['ctrl_pm_massHadTks', 2.6, 10],
         # ['ctrl_pm_index', 3, 0],
         ]
+
+        if args.useMVA and not args.unblinded:
+            print 'Discarding events with good MVA'
+            addCuts.append(['MVA', 0, 0.7])
+
         if len(addCuts) > 0:
             with open(webFolder + '/callsLog.txt', 'a') as f:
                 f.write(5*'>'+' Cuts at loading time\n')
@@ -705,24 +735,6 @@ def createHistograms(category):
                 weight *= fSoftTrackEff(ds[v], w, s)
         return weight
 
-
-    if args.useMVA:
-        fname = dataDir+'../plot_scripts/kinObsMVA/clfGBC_tauVall_{}{}.p'.format(args.useMVA, category.name)
-        clfGBC = pickle.load(open(fname, 'rb'))
-
-        def computeVarMVA(ds):
-            if args.useMVA == 'v0':
-                aux = np.column_stack((ds['q2'], ds['Est_mu'], ds['M2_miss']))
-            elif args.useMVA == 'v1':
-                ds['pt_vis'] = ds['B_pt']*ds['mass_D0pismu']/5.27963
-                aux = np.column_stack((ds['q2'], ds['Est_mu'], ds['M2_miss'],
-                                       ds['pt_vis'], ds['mass_D0pismu'],
-                                       ds['B_eta']
-                                             ))
-            else: raise
-            p = clfGBC.predict_proba(aux)
-            return p[:,1]
-
     histo = {}
     eventCountingStr = {}
     data_over_MC_overallNorm = 0.7
@@ -747,6 +759,8 @@ def createHistograms(category):
             [24, 0.3, 2.0],
         ]
 
+    # binning['mu_sigIP3D_vtxDst'] = 4*[[70, -4, 4]]
+    #
     # binning['U_miss'] = 4*[[30, -0.1, 0.18]]
     #
     # binning['mu_pt'] = n_q2bins*[{'Low': array('d', list(np.arange(7.2, 9.2, 0.05))+[9.2] ),
@@ -798,7 +812,10 @@ def createHistograms(category):
 
     ]
 
-    binning['MVA'] = array('d', list(np.arange(0., 0.83, 0.02))) if args.unblinded else array('d', list(np.arange(0., 0.51, 0.03)))
+    binning['MVA'] = [10, 0, 1]
+    if args.useMVA:
+        bbb = np.arange(0., np.max(dSet['tau']['MVA']) + 0.0249, 0.025)
+        binning['MVA'] = array('d', list(bbb))
     binning['specQ2'] = array('d', list(np.arange(-2, 11.4, 0.2)))
     binning['B_pt'] = {'Low': array('d', list(np.arange(10, 75, 2)) ), 'Mid': array('d', list(np.arange(14, 90, 2)) ), 'High': array('d', list(np.arange(18, 110, 2)))}[category.name]
     binning['mu_pt'] = {'Low': array('d', list(np.arange(7.2, 9.2, 0.05))+[9.2] ), 'Mid': array('d', list(np.arange(9.2, 12.2, 0.05)) +[12.2] ), 'High': array('d', list(8+np.logspace(np.log10(12.2-8), np.log10(60), 30)) )}[category.name]
@@ -1218,6 +1235,10 @@ def createHistograms(category):
             wVar['brBs_DstDsKstUp'] = x6_2_4u
             wVar['brBs_DstDsKstDown'] = x6_2_4d
 
+        if n == 'B_DstDXX':
+            nnn = 'Bu_DstDXX_frac'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
+
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
         for wName, w in weights.iteritems():
@@ -1246,20 +1267,6 @@ def createHistograms(category):
             print 'Dumping weights tree in', os.path.join(weightsDir, auxName)
             rtnp.array2root(wDf.to_records(), os.path.join(weightsDir, auxName), treename='weights', mode='RECREATE')
 
-
-        if args.useMVA:
-            print 'Evaluating MVA'
-            if not 'MVA' in histo.keys():
-                histo['MVA'] = {}
-            sMVA = computeVarMVA(ds)
-            for name_wVar, v_wVar in wVar.iteritems():
-                    h_name = n
-                    if not name_wVar == '':
-                        h_name += '__' + name_wVar
-                    w = weightsCentral*v_wVar
-                    scale = nTotExp/nTotSelected
-                    histo['MVA'][h_name] = create_TH1D(sMVA, name=h_name, weights=w, scale_histo=scale,
-                                                       binning=binning['MVA'], opt='underflow,overflow')
 
         # Variables to be broken in q2 bins
         for i_q2 in range(n_q2bins):
@@ -1405,9 +1412,9 @@ def createHistograms(category):
     for s in ['m_', 'p_', 'mm', 'pm', 'pp']:
         # ctrlVar['ctrl_'+s+'_mu_pt'] = 'mu_pt'
         # binning['ctrl_'+s+'_mu_pt'] = binning['mu_pt'][0]
-
-        # ctrlVar['ctrl_'+s+'_umiss'] = 'UmissTks'
-        # binning['ctrl_'+s+'_umiss'] = [40, -0.08, 0.15]
+        if args.useMVA:
+            ctrlVar['ctrl_'+s+'_MVA'] = 'MVA'
+            binning['ctrl_'+s+'_MVA'] = binning['MVA']
 
         ctrlVar['ctrl_'+s+'_M2miss'] = 'M2_miss'
         binning['ctrl_'+s+'_M2miss'] = [25, -2, 8]
@@ -1415,15 +1422,17 @@ def createHistograms(category):
         ctrlVar['ctrl_'+s+'_q2'] = 'q2'
         binning['ctrl_'+s+'_q2'] = [50, -2, 15]
 
-        if s == 'pm':
-            ctrlVar['ctrl_'+s+'_dM_DstD'] = 'deltaM_DstD'
-            binning['ctrl_'+s+'_dM_DstD'] = [75, 0.1434, 0.1475]
+    ctrlVar['ctrl_pm_dM_DstD'] = 'deltaM_DstD'
+    binning['ctrl_pm_dM_DstD'] = [75, 0.1434, 0.1475]
 
-            ctrlVar['ctrl_'+s+'_mPiPi'] = 'massTks_pipi'
-            binning['ctrl_'+s+'_mPiPi'] = [30, 0.25, 1.]
+    ctrlVar['ctrl_pm_mPiPi'] = 'massTks_pipi'
+    binning['ctrl_pm_mPiPi'] = [30, 0.25, 1.]
 
-            ctrlVar['ctrl_'+s+'_mDstPi_0'] = 'tkMassHad_0'
-            binning['ctrl_'+s+'_mDstPi_0'] = [30, 2.1, 3.]
+    ctrlVar['ctrl_pm_mDstPi_0'] = 'tkMassHad_0'
+    binning['ctrl_pm_mDstPi_0'] = [30, 2.1, 3.]
+
+    ctrlVar['ctrl_pm_mu_iso'] = 'mu_db_iso04'
+    binning['ctrl_pm_mu_iso'] = [100, 0, 150]
 
     # Figuring out the mod to avoid double counting
     ctrlVar_mod = defaultdict(lambda : None)
@@ -1827,6 +1836,10 @@ def createHistograms(category):
             wVar['brBs_DstDsKstUp'] = x6_2_4u
             wVar['brBs_DstDsKstDown'] = x6_2_4d
 
+        if n == 'B_DstDXX':
+            nnn = 'Bu_DstDXX_frac'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
+
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
         for w in weights.values():
@@ -1945,10 +1958,6 @@ def createHistograms(category):
         print 'Creating data histos'
         ds = dSet['data']
         print 'N observed data signal region: {:.1f}k'.format(1e-3*ds['q2'].shape[0])
-        if args.useMVA:
-            print 'Evaluating MVA'
-            sMVA = computeVarMVA(ds)
-            histo['MVA']['data'] = create_TH1D(sMVA, name='data_obs', binning=binning['MVA'], opt='underflow,overflow')
 
         for i_q2 in range(len(binning['q2'])-1):
             q2_l = binning['q2'][i_q2]
@@ -2083,7 +2092,7 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
                                    scale_dic=scale_dic,
                                    addText='Cat. '+catName+ctrl_text,
                                    logy=False, legBkg=True,
-                                   min_y=1, tag=tag+var, legLoc=[0.77, 0.55, 0.94, 0.75])
+                                   min_y=0, tag=tag+var, legLoc=[0.77, 0.55, 0.94, 0.75])
         cAux.SaveAs(webFolder+'/'+var+'_'+tag+'.png')
         outCanvas.append(cAux)
 
@@ -2686,6 +2695,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
                     continue
             if args.signalRegProj1D:
                 aux = c.startswith(args.signalRegProj1D)
+            elif args.useMVA:
+                aux = c.startswith('MVA')
             else:
                 aux = c.startswith('Unrolled')
             aux = aux or c.startswith('ctrl_')
@@ -2815,6 +2826,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += brScaleSys('Bd_DDs1Br', ['Bd_DDs1'], relUnc=1.) #They have not been observed so we variate them alltogether like this
     card += brScaleSys('Bu_DDs1Br', ['Bu_DDs1'], relUnc=1.) #They have not been observed so we variate them alltogether like this
 
+    card += brScaleSys('B_DstDXXBr', ['B_DstDXX'], relUnc=1.) #They have not been observed so we variate them alltogether like this
+
     card += 60*'-'+'\n'
 
     ######################################################
@@ -2896,7 +2909,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             aux = ''
             for p in processes:
                 if p in ['tau', 'mu']:
-                    aux += ' 1.'
+                    aux += ' 0.5'
                 else:
                     aux += ' -'
             card += 'B2Dst'+schemeFF+'{} shape'.format(n_pFF) + aux*nCat + '\n'
@@ -2956,7 +2969,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # card += 'brDst2S_DstPiPi shape' + aux*nCat + '\n'
 
     # Hc mix composition
-    def brShapeSys(relevantSamples=[], shapeNames=[]):
+    def brShapeSys(relevantSamples=[], shapeNames=[], prefix='br'):
         aux = ''
         for p in processes:
             if p in relevantSamples: aux += ' 1.'
@@ -2966,7 +2979,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         for n in shapeNames:
             # type = 'shapeU' if 'Kst' in n else 'shape'
             type = 'shape'
-            out += 'br'+n+' ' + type + aux*nCat + '\n'
+            out += prefix+n+' ' + type + aux*nCat + '\n'
         return out
 
     card += brShapeSys(['Bd_DstDu'], ['Bd_DstDuK', 'Bd_DstDustK', 'Bd_DstDust', 'Bd_DstDuKst'])
@@ -2975,6 +2988,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += brShapeSys(['Bu_DstDu'], ['Bu_DstDuK', 'Bu_DstDustK', 'Bu_DstDuKst', 'Bu_DstDu'])
     card += brShapeSys(['Bu_DstDd'], ['Bu_DstDdK', 'Bu_DstDdstK', 'Bu_DstDdKst'])
     card += brShapeSys(['Bs_DstDs'], ['Bs_DstDsKst']) # Threated all together in scale sys above
+    card += brShapeSys(['B_DstDXX'], ['Bu_DstDXX_frac'], prefix='')
 
 
 
@@ -3432,11 +3446,14 @@ def categoriesCompatibility(card, out, rVal=SM_RDst, rLimits=[0.1, 0.7]):
 ########################### -------- Fit Diagnostic ------------------ #########################
 def defineChannelMasking(histo):
     visibleChannels = ['ctrl_'+r for r in args.controlRegions]
-    fitVar = args.signalRegProj1D if args.signalRegProj1D else 'Unrolled'
-    if not args.noLowq2:
-        visibleChannels += [fitVar+'_q2bin0', fitVar+'_q2bin1']
-    if args.unblinded:
-        visibleChannels += [fitVar+'_q2bin2', fitVar+'_q2bin3']
+    if args.useMVA:
+        visibleChannels += ['MVA']
+    else:
+        fitVar = args.signalRegProj1D if args.signalRegProj1D else 'Unrolled'
+        if not args.noLowq2:
+            visibleChannels += [fitVar+'_q2bin0', fitVar+'_q2bin1']
+        if args.unblinded:
+            visibleChannels += [fitVar+'_q2bin2', fitVar+'_q2bin3']
 
     if args.category == 'comb':
         visibleChannels = ['rgx{mask_[hml].*_'+r+'}' for r in visibleChannels]
@@ -3780,7 +3797,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     fLog = open(webFolder + '/uncertaintyBreakDownTable_log.txt', 'w')
     print '----- Running nominal fit'
     cmd = 'cd ' + out + '; '
-    cmd += 'combine -M MultiDimFit --algo grid --points=200'
+    cmd += 'combine -M MultiDimFit --algo grid --points=100'
     cmd += ' -d ' + card.replace('.txt', '.root')
     cmd += ' --robustFit 1  --cminDefaultMinimizerStrategy=1 --X-rtd MINIMIZER_analytic'
     cmd += ' --cminFallbackAlgo Minuit2,Migrad,0'
@@ -3807,7 +3824,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     cmd = cmd.replace(oldRange, newRange)
 
     print '-------- Best fit snap'
-    cmdBestFit = cmd.replace(' --algo grid --points=200', '')
+    cmdBestFit = cmd.replace(' --algo grid --points=100', '')
     cmdBestFit = cmdBestFit.replace(' -n _total', ' -n Bestfit')
     cmdBestFit += ' --saveWorkspace --verbose 0'
     runCommandSafe(cmdBestFit)
@@ -4214,7 +4231,7 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 
     # Run the test stat toy distribution
     cmdToys = cmd.replace('-n Obs', '-n Toys')
-    nToysPerRep = 40 if args.runInJob else 8
+    nToysPerRep = 30 if args.runInJob else 5
     cmdToys = cmdToys.replace('-t 0 -s 100', '-t {} -s -1'.format(nToysPerRep))
     print cmdToys
 
@@ -4263,9 +4280,12 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 # Check for the right singularity using: ll /cvmfs/singularity.opensciencegrid.org/cmssw/
 mem = '7500'
 if 'histos' in args.step:
-    mem = '12000'
+    if args.useMVA:
+        mem = '32000'
+    else:
+        mem = '16000'
 elif args.category == 'comb' and 'fitDiag' in args.step:
-    mem = '15000'
+    mem = '16000'
 jdlTemplate = '\n'.join([
               'executable        = '+basedir+'Combine/condorJob.sh',
               'arguments         = {arguments}',
@@ -4275,7 +4295,7 @@ jdlTemplate = '\n'.join([
               'JobPrio           = -1',
               'WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT',
               '+MaxRuntime       = 1200',
-              '+JobQueue         = ' + ('"Normal"' if ('fitDiag' in args.step) else '"Short"'),
+              '+JobQueue         = ' + ('"Normal"' if ('fitDiag' in args.step or args.category == 'comb') else '"Short"'),
               '+RunAsOwner       = True',
               '+InteractiveUser  = True',
               '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"',
@@ -4437,12 +4457,12 @@ if __name__ == "__main__":
         if len(args.RDstLims) > 0:
             rLimits = args.RDstLims
         elif args.unblinded:
-            rLimits = [0.08]
+            rLimits = [0.1]
         elif not args.unblinded:
             if args.category == 'comb':
-                rLimits = [0.15]
+                rLimits = [0.2]
             else:
-                rLimits = [0.25]
+                rLimits = [0.3]
 
         if args.maskScan:
             maskList = []
@@ -4474,7 +4494,7 @@ if __name__ == "__main__":
                                                    rLimits=rLimits,
                                                    strategy=0, draw=True, dumpNuis=True)
     else:
-        rDst_postFitRegion = args.RDstLims if len(args.RDstLims) == 2 else [0.15, 0.45]
+        rDst_postFitRegion = args.RDstLims if len(args.RDstLims) == 2 else [0.1, 0.5]
         fit_RDst = SM_RDst
     rDst_postFitRegion[0] = max(0, rDst_postFitRegion[0])
     print '[INFO] R(D*) central value set to {:.3f}'.format(fit_RDst)
