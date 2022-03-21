@@ -1154,7 +1154,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 p = Pool(min(15,len(inputs)))
                 outputs = p.map(makeSelection, inputs)
             elif args.parallelType == 'jobs':
-                tmpDir = 'tmp/B2DstMu_skimCAND_' + n
+                tmpDir = 'tmp/B2DstMu_skimCAND_%s_%s' % (n,catName)
                 if trkControlRegion:
                     tmpDir += '_trkControl'
                 os.system('rm -rf ' + tmpDir + '/out')
@@ -1167,9 +1167,10 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 createSubmissionFile(tmpDir, len(inputs))
                 print 'Submitting jobs'
                 cmd = 'condor_submit %s' % join(tmpDir,'jobs.jdl')
-                cmd += ' -batch-name skim_' + n
+                batch_name = 'skim_%s_%s' % (n,catName)
                 if trkControlRegion:
-                    cmd += '_trkControl'
+                    batch_name += '_trkControl'
+                cmd += ' -batch-name %s' % batch_name
                 status, output = commands.getstatusoutput(cmd)
                 if status != 0:
                     print >> sys.stderr, "Error in processing command: '%s'" % cmd
@@ -1183,8 +1184,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                     status, output = commands.getstatusoutput('condor_q')
                     found = False
                     for line in output.split('\n'):
-                        aux = 'skim_'+n+('_trkControl' if trkControlRegion else '')
-                        if aux in line:
+                        if batch_name in line:
                             print line
                             time.sleep(10)
                             found = True
