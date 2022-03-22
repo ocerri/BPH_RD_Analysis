@@ -2863,11 +2863,14 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         card += 'randTksPU'+auxTag+' shape' + aux + '\n'
 
         cname = 'addTk_pt_cali_'+category.name
-        for k in histo['ctrl_p__mHad'].keys():
-            if k.startswith(processOrder[0]+'__'+cname) and k.endswith('Up'):
-                n = k[k.find('__')+2:-2]
-                print n
-                card += n+' shape' + aux + '\n'
+        for ccc in histo.keys():
+            if ccc.startswith('ctrl_'):
+                for k in histo[ccc].keys():
+                    if k.startswith(processOrder[0]+'__'+cname) and k.endswith('Up'):
+                        n = k[k.find('__')+2:-2]
+                        print n
+                        card += n+' shape' + aux + '\n'
+                break
 
     # Soft track efficiency
     # card += 'softTrkEff_w shape' + mcProcStr*nCat + '\n'
