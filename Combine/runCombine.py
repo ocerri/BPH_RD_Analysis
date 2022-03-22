@@ -1180,7 +1180,7 @@ def createHistograms(category):
             x2_6, x2_6u, x2_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.)
             weights['brBd_DstDdKst'] = x2_3 * x2_6
             wVar['brBd_DstDdKstUp'] = x2_3u * x2_6u
-            wVar['brBd_DstDdKstDown'] = x2_3u * x2_6u
+            wVar['brBd_DstDdKstDown'] = x2_3d * x2_6d
         if n == 'Bd_DstDs': #3
             print 'Including Bd->D*Ds br variations'
             # 3.1
@@ -1781,7 +1781,7 @@ def createHistograms(category):
             x2_6, x2_6u, x2_6d = computeBrVarWeights(ds, {'MC_CharmedDstSisPdgId': 413, 'MC_StrangeDstSisPdgId': 313}, 0.5, centralVal=4.)
             weights['brBd_DstDdKst'] = x2_3 * x2_6
             wVar['brBd_DstDdKstUp'] = x2_3u * x2_6u
-            wVar['brBd_DstDdKstDown'] = x2_3u * x2_6u
+            wVar['brBd_DstDdKstDown'] = x2_3d * x2_6d
         if n == 'Bd_DstDs': #3
             print 'Including Bd->D*Ds br variations'
             # 3.1
