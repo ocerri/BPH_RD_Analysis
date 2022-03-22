@@ -363,7 +363,8 @@ def plot_SingleCategory(CMS_lumi,
                         addTextPos=[0.17, 0.85],
                         legLoc=[0.65, 0.4, 0.9, 0.7],
                         legBkg=False,
-                        procOrder = ['B_DstDXX', 'tau', 'dataSS_DstMu', 'DstHc', 'Dstst', 'mu'],
+                        procOrder = ['tau', 'dataSS_DstMu', 'DstHc', 'Dstst', 'mu'],
+                        # procOrder = ['B_DstDXX', 'tau', 'dataSS_DstMu', 'DstHc', 'Dstst', 'mu'],
                         maskData=False,
                         figsize = [600, 450]
                         ):

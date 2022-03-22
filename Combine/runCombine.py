@@ -192,7 +192,7 @@ processOrder = [
     'Bd_DstDu', 'Bu_DstDu',
     'Bd_DstDd', 'Bu_DstDd',
     'Bd_DstDs', 'Bs_DstDs',
-    'Bd_DDs1', 'Bu_DDs1', 'B_DstDXX',
+    'Bd_DDs1', 'Bu_DDs1', #'B_DstDXX',
     'dataSS_DstMu'
 ]
 
@@ -373,7 +373,7 @@ def loadDatasets(category, loadRD):
     'Bs_DstDs': DSetLoader('Bs_DstDs', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_DDs1': DSetLoader('Bd_DDs1', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_DDs1': DSetLoader('Bu_DDs1', candDir=candDir, skimmedTag=args.skimmedTag),
-    'B_DstDXX': DSetLoader('B_DstDXX', candDir=candDir, skimmedTag=args.skimmedTag),
+    # 'B_DstDXX': DSetLoader('B_DstDXX', candDir=candDir, skimmedTag=args.skimmedTag),
     }
 
     dSet = {}
@@ -1235,9 +1235,9 @@ def createHistograms(category):
             wVar['brBs_DstDsKstUp'] = x6_2_4u
             wVar['brBs_DstDsKstDown'] = x6_2_4d
 
-        if n == 'B_DstDXX':
-            nnn = 'Bu_DstDXX_frac'
-            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
+        # if n == 'B_DstDXX':
+        #     nnn = 'Bu_DstDXX_frac'
+        #     weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -1836,9 +1836,9 @@ def createHistograms(category):
             wVar['brBs_DstDsKstUp'] = x6_2_4u
             wVar['brBs_DstDsKstDown'] = x6_2_4d
 
-        if n == 'B_DstDXX':
-            nnn = 'Bu_DstDXX_frac'
-            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
+        # if n == 'B_DstDXX':
+        #     nnn = 'Bu_DstDXX_frac'
+        #     weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -2826,7 +2826,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += brScaleSys('Bd_DDs1Br', ['Bd_DDs1'], relUnc=1.) #They have not been observed so we variate them alltogether like this
     card += brScaleSys('Bu_DDs1Br', ['Bu_DDs1'], relUnc=1.) #They have not been observed so we variate them alltogether like this
 
-    card += brScaleSys('B_DstDXXBr', ['B_DstDXX'], relUnc=1.) #They have not been observed so we variate them alltogether like this
+    # card += brScaleSys('B_DstDXXBr', ['B_DstDXX'], relUnc=1.) #They have not been observed so we variate them alltogether like this
 
     card += 60*'-'+'\n'
 
@@ -2988,7 +2988,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += brShapeSys(['Bu_DstDu'], ['Bu_DstDuK', 'Bu_DstDustK', 'Bu_DstDuKst', 'Bu_DstDu'])
     card += brShapeSys(['Bu_DstDd'], ['Bu_DstDdK', 'Bu_DstDdstK', 'Bu_DstDdKst'])
     card += brShapeSys(['Bs_DstDs'], ['Bs_DstDsKst']) # Threated all together in scale sys above
-    card += brShapeSys(['B_DstDXX'], ['Bu_DstDXX_frac'], prefix='')
+    # card += brShapeSys(['B_DstDXX'], ['Bu_DstDXX_frac'], prefix='')
 
 
 

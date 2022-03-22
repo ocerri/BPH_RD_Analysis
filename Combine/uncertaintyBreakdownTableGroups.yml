@@ -16,9 +16,9 @@
     - Bs_DstDsBr
     - Bd_DDs1Br
     - Bu_DDs1Br
-    - B_DstDXXBr
+    # - B_DstDXXBr
     - rgx{brB[uds]_DstD.*}
-    - Bu_DstDXX_frac
+    # - Bu_DstDXX_frac
     - rgx{brB[dsu]_DstD.*}
 
 - tag: pythiaProduction
