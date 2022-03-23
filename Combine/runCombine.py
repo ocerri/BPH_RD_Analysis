@@ -27,7 +27,6 @@ import subprocess
 
 import uproot as ur
 import ROOT as rt
-rt.PyConfig.IgnoreCommandLineOptions = True
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
@@ -53,7 +52,6 @@ parser = argparse.ArgumentParser(description='Script used to run combine on the 
                                  epilog='Test example: ./runCombine.py -c low',
                                  add_help=True
                                  )
-parser.add_argument ('--HELP', '-H', default=False, action='store_true', help='Print help message.')
 parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
@@ -132,9 +130,6 @@ parser.add_argument ('--showCard', default=False, action='store_true', help='Dum
 parser.add_argument ('--verbose', default=0, type=int, help='Run verbosity.')
 
 args = parser.parse_args()
-if args.HELP:
-    parser.print_help()
-    exit()
 
 if len(args.step) == 0:
     if args.category == 'comb':
@@ -443,7 +438,7 @@ def loadDatasets(category, loadRD):
         # ['M2_miss', -0.2, 1e3],
         # ['mu_eta', -0.8, 0.8],
         # ['mu_eta', -1.5, 1.5],
-        ['mu_pt', 0, 20],
+        # ['mu_pt', 0, 20],
         # ['B_eta', -1., 1.],
         # ['pis_pt', 1., 1e3],
         ['mu_db_iso04', 0, 80],
