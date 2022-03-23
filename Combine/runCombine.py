@@ -27,6 +27,7 @@ import subprocess
 
 import uproot as ur
 import ROOT as rt
+rt.PyConfig.IgnoreCommandLineOptions = True
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
