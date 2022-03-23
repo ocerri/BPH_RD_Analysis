@@ -27,6 +27,7 @@ import subprocess
 
 import uproot as ur
 import ROOT as rt
+rt.PyConfig.IgnoreCommandLineOptions = True
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
@@ -189,7 +190,7 @@ processOrder = [
     'Bd_DstDu', 'Bu_DstDu',
     'Bd_DstDd', 'Bu_DstDd',
     'Bd_DstDs', 'Bs_DstDs',
-    'Bd_DDs1', 'Bu_DDs1', #'B_DstDXX',
+    'Bd_DDs1', 'Bu_DDs1', # 'B_DstDXX',
     'dataSS_DstMu'
 ]
 
@@ -760,35 +761,7 @@ def createHistograms(category):
         ]
 
     # binning['mu_sigIP3D_vtxDst'] = 4*[[70, -4, 4]]
-    #
     # binning['U_miss'] = 4*[[30, -0.1, 0.18]]
-    #
-    # binning['mu_pt'] = n_q2bins*[{'Low': array('d', list(np.arange(7.2, 9.2, 0.05))+[9.2] ),
-    #                               'Mid': array('d', list(np.arange(9.2, 12.2, 0.05)) +[12.2] ),
-    #                               'High': array('d', list(8+np.logspace(np.log10(12.2-8), np.log10(60), 30)) )
-    #                              }[category.name]]
-    #
-    # binning['Dst_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(3, 35, 1)) ),
-    #                                'Mid':  array('d', list(np.arange(4, 40, 1)) ),
-    #                                'High': array('d', list(np.arange(5, 50, 1)) )
-    #                               }[category.name]]
-    #
-    # binning['K_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.8, 15, 0.4)) ),
-    #                                'Mid':  array('d', list(np.arange(0.8, 20, 0.4)) ),
-    #                                'High': array('d', list(np.arange(0.8, 30, 0.4)) )
-    #                               }[category.name]]
-    #
-    # binning['pi_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.8, 15, 0.4)) ),
-    #                                'Mid':  array('d', list(np.arange(0.8, 20, 0.4)) ),
-    #                                'High': array('d', list(np.arange(0.8, 30, 0.4)) )
-    #                               }[category.name]]
-    #
-    # binning['pis_pt'] = n_q2bins*[{'Low':  array('d', list(np.arange(0.5, 3.5, 0.1)) ),
-    #                                'Mid':  array('d', list(np.arange(0.5, 4, 0.1)) ),
-    #                                'High': array('d', list(np.arange(0.5, 5, 0.1)) )
-    #                               }[category.name]]
-
-    # binning['mass_D0pismu'] = n_q2bins*[[50, 2.1, 5.28]]
 
     # negSide = [-2.5, -1.0, -0.4, -0.2]
     negSide = []
@@ -817,27 +790,18 @@ def createHistograms(category):
         bbb = np.arange(0., np.max(dSet['tau']['MVA']) + 0.0249, 0.025)
         binning['MVA'] = array('d', list(bbb))
     binning['specQ2'] = array('d', list(np.arange(-2, 11.4, 0.2)))
-    binning['B_pt'] = {'Low': array('d', list(np.arange(10, 75, 2)) ), 'Mid': array('d', list(np.arange(14, 90, 2)) ), 'High': array('d', list(np.arange(18, 110, 2)))}[category.name]
-
+    binning['B_pt'] = array('d', list({'Low': np.arange(10, 75, 2), 'Mid': np.arange(14, 90, 2), 'High': np.arange(18, 110, 2}[category.name]))
     binning['mu_pt'] = array('d',
                         {'Low': list(np.arange(7.2, 9.201, 0.05)),
                         'Mid': list(np.arange(9.2, 12.201, 0.05)),
                         'High': list(8+np.logspace(np.log10(12.2-8), np.log10(60), 30)) if np.max(dSet['mu']['mu_pt']) > 20 else list(np.arange(12.2, 20.01, 0.05))
                         }[category.name])
-
-    # binning['Dst_pt'] = {'Low':  array('d', list(np.arange(3, 35, 1)) ), 'Mid':  array('d', list(np.arange(4, 40, 1)) ), 'High': array('d', list(np.arange(5, 50, 1)) )}[category.name]
-
-    binning['K_pt'] = {'Low':  array('d', list(np.arange(0.8, 15, 0.4)) ), 'Mid':  array('d', list(np.arange(0.8, 20, 0.4)) ), 'High': array('d', list(np.arange(0.8, 30, 0.4)) ) }[category.name]
-
-    binning['pi_pt'] = {'Low':  array('d', list(np.arange(0.8, 15, 0.4)) ), 'Mid':  array('d', list(np.arange(0.8, 20, 0.4)) ), 'High': array('d', list(np.arange(0.8, 30, 0.4)) ) }[category.name]
-
-    binning['pis_pt'] = {'Low':  array('d', list(np.arange(0.5, 3.5, 0.1)) ), 'Mid':  array('d', list(np.arange(0.5, 4, 0.1)) ), 'High': array('d', list(np.arange(0.5, 5, 0.1)) ) }[category.name]
+    # binning['Dst_pt'] = array('d', list(np.arange(5, 50, 1)) )
+    binning['K_pt'] = array('d', list(np.arange( *({'Low':[0.8, 15, 0.4], 'Mid':[0.8, 20, 0.4], 'High':[0.8, 30, 0.4]}[category.name]) ) ) )
+    binning['pi_pt'] = array('d', list(np.arange( *({'Low':[0.8, 15, 0.4], 'Mid':[0.8, 20, 0.4], 'High':[0.8, 30, 0.4]}[category.name]) ) ) )
+    binning['pis_pt'] = array('d', list(np.arange(0.5, 5., 0.1)) )
 
     binning['B_eta'] = array('d', list(np.arange(-1.9, 1.91, 0.05)) )
-    # binning['mu_eta'] = array('d', list(np.arange(-1.6, 1.61, 0.05)) )
-    # binning['K_eta'] = array('d', list(np.arange(-2.1, 2.11, 0.05)) )
-    # binning['pi_eta'] = array('d', list(np.arange(-2.1, 2.11, 0.05)) )
-    # binning['pis_eta'] = array('d', list(np.arange(-2.1, 2.11, 0.05)) )
     binning['mass_piK'] = [75, 1.81, 1.92]
     binning['deltaM_DstD'] = [75, 0.1434, 0.1475]
     binning['mass_D0pismu'] = [50, 2.1, 5.28]
