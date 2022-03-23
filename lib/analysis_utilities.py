@@ -199,3 +199,13 @@ class DSetLoader(object):
     def printSkimEffLatex(self, catName):
         r, dr = self.getSkimEff(catName)
         return '${:.2f} \\pm {:.2f}$'.format(r*100, dr*100)
+
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 'on', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'off', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')

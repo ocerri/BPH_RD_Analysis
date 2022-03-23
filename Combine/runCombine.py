@@ -33,7 +33,7 @@ import root_numpy as rtnp
 
 from progressBar import ProgressBar
 from categoriesDef import categories as categoriesDef
-from analysis_utilities import drawOnCMSCanvas, getEff, DSetLoader
+from analysis_utilities import drawOnCMSCanvas, getEff, DSetLoader, str2bool
 from beamSpot_calibration import getBeamSpotCorrectionWeights
 from pT_calibration_reader import pTCalReader as kinCalReader
 from histo_utilities import create_TH1D, create_TH2D, std_color_list, make_ratio_plot
@@ -62,10 +62,11 @@ parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max numb
 parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
+parser.add_argument ('--beamSpotCalibration', default=True, type=str2bool, help='Apply beam spot calibration.')
 
 parser.add_argument ('--useMVA', default=False, choices=[False, 'v3'], help='Use MVA in the fit.')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu', 'U_miss'], help='Use 1D projections in signal region instead of the unrolled histograms')
-parser.add_argument ('--unblinded', default=False, type=bool, help='Unblind the fit regions.')
+parser.add_argument ('--unblinded', default=False, type=str2bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pp_mHad', 'mm_mHad', 'pm_mVis'], help='Control regions to use', nargs='*')
 
@@ -84,7 +85,7 @@ availableSteps = ['clean', 'histos', 'preFitPlots', 'shapeVarPlots',
                   'uncBreakdownScan', 'uncBreakdownTable',
                   'externalize',
                   'impacts', 'GoF']
-defaultPipelineSingle = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'GoF', 'fitDiag', 'postFitPlots']
+defaultPipelineSingle = ['histos', 'preFitPlots', 'card', 'workspace', 'scan', 'GoF']#, 'fitDiag', 'postFitPlots']
 defaultPipelineComb = ['preFitPlots', 'card', 'workspace', 'scan', 'catComp', 'uncBreakdownTable', 'GoF', 'fitDiag', 'postFitPlots', 'uncBreakdownScan']
 # histos preFitPlots shapeVarPlots card workspace scan fitDiag postFitPlots uncBreakdownScan GoF
 parser.add_argument ('--step', '-s', type=str, default=[], choices=availableSteps, help='Analysis steps to run.', nargs='+')
@@ -441,9 +442,8 @@ def loadDatasets(category, loadRD):
         # ['M2_miss', -0.2, 1e3],
         # ['mu_eta', -0.8, 0.8],
         # ['mu_eta', -1.5, 1.5],
+        ['mu_pt', 0, 20],
         # ['B_eta', -1., 1.],
-        # ['K_pt', 1., 1e3],
-        # ['pi_pt', 1., 1e3],
         # ['pis_pt', 1., 1e3],
         ['mu_db_iso04', 0, 80],
         ['mu_lostInnerHits', -2, 1],
@@ -665,11 +665,15 @@ def createHistograms(category):
     if args.calBpT == 'none':
         print 'Not using any B pT calibration'
     elif args.calBpT == 'poly':
-        # cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v1.pkl') # No beamSpot calibration
-        cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v2.pkl')
+        if args.beamSpotCalibration:
+            cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v2.pkl')
+        else:
+            cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v1.pkl') # No beamSpot calibration
 
-    # cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v0.pkl') # No beamSpot calibration
-    cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v2.pkl')
+    if args.beamSpotCalibration:
+        cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v2.pkl')
+    else:
+        cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v0.pkl') # No beamSpot calibration
 
     cal_addTK_pt = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/addTk_pt_polyCoeff_{}_v2.pkl'.format(category.name))
 
@@ -818,7 +822,12 @@ def createHistograms(category):
         binning['MVA'] = array('d', list(bbb))
     binning['specQ2'] = array('d', list(np.arange(-2, 11.4, 0.2)))
     binning['B_pt'] = {'Low': array('d', list(np.arange(10, 75, 2)) ), 'Mid': array('d', list(np.arange(14, 90, 2)) ), 'High': array('d', list(np.arange(18, 110, 2)))}[category.name]
-    binning['mu_pt'] = {'Low': array('d', list(np.arange(7.2, 9.2, 0.05))+[9.2] ), 'Mid': array('d', list(np.arange(9.2, 12.2, 0.05)) +[12.2] ), 'High': array('d', list(8+np.logspace(np.log10(12.2-8), np.log10(60), 30)) )}[category.name]
+
+    binning['mu_pt'] = array('d',
+                        {'Low': list(np.arange(7.2, 9.201, 0.05)),
+                        'Mid': list(np.arange(9.2, 12.201, 0.05)),
+                        'High': list(8+np.logspace(np.log10(12.2-8), np.log10(60), 30)) if np.max(dSet['mu']['mu_pt']) > 20 else list(np.arange(12.2, 20.01, 0.05))
+                        }[category.name])
 
     # binning['Dst_pt'] = {'Low':  array('d', list(np.arange(3, 35, 1)) ), 'Mid':  array('d', list(np.arange(4, 40, 1)) ), 'High': array('d', list(np.arange(5, 50, 1)) )}[category.name]
 
@@ -892,12 +901,13 @@ def createHistograms(category):
             print 'Including pileup reweighting'
             weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
 
-            print 'Including beam spot correction'
-            weights['beamSpot'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs')
-            wVar[category.name+'BSyUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=8)/weights['beamSpot']
-            wVar[category.name+'BSyDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=-8)/weights['beamSpot']
-            wVar[category.name+'BSxUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=4, dmu_y=0)/weights['beamSpot']
-            wVar[category.name+'BSxDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=-4, dmu_y=0)/weights['beamSpot']
+            if args.beamSpotCalibration:
+                print 'Including beam spot correction'
+                weights['beamSpot'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs')
+                wVar[category.name+'BSyUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=8)/weights['beamSpot']
+                wVar[category.name+'BSyDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=-8)/weights['beamSpot']
+                wVar[category.name+'BSxUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=4, dmu_y=0)/weights['beamSpot']
+                wVar[category.name+'BSxDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=-4, dmu_y=0)/weights['beamSpot']
 
             print 'Including trigger corrections'
             nameSF = 'trg{}SF'.format(category.trg)
@@ -1432,7 +1442,7 @@ def createHistograms(category):
     binning['ctrl_pm_mDstPi_0'] = [30, 2.1, 3.]
 
     ctrlVar['ctrl_pm_mu_iso'] = 'mu_db_iso04'
-    binning['ctrl_pm_mu_iso'] = [100, 0, 150]
+    binning['ctrl_pm_mu_iso'] = [100, 0, 80]
 
     # Figuring out the mod to avoid double counting
     ctrlVar_mod = defaultdict(lambda : None)
@@ -1485,12 +1495,13 @@ def createHistograms(category):
             print 'Including pileup reweighting'
             weights['pileup'] = puReweighter.getPileupWeights(ds['MC_nInteractions'])
 
-            print 'Including beam spot correction'
-            weights['beamSpot'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs')
-            wVar[category.name+'BSyUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=8)/weights['beamSpot']
-            wVar[category.name+'BSyDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=-8)/weights['beamSpot']
-            wVar[category.name+'BSxUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=4, dmu_y=0)/weights['beamSpot']
-            wVar[category.name+'BSxDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=-4, dmu_y=0)/weights['beamSpot']
+            if args.beamSpotCalibration:
+                print 'Including beam spot correction'
+                weights['beamSpot'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs')
+                wVar[category.name+'BSyUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=8)/weights['beamSpot']
+                wVar[category.name+'BSyDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=0, dmu_y=-8)/weights['beamSpot']
+                wVar[category.name+'BSxUp'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=4, dmu_y=0)/weights['beamSpot']
+                wVar[category.name+'BSxDown'] = getBeamSpotCorrectionWeights(ds, beamSpotParam, ref='bs', dmu_x=-4, dmu_y=0)/weights['beamSpot']
 
             print 'Including trigger corrections'
             nameSF = 'trg{}SF'.format(category.trg)
@@ -2757,8 +2768,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += 'overallMcNorm'+category.trg+' rateParam * B[usd]_* 1.\n'
 
     # Relax control regions norm
-    card += 'ctrlNormBToDstHc'+category.trg+' rateParam ctrl_??_* B[dsu]_D* 1.\n'
-    card += 'ctrlNormBToDstPiPi'+category.trg+' rateParam ctrl_??_* B[dsu]_*PiPi 1.\n'
+    # card += 'ctrlNormBToDstHc'+category.trg+' rateParam ctrl_??_* B[dsu]_D* 1.\n'
+    # card += 'ctrlNormBToDstPiPi'+category.trg+' rateParam ctrl_??_* B[dsu]_*PiPi 1.\n'
 
 
     #### Combinatorial background norm
@@ -2838,8 +2849,9 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
         if 'data' in p: mcProcStr += ' -'
         else: mcProcStr += ' 1.'
 
-    for ax in ['x', 'y']:
-        card += category.name+'BS'+ax+' shape' + mcProcStr*nCat + '\n'
+    if args.beamSpotCalibration:
+        for ax in ['x', 'y']:
+            card += category.name+'BS'+ax+' shape' + mcProcStr*nCat + '\n'
 
     nameSF = 'trg{}SF'.format(category.trg)
     counter = 0
@@ -4197,8 +4209,12 @@ def runNuisanceImpacts(card, out, catName, maskStr='', rVal=SM_RDst, submit=True
         runCommandSafe(cmd)
 
 ########################### -------- Goodness of Fit ------------------ #########################
-def runCommand(cmd):
+def runCommand(input_args):
+    i, cmd = input_args
+    print 'Start', i
+    st = time.time()
     status, output = commands.getstatusoutput(cmd)
+    print 'Done {} in {:.1f} min'.format(i, (time.time() - st)/60.0 )
     return [status, output]
 
 def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=SM_RDst):
@@ -4238,9 +4254,9 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
     cmdToys = cmdToys.replace('-t 0 -s 100', '-t {} -s -1'.format(nToysPerRep))
     print cmdToys
 
-    nRep = 10 if args.runInJob else 20
+    nRep = 5 if args.runInJob else 20
     p = Pool(min(20,nRep))
-    outputs = p.map(runCommand, nRep*[cmdToys])
+    outputs = p.map(runCommand, [[i, cmdToys] for i in range(nRep)])
     for s,o in outputs:
         if s: print o
 
