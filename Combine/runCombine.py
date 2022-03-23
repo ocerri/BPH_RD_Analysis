@@ -141,7 +141,7 @@ parser = argparse.ArgumentParser(description='Script used to run combine on the 
 parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
-parser.add_argument ('--skimmedTag', default='', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTag', default='_massHadTks_v4', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
 parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
@@ -915,7 +915,7 @@ def createHistograms(category):
         bbb = np.arange(0., np.max(dSet['tau']['MVA']) + 0.0249, 0.025)
         binning['MVA'] = array('d', list(bbb))
     binning['specQ2'] = array('d', list(np.arange(-2, 11.4, 0.2)))
-    binning['B_pt'] = array('d', list({'Low': np.arange(10, 75, 2), 'Mid': np.arange(14, 90, 2), 'High': np.arange(18, 110, 2}[category.name]))
+    binning['B_pt'] = array('d', list({'Low': np.arange(10, 75, 2), 'Mid': np.arange(14, 90, 2), 'High': np.arange(18, 110, 2)}[category.name]))
     binning['mu_pt'] = array('d',
                         {'Low': list(np.arange(7.2, 9.201, 0.05)),
                         'Mid': list(np.arange(9.2, 12.201, 0.05)),
