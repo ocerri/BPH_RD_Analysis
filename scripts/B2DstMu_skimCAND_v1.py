@@ -287,6 +287,7 @@ def extractEventInfos(j, ev, corr=None):
     e.UmissTk = []
 
     p4_sumGoodTks = rt.TLorentzVector()
+    p4_tks = []
     for jj in range(idx_st, idx_stop):
         pval = ev.tksAdd_pval[jj]
         if pval < 0.1:
@@ -351,12 +352,21 @@ def extractEventInfos(j, ev, corr=None):
                 e.MC_tkMotherPdgId.insert(idx, ev.MC_addTk_pdgIdMother[jj])
                 e.MC_tkMotherMotherPdgId.insert(idx, ev.MC_addTk_pdgIdMotherMother[jj])
 
+            p4_tks.insert(idx,p4_tk)
             p4_sumGoodTks += p4_tk
 
+    while len(p4_tks) < 3:
+        p4_tks.append(rt.TLorentzVector())
 
     p4_vis_wTks = p4_vis + p4_sumGoodTks
+    e.massVisTks1 = (p4_vis + p4_tks[0]).M()
+    e.massVisTks2 = (p4_vis + p4_tks[0] + p4_tks[1]).M()
+    e.massVisTks3 = (p4_vis + p4_tks[0] + p4_tks[1] + p4_tks[2]).M()
     e.massVisTks = p4_vis_wTks.M()
     e.massHadTks = (p4_Dst + p4_sumGoodTks).M()
+    e.massHadTks1 = (p4_Dst + p4_tks[0]).M()
+    e.massHadTks2 = (p4_Dst + p4_tks[0] + p4_tks[1]).M()
+    e.massHadTks3 = (p4_Dst + p4_tks[0] + p4_tks[1] + p4_tks[2]).M()
     e.massHadTks_DstMassConstraint = (p4_Dst + p4_sumGoodTks).M() - p4_Dst.M() + m_Dst
 
     if e.N_goodAddTks == 2:
@@ -585,7 +595,10 @@ def makeSelection(inputs):
                    evEx.mass2MissTk[0], evEx.mass2MissTk[1], evEx.mass2MissTk[2],
                    evEx.UmissTk[0], evEx.UmissTk[1], evEx.UmissTk[2],
                    evEx.massTks_pipi, evEx.massTks_KK, evEx.massTks_piK, evEx.massTks_Kpi,
-                   evEx.massVisTks, evEx.massHadTks, evEx.massHadTks_DstMassConstraint,
+                   evEx.massVisTks, evEx.massHadTks,
+                   evEx.massVisTks1, evEx.massVisTks2, evEx.massVisTks3,
+                   evEx.massHadTks1, evEx.massHadTks2, evEx.massHadTks3,
+                   evEx.massHadTks_DstMassConstraint,
                    evEx.M2missTks, evEx.q2Tks,
                    evEx.EmissTks, evEx.PmissTks, evEx.UmissTks,
                    evEx.N_goodAddNeu,
@@ -1045,7 +1058,14 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'tkMassMiss2_0', 'tkMassMiss2_1', 'tkMassMiss2_2',
                        'tkUmiss_0', 'tkUmiss_1', 'tkUmiss_2',
                        'massTks_pipi', 'massTks_KK', 'massTks_piK', 'massTks_Kpi',
-                       'massVisTks', 'massHadTks', 'massHadTks_DstMassConstraint',
+                       'massVisTks', 'massHadTks',
+                       'massVisTks1',
+                       'massVisTks2',
+                       'massVisTks3',
+                       'massHadTks1',
+                       'massHadTks2',
+                       'massHadTks3',
+                       'massHadTks_DstMassConstraint',
                        'M2missTks', 'q2Tks',
                        'EmissTks', 'PmissTks', 'UmissTks',
                        'N_goodAddNeu',
