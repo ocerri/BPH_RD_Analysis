@@ -287,7 +287,7 @@ processOrder = [
     'Bd_DstDu', 'Bu_DstDu',
     'Bd_DstDd', 'Bu_DstDd',
     'Bd_DstDs', 'Bs_DstDs',
-    'Bd_DDs1', 'Bu_DDs1', # 'B_DstDXX',
+    'Bd_DDs1', 'Bu_DDs1', 'B_DstDXX',
     'dataSS_DstMu'
 ]
 
@@ -468,7 +468,7 @@ def loadDatasets(category, loadRD):
     'Bs_DstDs': DSetLoader('Bs_DstDs', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_DDs1': DSetLoader('Bd_DDs1', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_DDs1': DSetLoader('Bu_DDs1', candDir=candDir, skimmedTag=args.skimmedTag),
-    # 'B_DstDXX': DSetLoader('B_DstDXX', candDir=candDir, skimmedTag=args.skimmedTag),
+    'B_DstDXX': DSetLoader('B_DstDXX', candDir=candDir, skimmedTag=args.skimmedTag),
     }
 
     dSet = {}
@@ -566,12 +566,12 @@ def loadDatasets(category, loadRD):
         addCuts = [
         ['M2_miss', 0.4, 1e3],
         # ['M2_miss', -0.2, 1e3],
-        # ['mu_eta', -0.8, 0.8],
+        ['mu_eta', -0.8, 0.8],
         # ['mu_eta', -1.5, 1.5],
         # ['mu_pt', 0, 20],
         # ['B_eta', -1., 1.],
         # ['pis_pt', 1., 1e3],
-        ['mu_db_iso04', 0, 80],
+        # ['mu_db_iso04', 0, 80],
         ['mu_lostInnerHits', -2, 1],
         ['K_lostInnerHits', -2, 1],
         ['pi_lostInnerHits', -2, 1],
@@ -2686,8 +2686,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += 'overallMcNorm'+category.trg+' rateParam * B[usd]_* 1.\n'
 
     # Relax control regions norm
-    # card += 'ctrlNormBToDstHc'+category.trg+' rateParam ctrl_??_* B[dsu]_D* 1.\n'
-    # card += 'ctrlNormBToDstPiPi'+category.trg+' rateParam ctrl_??_* B[dsu]_*PiPi 1.\n'
+    card += 'ctrlNormBToDstHc'+category.trg+' rateParam ctrl_??_* B[dsu]_D* 1.\n'
+    card += 'ctrlNormBToDstPiPi'+category.trg+' rateParam ctrl_??_* B[dsu]_*PiPi 1.\n'
 
 
     #### Combinatorial background norm
@@ -2934,7 +2934,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # card += brShapeSys(['Bu_DstDd'], ['Bu_DstDdK', 'Bu_DstDdstK', 'Bu_DstDdKst'])
     # card += brShapeSys(['Bs_DstDs'], ['Bs_DstDsKst']) # Threated all together in scale sys above
 
-    
+
     # card += brShapeSys(['B_DstDXX'], ['Bu_DstDXX_frac'], prefix='')
 
 
