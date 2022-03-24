@@ -1248,9 +1248,9 @@ def createHistograms(category):
                 weights[name], wVar[name + 'Up'], wVar[name + 'Down'] = \
                     computeBrVarWeights(ds, {'procId_DstHc': proc_id}, centralVal=centralVal, relScale=inflateRate*relScale, absVal=False)
 
-        # if n == 'B_DstDXX':
-        #     nnn = 'Bu_DstDXX_frac'
-        #     weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
+        if n == 'B_DstDXX':
+            nnn = 'Bu_DstDXX_frac'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -1761,9 +1761,9 @@ def createHistograms(category):
                 weights[name], wVar[name + 'Up'], wVar[name + 'Down'] = \
                     computeBrVarWeights(ds, {'procId_DstHc': proc_id}, centralVal=centralVal, relScale=inflateRate*relScale, absVal=False)
 
-        # if n == 'B_DstDXX':
-        #     nnn = 'Bu_DstDXX_frac'
-        #     weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
+        if n == 'B_DstDXX':
+            nnn = 'Bu_DstDXX_frac'
+            weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -2755,7 +2755,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += brScaleSys('Bd_DDs1Br', ['Bd_DDs1'], relUnc=1.) #They have not been observed so we variate them alltogether like this
     card += brScaleSys('Bu_DDs1Br', ['Bu_DDs1'], relUnc=1.) #They have not been observed so we variate them alltogether like this
 
-    # card += brScaleSys('B_DstDXXBr', ['B_DstDXX'], relUnc=1.) #They have not been observed so we variate them alltogether like this
+    card += brScaleSys('B_DstDXXBr', ['B_DstDXX'], relUnc=1.) #They have not been observed so we variate them alltogether like this
 
     card += 60*'-'+'\n'
 
@@ -2935,7 +2935,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # card += brShapeSys(['Bs_DstDs'], ['Bs_DstDsKst']) # Threated all together in scale sys above
 
 
-    # card += brShapeSys(['B_DstDXX'], ['Bu_DstDXX_frac'], prefix='')
+    card += brShapeSys(['B_DstDXX'], ['Bu_DstDXX_frac'], prefix='')
 
 
 
