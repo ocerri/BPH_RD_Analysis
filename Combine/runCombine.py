@@ -33,7 +33,7 @@ import root_numpy as rtnp
 
 from progressBar import ProgressBar
 from categoriesDef import categories as categoriesDef
-from analysis_utilities import drawOnCMSCanvas, getEff, DSetLoader
+from analysis_utilities import drawOnCMSCanvas, getEff, DSetLoader, load_data
 from beamSpot_calibration import getBeamSpotCorrectionWeights
 from pT_calibration_reader import pTCalReader as kinCalReader
 from histo_utilities import create_TH1D, create_TH2D, std_color_list, make_ratio_plot
@@ -387,19 +387,15 @@ def loadDatasets(category, loadRD):
         if not n in processOrder:
             print n, 'not declarted in processOrder'
             raise
-        dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType),
-                                               stop=args.maxEventsToLoad
-                                              )
-                              )
-        dSetTkSide[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType),
-                                                     stop=args.maxEventsToLoad
-                                                    )
-                                    )
+        filename = s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType)
+        dSet[n] = load_data(filename, stop=args.maxEventsToLoad)
+        filename = s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType)
+        dSetTkSide[n] = load_data(filename, stop=args.maxEventsToLoad)
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
     locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_220311_{}'.format(category.name)
-    dSet['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
-    dSetTkSide['dataSS_DstMu'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
+    dSet['dataSS_DstMu'] = load_data(locRD + '_corr.root')
+    dSetTkSide['dataSS_DstMu'] = load_data(locRD + '_trkCtrl_corr.root')
 
 
     if loadRD:
@@ -407,8 +403,8 @@ def loadDatasets(category, loadRD):
 
         creation_date = '220311'
         locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
-        dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
-        dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
+        dSet['data'] = load_data(locRD + '_corr.root')
+        dSetTkSide['data'] = load_data(locRD + '_trkCtrl_corr.root')
 
     if args.useMVA:
         fname = '/storage/af/group/rdst_analysis/BPhysics/data/kinObsMVA/clfGBC_tauVall_{}{}.p'.format(args.useMVA, category.name)
