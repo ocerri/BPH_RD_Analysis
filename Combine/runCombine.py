@@ -219,7 +219,7 @@ parser.add_argument ('--collectImpacts', default=False, action='store_true', hel
 parser.add_argument ('--subOnlyImpacts', default=False, action='store_true', help='Only submit impact fits, do not collect results')
 
 # Goodness Of Fit options
-parser.add_argument ('--algoGoF', type=str, default=['Sat', 'KS'], choices=['Sat', 'AD', 'KS'], help='Algorithm to be used for the goodness of fit test', nargs='+')
+parser.add_argument ('--algoGoF', type=str, default=['Sat'], choices=['Sat', 'AD', 'KS'], help='Algorithm to be used for the goodness of fit test', nargs='+')
 parser.add_argument ('--maskEvalGoF', type=str, default=[], nargs='+', help='Additional channels to mask during GoF evaluation')
 parser.add_argument ('--tagGoF', type=str, default='all')
 
@@ -566,8 +566,8 @@ def loadDatasets(category, loadRD):
         addCuts = [
         ['M2_miss', 0.4, 1e3],
         # ['M2_miss', -0.2, 1e3],
-        # ['mu_eta', -0.8, 0.8],
-        # ['mu_pt', 0, 20],
+        ['mu_eta', -0.8, 0.8],
+        ['mu_pt', 0, 20],
         # ['B_eta', -1., 1.],
         # ['pis_pt', 1., 1e3],
         ['mu_db_iso04', 0, 80],
