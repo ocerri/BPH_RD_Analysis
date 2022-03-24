@@ -138,12 +138,12 @@ def get_ctrl_weights(ds,pt_min=0,pt_max=1,fraction=0.3,epsilon=1e-10):
 # are defined in B2DstMu_skimCAND_v1.py.
 #
 # The tuple has the following values:
-#     1. Parameter Name
-#     2. procId_DstHc (set in B2DstMu_skimCAND_v1.py)
-#     3. Central value (relative to Monte Carlo)
-#     4. Relative uncertainty
-#     5. Multiplication factor for relative uncertainty
-DST_HC_PROCESSES = np.genfromtxt("dst_hc_processes.txt",dtype=None)
+#     1. procId_DstHc (set in B2DstMu_skimCAND_v1.py)
+#     2. Central value (relative to Monte Carlo cards)
+#     3. Relative uncertainty
+#     4. Multiplication factor for relative uncertainty
+uncertainties_DstHc_mix = np.genfromtxt('uncertainties_DstHc_processes.txt', dtype=None)
+DstHc_sample_id = {'Bd_DstDu':1, 'Bd_DstDd':2, 'Bd_DstDs': 3, 'Bu_DstDu':4, 'Bu_DstDd':5, 'Bs_DstDs':6}
 
 import argparse
 parser = argparse.ArgumentParser(description='Script used to run combine on the R(D*) analysis.',
@@ -287,7 +287,8 @@ processOrder = [
     'Bd_DstDu', 'Bu_DstDu',
     'Bd_DstDd', 'Bu_DstDd',
     'Bd_DstDs', 'Bs_DstDs',
-    'Bd_DDs1', 'Bu_DDs1', 'B_DstDXX',
+    'Bd_DDs1', 'Bu_DDs1',
+    'B_DstDXX',
     'dataSS_DstMu'
 ]
 
@@ -1241,15 +1242,25 @@ def createHistograms(category):
         ############################
         # Hc mix variations
         ############################
-        # From https://www.overleaf.com/read/ykppfynnfxdt
-        if re.match('B[usd]_DstD[usd]', n):
-            for name, proc_id, centralVal, relScale, inflateRate in DST_HC_PROCESSES:
-                weights[name], wVar[name + 'Up'], wVar[name + 'Down'] = \
-                    computeBrVarWeights(ds, {'procId_DstHc': proc_id}, centralVal=centralVal, relScale=inflateRate*relScale, absVal=False)
+        if n in DstHc_sample_id.keys():
+            print 'Including', n, 'mix variations'
+            weights['kill_slipped_in'] = np.where( np.floor_divide(ds['procId_DstHc'], 100) == DstHc_sample_id[n], 1, 0)
+            print 'Surviving after killing slipped in {:.3f}%'.format(100*np.sum(weights['kill_slipped_in'])/float(ds.shape[0]))
+
+            for proc_id, centralVal, relScale, inflateRate in uncertainties_DstHc_mix:
+                if np.floor_divide(proc_id, 100) != DstHc_sample_id[n]: continue
+                wc, wu, wd = computeBrVarWeights(ds, {'procId_DstHc': proc_id}, centralVal=centralVal, relScale=inflateRate*relScale, absVal=False)
+                name = 'br'+n+'_'+str(proc_id)
+                weights[name], wVar[name+'Up'], wVar[name+'Down'] = wc, wu, wd
 
         if n == 'B_DstDXX':
             nnn = 'Bu_DstDXX_frac'
             weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
+
+
+        ############################
+        # Creating histograms
+        ############################
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -1754,15 +1765,25 @@ def createHistograms(category):
         ############################
         # Hc mix variations
         ############################
-        # From https://www.overleaf.com/read/ykppfynnfxdt
-        if re.match('B[usd]_DstD[usd]', n):
-            for name, proc_id, centralVal, relScale, inflateRate in DST_HC_PROCESSES:
-                weights[name], wVar[name + 'Up'], wVar[name + 'Down'] = \
-                    computeBrVarWeights(ds, {'procId_DstHc': proc_id}, centralVal=centralVal, relScale=inflateRate*relScale, absVal=False)
+        if n in DstHc_sample_id.keys():
+            print 'Including', n, 'mix variations'
+            weights['kill_slipped_in'] = np.where( np.floor_divide(ds['procId_DstHc'], 100) == DstHc_sample_id[n], 1, 0)
+            print 'Surviving after killing slipped in {:.3f}%'.format(100*np.sum(weights['kill_slipped_in'])/float(ds.shape[0]))
+
+            for proc_id, centralVal, relScale, inflateRate in uncertainties_DstHc_mix:
+                if np.floor_divide(proc_id, 100) != DstHc_sample_id[n]: continue
+                wc, wu, wd = computeBrVarWeights(ds, {'procId_DstHc': proc_id}, centralVal=centralVal, relScale=inflateRate*relScale, absVal=False)
+                name = 'br'+n+'_'+str(proc_id)
+                weights[name], wVar[name+'Up'], wVar[name+'Down'] = wc, wu, wd
 
         if n == 'B_DstDXX':
             nnn = 'Bu_DstDXX_frac'
             weights[nnn], wVar[nnn+'Up'], wVar[nnn+'Down'] = computeBrVarWeights(ds, {'MC_DstMotherPdgId': 521}, relScale=0.5, centralVal=2., keepNorm=True)
+
+
+        ############################
+        # Creating histograms
+        ############################
 
         print 'Computing total weights'
         weightsCentral = np.ones_like(ds['q2'])
@@ -2896,14 +2917,6 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
                 'brDstPiPi_D1Pi', 'brDstPiPi_D1stPi', 'brDstPiPi_D2stPi']:
         card += nnn + ' shape'  + aux*nCat + '\n'
 
-    aux = ''
-    for p in processes:
-        if re.match('B[usd]_DstD[usd]', p):
-            aux += ' 1.'
-        else:
-            aux += ' -'
-    for nnn, proc_id, centralVal, relScale, inflateRate in DST_HC_PROCESSES:
-        card += nnn + ' shape'  + aux*nCat + '\n'
     # card += 'Dst2S_width shape' + aux*nCat + '\n'
     # card += 'brDstst_DststPi shape' + aux*nCat + '\n'
     # card += 'brD2420_DstPiPi shape' + aux*nCat + '\n'
@@ -2912,7 +2925,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # card += 'brDst2S_DstPiPi shape' + aux*nCat + '\n'
 
     # Hc mix composition
-    def brShapeSys(relevantSamples=[], shapeNames=[], prefix='br'):
+    def brShapeSys(relevantSamples=[], shapeNames=[], prefix=''):
         aux = ''
         for p in processes:
             if p in relevantSamples: aux += ' 1.'
@@ -2925,16 +2938,16 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             out += prefix+n+' ' + type + aux*nCat + '\n'
         return out
 
-    # Fix this
-    # card += brShapeSys(['Bd_DstDu'], ['Bd_DstDuK', 'Bd_DstDustK', 'Bd_DstDust', 'Bd_DstDuKst'])
-    # card += brShapeSys(['Bd_DstDd'], ['Bd_DstDdK','Bd_DstDdstK','Bd_DstDdst','Bd_DstDd','Bd_DstDdKst'])
-    # card += brShapeSys(['Bd_DstDs'], ['Bd_DstDs', 'Bd_DstDsst'+category.name, 'Bd_DstDsst0'])
-    # card += brShapeSys(['Bu_DstDu'], ['Bu_DstDuK', 'Bu_DstDustK', 'Bu_DstDuKst', 'Bu_DstDu'])
-    # card += brShapeSys(['Bu_DstDd'], ['Bu_DstDdK', 'Bu_DstDdstK', 'Bu_DstDdKst'])
-    # card += brShapeSys(['Bs_DstDs'], ['Bs_DstDsKst']) # Threated all together in scale sys above
+    for nnn in sorted(DstHc_sample_id.keys()):
+        id = DstHc_sample_id[nnn]
+        shapeNames = []
+        for proc_id, _, _, _ in uncertainties_DstHc_mix:
+            if np.floor_divide(proc_id, 100) == id:
+                shapeNames.append('br'+nnn+'_'+str(proc_id))
+        print nnn, shapeNames
+        card += brShapeSys([nnn], shapeNames)
 
-
-    card += brShapeSys(['B_DstDXX'], ['Bu_DstDXX_frac'], prefix='')
+    card += brShapeSys(['B_DstDXX'], ['Bu_DstDXX_frac'])
 
 
 

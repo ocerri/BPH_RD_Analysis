@@ -836,6 +836,7 @@ def makeSelection(inputs):
                     process = 410
 
                 # Not present in out MC
+                # B+ -> D* D_s (Cabibbo soppressed)
                 elif (m_Dst == 521 and sis_c == 431 and sis_s == 0):
                     process = 450
 
@@ -848,6 +849,7 @@ def makeSelection(inputs):
                 elif (m_Dst == 521 and sis_c == 413 and sis_s == 323):
                     process = 506 # 5.6, 5.8
                 # Not present in our MC
+                # B+ -> D* D_s* (Cabibbo soppressed)
                 elif (m_Dst == 521 and sis_c == 433 and sis_s == 0):
                     process = 520
 

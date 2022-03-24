@@ -16,10 +16,9 @@
     - Bs_DstDsBr
     - Bd_DDs1Br
     - Bu_DDs1Br
+    - rgx{brB[dsu]_DstD.*_[0-9]+}
     # - B_DstDXXBr
-    - rgx{brB[uds]_DstD.*}
     # - Bu_DstDXX_frac
-    - rgx{brB[dsu]_DstD.*}
 
 - tag: pythiaProduction
   title: B mesons production modeling
