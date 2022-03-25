@@ -1038,14 +1038,6 @@ def createHistograms(category):
             weights['muonIdSF'], _, _ = computeMuonIDSF(ds)
 
             print 'Including soft track pT corrections'
-            # l = ['K_pt', 'pi_pt', 'pis_pt']
-            # weights['softTrkEff'] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], parsSoftTracks['s'][0])
-            # for mod in [+1, -1]:
-            #     varName = 'Up' if mod > 0 else 'Down'
-            #     w = parsSoftTracks['w'][0] + mod*parsSoftTracks['w'][1]
-            #     wVar['softTrkEff_w'+varName] = weightsSoftTrackEff(ds, l, w, parsSoftTracks['s'][0])/weights['softTrkEff']
-            #     s = parsSoftTracks['s'][0] + mod*parsSoftTracks['s'][1]
-            #     wVar['softTrkEff_s'+varName] = weightsSoftTrackEff(ds, l, parsSoftTracks['w'][0], s)/weights['softTrkEff']
             partList = ['K_pt', 'pi_pt', 'pis_pt']
             for nBin in range(len(softPtUnc)):
                 refPt = '{:.0f}'.format(np.round(np.mean(softPtUnc[nBin][:-1])*1e3))
@@ -1383,7 +1375,7 @@ def createHistograms(category):
             binning['ctrl_'+s+'_MVA'] = binning['MVA']
 
         ctrlVar['ctrl_'+s+'_M2miss'] = 'M2_miss'
-        binning['ctrl_'+s+'_M2miss'] = [25, -2, 8]
+        binning['ctrl_'+s+'_M2miss'] = [18, 0, 7]
 
         ctrlVar['ctrl_'+s+'_q2'] = 'q2'
         binning['ctrl_'+s+'_q2'] = [50, -2, 15]
@@ -4117,7 +4109,7 @@ if 'histos' in args.step:
     if args.useMVA:
         mem = '32000'
     else:
-        mem = '20000'
+        mem = '32000'
 elif args.category == 'comb' and 'fitDiag' in args.step:
     mem = '16000'
 jdlTemplate = '\n'.join([
