@@ -2648,10 +2648,6 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     else:
         card += brScaleSys('brBd_DstMuNu', ['mu', 'tau'], relUnc=1.2/50.6)
 
-    ## Temporary
-    # card += brScaleSys('DstPiPiBr', ['Bu_MuDstPiPi', 'Bd_MuDstPiPi', 'Bu_TauDstPiPi', 'Bd_TauDstPiPi'], relUnc=0.3/0.96)
-    # card += brScaleSys('DstPiPiBr', ['Bu_MuDstPiPi', 'Bu_TauDstPiPi', 'Bd_TauDstPiPi'], relUnc=0.3/0.96)
-
     card += brScaleSys('DstKBr', ['Bs_MuDstK', 'Bs_TauDstK'], relUnc=1.5/5.9)
 
     card += brScaleSys('RDs_stst', ['Bu_TauDstPi', 'Bd_TauDstPi', 'Bd_TauDstPiPi', 'Bu_TauDstPiPi', 'Bs_TauDstK'], relUnc=0.3)
@@ -2659,9 +2655,6 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += brScaleSys('DuMuBr', ['Bd_DstDu', 'Bu_DstDu'], relUnc=2.5/60.8)
     card += brScaleSys('DdMuBr', ['Bd_DstDd', 'Bu_DstDd'], relUnc=2.7/158.8)
     card += brScaleSys('DsMuBr', ['Bd_DstDs', 'Bs_DstDs'], relUnc=2.1/75.4)
-
-    # It is included in the shape variations now
-    # card += brScaleSys('Bs_DstDsBr', ['Bs_DstDs'], relUnc=0.5) #They have not been observed so we variate them alltogether like this
 
     card += brScaleSys('Bd_DDs1Br', ['Bd_DDs1'], relUnc=1.) #They have not been observed so we variate them alltogether like this
     card += brScaleSys('Bu_DDs1Br', ['Bu_DDs1'], relUnc=1.) #They have not been observed so we variate them alltogether like this
