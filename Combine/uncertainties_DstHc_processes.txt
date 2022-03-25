@@ -1,0 +1,42 @@
+# More on uncertainties at https://www.overleaf.com/read/ykppfynnfxdt, and how exactly they
+# are defined in B2DstMu_skimCAND_v1.py.
+# procId Central Uncertainty Inflate Rate
+101       1        0.085      2.5            # 1.1
+102       4        0.5        1              # 1.2 (not measured? x4,1)
+103       1        0.085      2.5            # 1.3
+104       1        0.5        1              # 1.4 (not measured? x4,1)
+105       1        0.087      2.5            # 1.5, 1.8
+106       1        0.5        1              # 1.6, 1.9 (not measured? x4,1)
+107       1        0.074      2.5            # 1.7, 1.10
+201       1        0.078      2.5            # 2.1, 2.2
+203       1        0.5        1              # 2.3, 2.4 (not measured?,1)
+205       1        0.086      2.5            # 2.5, 2.8
+206       1        0.5        1              # 2.6, 2.9 (not measured?,1)
+207       1        0.077      2.5            # 2.7, 2.10
+211       1        0.25       2.5            # 2.11, 2.12
+301       1        0.14       2.5            # 3.1
+302       2        0.008      62.5           # 3.2
+303       1        0.4        2.5            # 3.3
+401       1        0.11       2.5            # 4.1
+402       4        0.5        1              # 4.2 (not measured?,1)
+403       1        0.13       2.5            # 4.3
+404       4        0.5        1              # 4.4 (not measured?,1)
+405       1        0.14       2.5            # 4.5, 4.7
+406       4        0.5        1              # 4.6, 4.8 (not measured?,1)
+409       1        0.13       2.5            # 4.9
+410       1        0.21       2.5            # 4.10
+501       1        0.2        2.5            # 5.1, 5.3
+502       4        0.5        1              # 5.2, 5.4 (not measured?,1)
+505       1        0.14       2.5            # 5.5, 5.7
+506       4        0.5        1              # 5.6, 5.8 (not measured?,1)
+# 520       1        0.5        1              # (?,1) Not in MC cards, splipped in
+601       4        0.5        1              # Not measured
+602       4        0.5        1              # Not measured
+603       4        0.5        1              # Not measured
+604       4        0.5        1              # Not measured
+605       4        0.5        1              # Not measured
+606       4        0.5        1              # Not measured
+# 620       1        0.5        1              # (?,1) Not in MC cards, splipped in
+# 621       1        0.5        1              # (?,1) Not in MC cards, splipped in
+# 701       1        0.5        1              # (?,1) Separate Dss1 sample
+# 702       1        0.5        1              # (?,1) Separate Dss1 sample
