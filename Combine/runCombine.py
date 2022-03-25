@@ -1152,7 +1152,6 @@ def createHistograms(category):
             for proc_id, centralVal, relScale, inflateRate in uncertainties_DstPi_mix:
                 wc, wu, wd = computeBrVarWeights(ds, {'procId_Dstst': proc_id}, centralVal=centralVal, relScale=inflateRate*relScale, absVal=False)
                 name = 'brB_DstPiMuNu_'+str(proc_id)
-                print name
                 weights[name], wVar[name+'Up'], wVar[name+'Down'] = wc, wu, wd
 
 
@@ -1180,7 +1179,6 @@ def createHistograms(category):
             for proc_id, centralVal, relScale, inflateRate in uncertainties_DstPiPi_mix:
                 wc, wu, wd = computeBrVarWeights(ds, {'procId_Dstst': proc_id}, centralVal=centralVal, relScale=inflateRate*relScale, absVal=False)
                 name = 'brB_DstPiPiMuNu_'+str(proc_id)
-                print name
                 weights[name], wVar[name+'Up'], wVar[name+'Down'] = wc, wu, wd
 
 
@@ -1627,7 +1625,6 @@ def createHistograms(category):
             for proc_id, centralVal, relScale, inflateRate in uncertainties_DstPi_mix:
                 wc, wu, wd = computeBrVarWeights(ds, {'procId_Dstst': proc_id}, centralVal=centralVal, relScale=inflateRate*relScale, absVal=False)
                 name = 'brB_DstPiMuNu_'+str(proc_id)
-                print name
                 weights[name], wVar[name+'Up'], wVar[name+'Down'] = wc, wu, wd
 
 
@@ -1655,7 +1652,6 @@ def createHistograms(category):
             for proc_id, centralVal, relScale, inflateRate in uncertainties_DstPiPi_mix:
                 wc, wu, wd = computeBrVarWeights(ds, {'procId_Dstst': proc_id}, centralVal=centralVal, relScale=inflateRate*relScale, absVal=False)
                 name = 'brB_DstPiPiMuNu_'+str(proc_id)
-                print name
                 weights[name], wVar[name+'Up'], wVar[name+'Down'] = wc, wu, wd
 
         ############################
@@ -2713,7 +2709,6 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
                 for k in histo[ccc].keys():
                     if k.startswith(processOrder[0]+'__'+cname) and k.endswith('Up'):
                         n = k[k.find('__')+2:-2]
-                        print n
                         card += n+' shape' + aux + '\n'
                 break
 
@@ -2788,7 +2783,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     # Dstst mix composition
     aux = ''
     for p in processes:
-        if re.match('B[du]_MuDstPi\Z', n):
+        if re.match('B[du]_MuDstPi\Z', p):
             aux += ' 1.'
         else: aux += ' -'
 
@@ -4130,7 +4125,7 @@ if 'histos' in args.step:
     if args.useMVA:
         mem = '32000'
     else:
-        mem = '16000'
+        mem = '20000'
 elif args.category == 'comb' and 'fitDiag' in args.step:
     mem = '16000'
 jdlTemplate = '\n'.join([
@@ -4142,7 +4137,7 @@ jdlTemplate = '\n'.join([
               'JobPrio           = -1',
               'WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT',
               '+MaxRuntime       = 1200',
-              '+JobQueue         = ' + ('"Normal"' if ('fitDiag' in args.step or args.category == 'comb') else '"Short"'),
+              '+JobQueue         = "Normal"',# + ('"Normal"' if ('fitDiag' in args.step or args.category == 'comb') else '"Short"'),
               '+RunAsOwner       = True',
               '+InteractiveUser  = True',
               '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"',
