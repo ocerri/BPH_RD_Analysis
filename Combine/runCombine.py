@@ -282,7 +282,7 @@ processOrder = [
     'Bd_DstDd', 'Bu_DstDd',
     'Bd_DstDs', 'Bs_DstDs',
     'Bd_DDs1', 'Bu_DDs1',
-    'B_DstDXX',
+    # 'B_DstDXX',
     'dataSS_DstMu'
 ]
 
@@ -463,7 +463,7 @@ def loadDatasets(category, loadRD):
     'Bs_DstDs': DSetLoader('Bs_DstDs', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bd_DDs1': DSetLoader('Bd_DDs1', candDir=candDir, skimmedTag=args.skimmedTag),
     'Bu_DDs1': DSetLoader('Bu_DDs1', candDir=candDir, skimmedTag=args.skimmedTag),
-    'B_DstDXX': DSetLoader('B_DstDXX', candDir=candDir, skimmedTag=args.skimmedTag),
+    # 'B_DstDXX': DSetLoader('B_DstDXX', candDir=candDir, skimmedTag=args.skimmedTag),
     }
 
     dSet = {}
@@ -1383,7 +1383,7 @@ def createHistograms(category):
             binning['ctrl_'+s+'_MVA'] = binning['MVA']
 
         ctrlVar['ctrl_'+s+'_M2miss'] = 'M2_miss'
-        binning['ctrl_'+s+'_M2miss'] = [25, -2, 8]
+        binning['ctrl_'+s+'_M2miss'] = [25, -2, 7]
 
         ctrlVar['ctrl_'+s+'_q2'] = 'q2'
         binning['ctrl_'+s+'_q2'] = [50, -2, 15]
@@ -2598,8 +2598,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += 'overallMcNorm'+category.trg+' rateParam * B[usd]_* 1.\n'
 
     # Relax control regions norm
-    card += 'ctrlNormBToDstHc'+category.trg+' rateParam ctrl_??_* B[dsu]_D* 1.\n'
-    card += 'ctrlNormBToDstPiPi'+category.trg+' rateParam ctrl_??_* B[dsu]_*PiPi 1.\n'
+    # card += 'ctrlNormBToDstHc'+category.trg+' rateParam ctrl_??_* B[dsu]_D* 1.\n'
+    # card += 'ctrlNormBToDstPiPi'+category.trg+' rateParam ctrl_??_* B[dsu]_*PiPi 1.\n'
 
 
     #### Combinatorial background norm
@@ -2659,7 +2659,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += brScaleSys('Bd_DDs1Br', ['Bd_DDs1'], relUnc=1.) #They have not been observed so we variate them alltogether like this
     card += brScaleSys('Bu_DDs1Br', ['Bu_DDs1'], relUnc=1.) #They have not been observed so we variate them alltogether like this
 
-    card += brScaleSys('B_DstDXXBr', ['B_DstDXX'], relUnc=1.) #They have not been observed so we variate them alltogether like this
+    # card += brScaleSys('B_DstDXXBr', ['B_DstDXX'], relUnc=1.) #They have not been observed so we variate them alltogether like this
 
     card += 60*'-'+'\n'
 
@@ -2819,7 +2819,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
                 shapeNames.append('br'+nnn+'_'+str(proc_id))
         card += brShapeSys([nnn], shapeNames)
 
-    card += brShapeSys(['B_DstDXX'], ['Bu_DstDXX_frac'])
+    # card += brShapeSys(['B_DstDXX'], ['Bu_DstDXX_frac'])
 
 
 
@@ -4118,7 +4118,7 @@ if 'histos' in args.step:
     if args.useMVA:
         mem = '32000'
     else:
-        mem = '20000'
+        mem = '32000'
 elif args.category == 'comb' and 'fitDiag' in args.step:
     mem = '16000'
 jdlTemplate = '\n'.join([
