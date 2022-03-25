@@ -1,4 +1,6 @@
-#procId Central Uncertainty Inflate Rate
+# More on uncertainties at https://www.overleaf.com/read/ykppfynnfxdt, and how exactly they
+# are defined in B2DstMu_skimCAND_v1.py.
+# procId Central Uncertainty Inflate Rate
 101       1        0.085      2.5            # 1.1
 102       4        0.5        1              # 1.2 (not measured? x4,1)
 103       1        0.085      2.5            # 1.3
