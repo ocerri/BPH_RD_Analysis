@@ -4066,7 +4066,7 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 
     # Run the test stat toy distribution
     cmdToys = cmd.replace('-n Obs', '-n Toys')
-    nToysPerRep = 30 if args.runInJob else 5
+    nToysPerRep = 40 if args.runInJob else 5
     cmdToys = cmdToys.replace('-t 0 -s 100', '-t {} -s -1'.format(nToysPerRep))
     print cmdToys
 
@@ -4295,7 +4295,7 @@ if __name__ == "__main__":
             rLimits = [0.1]
         elif not args.unblinded:
             if args.category == 'comb':
-                rLimits = [0.2]
+                rLimits = [0.3]
             else:
                 rLimits = [0.3]
 
