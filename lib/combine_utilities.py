@@ -97,13 +97,23 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
             l, l2 = 0, 0
             # raise
 
-
+        upper_excl_1s, upper_excl_2s = None, None
         if np.all(nll_u[:-1] <= nll_u[1:]):
             if len(r_u) > 2:
                 kind = 'linear' if 1 > np.max(nll_u) else 'quadratic'
                 f_u = interp1d(nll_u, r_u, kind, fill_value='extrapolate')
                 u = f_u(0.5)
                 u2 = f_u(2.0)
+
+                print l
+                if l < 0.01 and len(r_u) > 4:
+                    print 'Computing upper exclusion since minimum close to lower bound'
+                    f_NLL = interp1d(r_u, nll_u, 'quadratic', fill_value='extrapolate')
+                    x_test = np.linspace(np.min(r_u), np.max(r_u)+0.3, 500)
+                    likelyhood = np.exp(-f_NLL(x_test))
+                    proba = np.cumsum(likelyhood) / np.sum(likelyhood)
+                    upper_excl_1s = x_test[np.argmin(np.abs(proba - 0.683))]
+                    upper_excl_2s = x_test[np.argmin(np.abs(proba - 0.954))]
             else:
                 print '[WARNING] Minimum at upper bound'
                 if len(r_u):
@@ -151,7 +161,7 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
                 outStr += ' [{:.1f} %]'.format(100*(u-l)*0.5/c)
                 outStr += '\nSigma = {:.3f}'.format((u-l)*0.5)
             print outStr
-        res.append([c, c-l, u-c, (u-l)*0.5, l2, l, u, u2])
+        res.append([c, c-l, u-c, (u-l)*0.5, l2, l, u, u2, upper_excl_1s, upper_excl_2s])
     if verbose:
         print '----------------------------------\n'
     return np.array(res) if len(res) > 1 else res[0]

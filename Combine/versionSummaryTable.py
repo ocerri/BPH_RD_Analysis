@@ -100,13 +100,14 @@ def make_results_table(version=None, cat=None, includeDirs=None, nPulls=4, skipD
         scan_result = '-'
         if os.path.isfile(scan_file):
             with open(scan_file) as f:
-                line = f.readlines()[-1]
+                line = f.readlines()[-1][:-1]
                 data = [x for x in line.split(' ') if x]
                 errUp = float(data[2][1:])
                 errDw = float(data[4][1:])
                 scan_result = ['{:.1f} + {:.1f}'.format(100*float(data[1]), 100*errUp)]
                 scan_result.append(' '*scan_result[0].find('+') + '- {:.1f}'.format(100*errDw))
-    #     print scan_result
+                if 'Upper lims' in line:
+                    scan_result.append('< ' + data[8][:-1])
 
         catComp_file = dd + '/categoriesCompatibility.txt'
         catComp = '-'
@@ -130,8 +131,14 @@ def make_results_table(version=None, cat=None, includeDirs=None, nPulls=4, skipD
         if dd != dirs[0]:
             table.add_row(len(table.field_names)*[''])
         table.add_row([tag, pval_sat, scan_result[0], catComp, pulls[0][0], pulls[0][1]])
-        for i in range(1, len(pulls)):
-            table.add_row(['', '', scan_result[1] if i==1 else '', '', pulls[i][0], pulls[i][1]])
+        for i in range(1, max(len(pulls), len(scan_result))):
+            auxScan = ''
+            if i < len(scan_result):
+                auxScan = scan_result[i]
+            auxPull = ['', '']
+            if i < len(pulls):
+                auxPull = pulls[i]
+            table.add_row(['', '', auxScan, '', auxPull[0], auxPull[1]])
 
     return table
 

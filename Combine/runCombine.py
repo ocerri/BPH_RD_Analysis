@@ -3068,7 +3068,6 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     plt.legend(loc='upper right', numpoints=1)
     plt.xlabel('Toy number')
     plt.ylabel(r'$R(D^*)$')
-    plt.savefig(outdir + '/fig/biasStudy_toysResults.png')
 
     webFolderBias = webFolder + '/biasStudy'
     if not os.path.isdir(webFolderBias):
@@ -3082,7 +3081,6 @@ def collectBiasToysResults(scansLoc, rVal=SM_RDst):
     h.Fit('gaus', 'ILQ')
     rt.gStyle.SetStatY(0.95)
     c = drawOnCMSCanvas(CMS_lumi, [h])
-    c.SaveAs(outdir + '/fig/biasStudy_zTest.png')
     c.SaveAs(webFolderBias + '/zTest.png')
 
     if not trackedParam is None:
@@ -3187,6 +3185,8 @@ def runScan(tag, card, out, catName, rVal=SM_RDst, rLimits=[0.1, 0.7], nPoints=3
         strRes = tag
         strRes += ' '*(35-len(strRes))
         strRes += '{:.3f} +{:.3f} / -{:.3f}'.format(res[0], res[2], res[1])
+        if res[8] is not None:
+            strRes += ' (Upper lims: {:.3f}, {:.3f})'.format(res[8], res[9])
         dumpFile.write(strRes + '\n')
     if args.showPlots:
         display(Image(filename=out+'/scan'+tag+'.png'))
@@ -3639,7 +3639,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
     cmd += ' -n _total'
     runCommandSafe(cmd)
     res = getUncertaintyFromLimitTree(out + 'higgsCombine_total.MultiDimFit.mH120.root', verbose=False, drawPlot=False)
-    r, rDown, rUp = res[0], res[-3], res[-2]
+    r, rDown, rUp = res[0], res[5], res[6]
     uncRemaining.append(0.5*(rUp-rDown))
     uncNames.append('total')
     s = 'Nominal fit: {:.4f} +/- {:.4f}'.format(r, uncRemaining[-1])
@@ -3667,7 +3667,7 @@ def runUncertaintyBreakDownTable(card, out, catName, rVal=SM_RDst, rLimits=[0.1,
             r, rDown, rUp = arr['r']
         elif type=='scan':
             res = getUncertaintyFromLimitTree(out + 'higgsCombine_'+tag+'.MultiDimFit.mH120.root', verbose=False, drawPlot=False)
-            r, rDown, rUp = res[0], res[-3], res[-2]
+            r, rDown, rUp = res[0], res[5], res[6]
         else:
             print 'Type not recognised'
             raise
@@ -4097,7 +4097,6 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
     if fixRDst:
         text += ' , R(D*) fixed'
     plt.text(0.04, 0.93, text, transform = plt.gca().transAxes)
-    plt.savefig(out + 'fig/resultsGoF'+tag+'.png')
     plt.savefig(webFolder + '/resultsGoF'+tag+'.png')
 
     strRes = tag
