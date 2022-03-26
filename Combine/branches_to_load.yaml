@@ -43,10 +43,8 @@ all:
  - massHadTks
  - massVisTks1
  - massVisTks2
- - massVisTks3
  - massHadTks1
  - massHadTks2
- - massHadTks3
  - M2missTks
  - vtx_PV_x
  - vtx_PV_y
@@ -60,7 +58,6 @@ mc:
  - MC_B_eta
  - MC_mu_pt
  - MC_mu_eta
- - MC_muMotherPdgId
  - MC_MassCharmedBDaughter
  - MC_DstMotherPdgId
  - MC_tkFlag_0
