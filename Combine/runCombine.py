@@ -485,9 +485,9 @@ def loadDatasets(category, loadRD):
             raise
 
         branches_to_load = relevantBranches['all'] + relevantBranches['mc']
-        if n in ['Bd_MuNuDst', 'Bd_TauNuDst']:
+        if n in ['tau', 'mu']:
             branches_to_load += relevantBranches['signal']
-        if 'MuNuDstPi' in n:
+        if 'MuDstPi' in n:
             branches_to_load += relevantBranches['DstPi']
         if re.match('B[usd]_DstD[usd]', n):
             branches_to_load += relevantBranches['DstHc']
@@ -498,6 +498,7 @@ def loadDatasets(category, loadRD):
                                                branches=branches_to_load
                                               )
                               )
+
         #                       .astype(np.float32)
         # pd.set_option('display.max_rows', 500)
         # print dSet[n].dtypes
@@ -4137,9 +4138,9 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 mem = '7500'
 if 'histos' in args.step:
     if args.useMVA:
-        mem = '32000'
+        mem = '20000'
     else:
-        mem = '32000'
+        mem = '16000'
 elif args.category == 'comb' and 'fitDiag' in args.step:
     mem = '16000'
 jdlTemplate = '\n'.join([
