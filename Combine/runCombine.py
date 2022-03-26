@@ -23,14 +23,16 @@ from scipy.stats import chi2 as scipy_chi2
 from scipy.stats import crystalball
 import matplotlib.pyplot as plt
 from array import array
-import subprocess
-
+import subprocess, psutil
 import uproot as ur
 import ROOT as rt
 rt.PyConfig.IgnoreCommandLineOptions = True
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
+
+from system_utilities import print_memory_usage
+this_process = psutil.Process(os.getpid())
 
 from progressBar import ProgressBar
 from categoriesDef import categories as categoriesDef
@@ -41,6 +43,7 @@ from histo_utilities import create_TH1D, create_TH2D, std_color_list, make_ratio
 from gridVarQ2Plot import plot_gridVarQ2, plot_SingleCategory, getControlXtitle, getControlSideText
 from lumi_utilities import getLumiByTrigger
 from combine_utilities import getUncertaintyFromLimitTree, dumpDiffNuisances, stringJubCustomizationCaltechT2, loadHisto4CombineFromRoot, getResultsFromMultiDimFitSingles
+
 
 import CMS_lumi, tdrstyle
 tdrstyle.setTDRStyle()
@@ -433,6 +436,7 @@ controlRegSel['pp'] = selfun__TkPlusPlus
 corrScaleFactors = {}
 def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
+    print_memory_usage(this_process, 'Beginning loading')
     #They all have to be produced with the same pileup
     # candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
     candDir='ntuples_B2DstMu_220311'
@@ -473,18 +477,37 @@ def loadDatasets(category, loadRD):
     if not args.maxEventsToLoad is None:
         print 'Limiting events per MC sample to', args.maxEventsToLoad
 
+    relevantBranches = yaml.load(open('branches_to_load.yaml', 'r'))
+
     for n, s in MCsample.iteritems():
         if not n in processOrder:
             print n, 'not declarted in processOrder'
             raise
+
+        branches_to_load = relevantBranches['all'] + relevantBranches['mc']
+        if n in ['Bd_MuNuDst', 'Bd_TauNuDst']:
+            branches_to_load += relevantBranches['signal']
+        if 'MuNuDstPi' in n:
+            branches_to_load += relevantBranches['DstPi']
+        if re.match('B[usd]_DstD[usd]', n):
+            branches_to_load += relevantBranches['DstHc']
+
+
         dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType),
-                                               stop=args.maxEventsToLoad
+                                               stop=args.maxEventsToLoad,
+                                               branches=branches_to_load
                                               )
                               )
+        #                       .astype(np.float32)
+        # pd.set_option('display.max_rows', 500)
+        # print dSet[n].dtypes
+        # exit()
         dSetTkSide[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType),
-                                                     stop=args.maxEventsToLoad
+                                                     stop=args.maxEventsToLoad,
+                                                     branches=branches_to_load
                                                     )
                                     )
+    print_memory_usage(this_process, 'MC samples loaded')
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
     locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_220311_{}'.format(category.name)
@@ -497,8 +520,9 @@ def loadDatasets(category, loadRD):
 
         creation_date = '220311'
         locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
-        dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
-        dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
+        dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root', branches=relevantBranches['all']))
+        dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root', branches=relevantBranches['all']))
+        print_memory_usage(this_process, 'Data samples loaded')
 
     for name in dSet:
         dSet[name]['ctrl'] = get_ctrl_group(dSet[name])
@@ -531,6 +555,8 @@ def loadDatasets(category, loadRD):
             dSetTkSide[name] = pd.concat((dSetTkSide[name],dup[dup['ctrl2'] != 0]),ignore_index=True)
             if name in dSet:
                 dSet[name] = pd.concat((dSet[name],dup[dup['ctrl2'] == 0]),ignore_index=True)
+
+    print_memory_usage(this_process, 'Duplicated events for tracks migration')
 
     if args.useMVA:
         fname = '/storage/af/group/rdst_analysis/BPhysics/data/kinObsMVA/clfGBC_tauVall_{}{}.p'.format(args.useMVA, category.name)
@@ -639,7 +665,7 @@ def loadDatasets(category, loadRD):
                 # which aren't duplicates.
                 corrScaleFactors[k+'_tk'] = np.sum(sel[orig])/float(sel[orig].shape[0])
 
-
+    print_memory_usage(this_process, 'Returning from load sample')
     return MCsample, dSet, dSetTkSide
 
 def computeBrVarWeights(ds, selItems={}, relScale=0.2, centralVal=1., keepNorm=False, absVal=True):
@@ -722,6 +748,7 @@ def createHistograms(category):
     os.system(cmd)
 
     MCsample, dSet, dSetTkSide = loadDatasets(category, not args.asimov)
+    print_memory_usage(this_process, 'Returned to createHistograms')
     mcType = 'bare' if args.bareMC else 'corr'
     ######################################################
     ########## Load calibrations
@@ -960,6 +987,7 @@ def createHistograms(category):
 
 
     totalCounting = [0,0]
+    print_memory_usage(this_process, 'Before starting filling singal region histograms')
     print '---------> Fill signal region histograms'
     for n in processOrder:
         ds = dSet[n]
@@ -1278,6 +1306,7 @@ def createHistograms(category):
                 histo[var][h_name] = create_TH1D(ds[varName], name=h_name, weights=w, scale_histo=scale,
                                                     binning=binning[var], opt='underflow,overflow')
 
+    print_memory_usage(this_process, 'Signal region histograms filled')
     evCountStr = '{:.1f} ({:.1f})'.format(*totalCounting)
     eventCountingStr['tot'] = evCountStr
 
@@ -1838,6 +1867,7 @@ def createHistograms(category):
 
         print 'N observed data control regions: ' + ' & '.join(['{:.0f}'.format(histo['ctrl_'+s+'_mHad']['data'].Integral()) for s in ['p_', 'm_', 'mm', 'pm', 'pp']]) + ' \\\\'
 
+    print_memory_usage(this_process, 'All MC and data histograms filled')
     ######################################################
     ########## Dump root file
     ######################################################
@@ -2737,7 +2767,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             aux = ''
             for p in processes:
                 if p in ['tau', 'mu']:
-                    aux += ' 0.5'
+                    aux += ' 1.'
                 else:
                     aux += ' -'
             card += 'B2Dst'+schemeFF+'{} shape'.format(n_pFF) + aux*nCat + '\n'
@@ -4209,6 +4239,7 @@ if __name__ == "__main__":
         loadShapeVar = 'card' in args.step
         histo = loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=loadShapeVar, verbose=False)
 
+
     if 'preFitPlots' in args.step:
         if args.category == 'comb':
             cPre = {}
@@ -4217,6 +4248,7 @@ if __name__ == "__main__":
         else:
             cPre = drawPlots('prefit', histo, args.category.capitalize(), scale_dic={'tau': SM_RDst})
         args.step.remove('preFitPlots')
+
 
     if 'shapeVarPlots' in args.step:
         if args.category == 'comb':
@@ -4248,6 +4280,7 @@ if __name__ == "__main__":
             cmd = 'cp '+cl+' '+webFolder+'/'+os.path.basename(cl)
             runCommandSafe(cmd)
 
+
         if args.validateCard:
             cl = card_location.replace('.txt', '_fitRegionsOnly.txt')
             cmd = 'cd ' + os.path.dirname(cl) + '; '
@@ -4266,6 +4299,7 @@ if __name__ == "__main__":
         createWorkspace(card_location)
         createWorkspace(card_location.replace('.txt', '_fitRegionsOnly.txt'))
         print '\n'
+
 
     if 'bias' in args.step:
         biasOut = outdir + '/biasStudyToys'

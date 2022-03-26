@@ -1,0 +1,312 @@
+all:
+ # - runNum
+ # - lumiNum
+ # - eventNum
+ # - lumiBlock
+ - q2
+ - Est_mu
+ - M2_miss
+ # - U_miss
+ # - q2_coll
+ # - Est_mu_coll
+ # - M2_miss_coll
+ # - mu_charge
+ - mu_pt
+ - mu_eta
+ - mu_phi
+ - mu_sigdxy
+ - mu_dca_vtxDst
+ # - mu_sigdca_vtxDst
+ # - mu_dcaT_vtxDst
+ # - mu_sigdcaT_vtxDst
+ # - mu_dca_vtxDstMu
+ # - mu_sigdca_vtxDstMu
+ # - mu_dcaT_vtxDstMu
+ # - mu_sigdcaT_vtxDstMu
+ - mu_lostInnerHits
+ # - mu_kickFinder
+ # - mu_segmentCompatibility
+ # - mu_trackerStandalonePosLocalChi2
+ # - mu_tightId
+ # - mu_IP3D_vtxDst
+ - mu_sigIP3D_vtxDst
+ - mu_db_iso04
+ # - mu_db_corr_iso04
+ # - mu_db_iso03
+ # - mu_db_iso04_rel
+ # - mu_db_corr_iso04_rel
+ # - mu_db_iso03_rel
+ - B_pt
+ - B_eta
+ # - B_phi
+ - Dst_pt
+ - Dst_eta
+ # - Dst_phi
+ - D0_pt
+ - D0_eta
+ # - D0_phi
+ - pi_pt
+ - pi_eta
+ # - pi_phi
+ - pi_lostInnerHits
+ - K_pt
+ - K_eta
+ # - K_phi
+ - K_lostInnerHits
+ # - pval_piK
+ # - sigdxy_vtxD0_PV
+ - pis_pt
+ - pis_eta
+ # - pis_phi
+ - pis_lostInnerHits
+ # - pval_D0pis
+ - mass_piK
+ # - mass_D0pis
+ - mass_D0pismu
+ - deltaM_DstD
+ # - mass_D0pismu_muASpi
+ # - mass_D0pismu_muASK
+ # - D0pismu_eta
+ # - D0pismu_phi
+ # - pval_D0pismu
+ # - chi2_D0pismu
+ # - d_vtxD0pismu_PV
+ # - dxy_vtxD0pismu_PV
+ # - cos_D0pismu_PV
+ # - cosT_D0pismu_PV
+ - N_goodAddTks
+ - tkCharge_0
+ - tkCharge_1
+ - tkCharge_2
+ # - tkPdgId_0
+ # - tkPdgId_1
+ # - tkPdgId_2
+ - tkPt_0
+ - tkPt_1
+ - tkPt_2
+ # - tkPtError_0
+ # - tkPtError_1
+ # - tkPtError_2
+ # - tkEta_0
+ # - tkEta_1
+ # - tkEta_2
+ # - tkPhi_0
+ # - tkPhi_1
+ # - tkPhi_2
+ # - tk_lostInnerHits_0
+ # - tk_lostInnerHits_1
+ # - tk_lostInnerHits_2
+ # - tk_pval_0
+ # - tk_pval_1
+ # - tk_pval_2
+ # - tk_sigIP3D_vtxB_0
+ # - tk_sigIP3D_vtxB_1
+ # - tk_sigIP3D_vtxB_2
+ - tkMassVis_0
+ - tkMassVis_1
+ - tkMassVis_2
+ - tkMassHad_0
+ - tkMassHad_1
+ - tkMassHad_2
+ # - tkMassMuTk_0
+ # - tkMassMuTk_1
+ # - tkMassMuTk_2
+ # - tkMassDTk_0
+ # - tkMassDTk_1
+ # - tkMassDTk_2
+ - tkMassMiss2_0
+ - tkMassMiss2_1
+ - tkMassMiss2_2
+ # - tkUmiss_0
+ # - tkUmiss_1
+ # - tkUmiss_2
+ - massTks_pipi
+ # - massTks_KK
+ # - massTks_piK
+ # - massTks_Kpi
+ - massVisTks
+ - massHadTks
+ - massVisTks1
+ - massVisTks2
+ - massVisTks3
+ - massHadTks1
+ - massHadTks2
+ - massHadTks3
+ - massHadTks_DstMassConstraint
+ - M2missTks
+ - q2Tks
+ - EmissTks
+ - PmissTks
+ # - UmissTks
+ # - N_goodAddNeu
+ # - neuPdgId_0
+ # - neuPdgId_1
+ # - neuPdgId_2
+ # - neuPt_0
+ # - neuPt_1
+ # - neuPt_2
+ # - neuEta_0
+ # - neuEta_1
+ # - neuEta_2
+ # - neuPhi_0
+ # - neuPhi_1
+ # - neuPhi_2
+ # - neuEnergy_0
+ # - neuEnergy_1
+ # - neuEnergy_2
+ # - neuEt2_0
+ # - neuEt2_1
+ # - neuEt2_2
+ # - massVis_wNeu_0
+ # - massVis_wNeu_1
+ # - massVis_wNeu_2
+ # - massHad_wNeu_0
+ # - massHad_wNeu_1
+ # - massHad_wNeu_2
+ # - massMuNeu_0
+ # - massMuNeu_1
+ # - massMuNeu_2
+ # - massVisNeu
+ # - massHadNeu
+ # - cat_low
+ # - cat_mid
+ # - cat_high
+ # - muPass_Mu12_IP6
+ # - muPass_Mu9_IP6
+ # - muPass_Mu7_IP4
+ # - N_vtx
+ # - N_goodVtx
+ # - PV_chi2
+ # - PV_ndof
+ # - localVertexDensity
+ # - localVertexDensity_10mm
+ # - localVertexDensity_5mm
+ # - localVertexDensity_1mm
+ # - localVertexDensity_cos800
+ # - localVertexDensity_cos990
+ # - localVertexDensity_cos999
+ - vtx_PV_x
+ - vtx_PV_y
+ - vtx_PV_z
+ # - vtx_B_decay_x
+ # - vtx_B_decay_y
+ # - vtx_B_decay_z
+ - beamSpot_x
+ - beamSpot_y
+ - beamSpot_z
+
+mc:
+ # - MC_nAddOgB
+ # - MC_bestBB_dR
+ # - MC_bestBB_dphi
+ # - MC_bestBB_mass
+ # - MC_q2
+ # - MC_Est_mu
+ # - MC_M2_miss
+ - MC_B_pt
+ - MC_B_eta
+ # - MC_B_phi
+ # - MC_B_ctau
+ # - MC_Dst_pt
+ # - MC_Dst_eta
+ # - MC_Dst_phi
+ - MC_mu_pt
+ - MC_mu_eta
+ # - MC_mu_phi
+ # - MC_mu_TransvIP_PV
+ # - MC_mu_TransvIP_vtxDst
+ # - MC_mu_IP_vtxDst
+ # - MC_pi_pt
+ # - MC_pi_eta
+ # - MC_pi_phi
+ # - MC_K_pt
+ # - MC_K_eta
+ # - MC_K_phi
+ # - MC_pis_pt
+ # - MC_pis_eta
+ # - MC_pis_phi
+ # - MC_idxMatch
+ - MC_muMotherPdgId
+ - MC_munuSisterPdgId_0
+ - MC_munuSisterPdgId_1
+ - MC_MassCharmedBDaughter
+ - MC_DstMotherPdgId
+ # - MC_CharmedDstSisPdgId
+ # - MC_StrangeDstSisPdgId
+ # - MC_nAddCharged
+ # - MC_addCharged_SumQ
+ # - MC_nAddNeutral
+ - MC_tkFlag_0
+ - MC_tkFlag_1
+ - MC_tkFromMainB_0
+ - MC_tkFromMainB_1
+ # - MC_tk_dpt_0
+ # - MC_tk_dpt_1
+ # - MC_tk_deta_0
+ # - MC_tk_deta_1
+ # - MC_tk_dphi_0
+ # - MC_tk_dphi_1
+ # - MC_tkPdgId_0
+ # - MC_tkPdgId_1
+ # - MC_tkMotherPdgId_0
+ # - MC_tkMotherPdgId_1
+ # - MC_tkMotherMotherPdgId_0
+ # - MC_tkMotherMotherPdgId_1
+ - MC_nInteractions
+
+signal:
+ - wh_CLNCentral
+ - wh_CLNR0Down
+ - wh_CLNR0Up
+ - wh_CLNeig1Down
+ - wh_CLNeig1Up
+ - wh_CLNeig2Down
+ - wh_CLNeig2Up
+ - wh_CLNeig3Down
+ - wh_CLNeig3Up
+ - wh_BLPRCentral
+ - wh_BLPReig1Down
+ - wh_BLPReig1Up
+ - wh_BLPReig2Down
+ - wh_BLPReig2Up
+ - wh_BLPReig3Down
+ - wh_BLPReig3Up
+ - wh_BLPReig4Down
+ - wh_BLPReig4Up
+ - wh_BLPReig5Down
+ - wh_BLPReig5Up
+ - wh_BLPReig6Down
+ - wh_BLPReig6Up
+ - procId_signal
+
+DstPi:
+ - wh_Dstst_BLRCentral
+ - wh_DststN_BLReig1Down
+ - wh_DststN_BLReig1Up
+ - wh_DststN_BLReig2Down
+ - wh_DststN_BLReig2Up
+ - wh_DststN_BLReig3Down
+ - wh_DststN_BLReig3Up
+ - wh_DststN_BLReig4Down
+ - wh_DststN_BLReig4Up
+ - wh_DststW_BLReig1Down
+ - wh_DststW_BLReig1Up
+ - wh_DststW_BLReig2Down
+ - wh_DststW_BLReig2Up
+ - wh_DststW_BLReig3Down
+ - wh_DststW_BLReig3Up
+ - wh_D2S_BLOPCentral
+ - wh_D2S_BLOPRhoSqDown
+ - wh_D2S_BLOPRhoSqUp
+ - wh_D2S_BLOPchi11Down
+ - wh_D2S_BLOPchi11Up
+ - wh_D2S_BLOPchi21Down
+ - wh_D2S_BLOPchi21Up
+ - wh_D2S_BLOPchi31Down
+ - wh_D2S_BLOPchi31Up
+ - wh_D2S_BLOPeta1Down
+ - wh_D2S_BLOPeta1Up
+ - procId_Dstst
+
+DstHc:
+ - procId_DstHc
