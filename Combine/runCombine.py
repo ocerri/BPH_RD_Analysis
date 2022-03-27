@@ -498,8 +498,10 @@ def loadDatasets(category, loadRD):
                                                branches=branches_to_load
                                               )
                               )
-
-        #                       .astype(np.float32)
+        reType = {}
+        for colName in dSet[n].columns:
+            reType[colName] = np.float32
+        dSet[n] = dSet[n].astype(reType)
         # pd.set_option('display.max_rows', 500)
         # print dSet[n].dtypes
         # exit()
@@ -508,6 +510,7 @@ def loadDatasets(category, loadRD):
                                                      branches=branches_to_load
                                                     )
                                     )
+        dSetTkSide[n] = dSetTkSide[n].astype(reType)
     print_memory_usage(this_process, 'MC samples loaded')
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
@@ -4136,11 +4139,8 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 ########################### -------- Condor submissions ------------------ #########################
 # Check for the right singularity using: ll /cvmfs/singularity.opensciencegrid.org/cmssw/
 mem = '7500'
-if 'histos' in args.step:
-    if args.useMVA:
-        mem = '20000'
-    else:
-        mem = '16000'
+if 'histos' in args.step or args.useMVA:
+    mem = '16000'
 elif args.category == 'comb' and 'fitDiag' in args.step:
     mem = '16000'
 jdlTemplate = '\n'.join([
