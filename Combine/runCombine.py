@@ -23,14 +23,16 @@ from scipy.stats import chi2 as scipy_chi2
 from scipy.stats import crystalball
 import matplotlib.pyplot as plt
 from array import array
-import subprocess
-
+import subprocess, psutil
 import uproot as ur
 import ROOT as rt
 rt.PyConfig.IgnoreCommandLineOptions = True
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
+
+from system_utilities import print_memory_usage
+this_process = psutil.Process(os.getpid())
 
 from progressBar import ProgressBar
 from categoriesDef import categories as categoriesDef
@@ -41,6 +43,7 @@ from histo_utilities import create_TH1D, create_TH2D, std_color_list, make_ratio
 from gridVarQ2Plot import plot_gridVarQ2, plot_SingleCategory, getControlXtitle, getControlSideText
 from lumi_utilities import getLumiByTrigger
 from combine_utilities import getUncertaintyFromLimitTree, dumpDiffNuisances, stringJubCustomizationCaltechT2, loadHisto4CombineFromRoot, getResultsFromMultiDimFitSingles
+
 
 import CMS_lumi, tdrstyle
 tdrstyle.setTDRStyle()
@@ -473,18 +476,37 @@ def loadDatasets(category, loadRD):
     if not args.maxEventsToLoad is None:
         print 'Limiting events per MC sample to', args.maxEventsToLoad
 
+    relevantBranches = yaml.load(open('branches_to_load.yaml', 'r'))
+
     for n, s in MCsample.iteritems():
         if not n in processOrder:
             print n, 'not declarted in processOrder'
             raise
+
+        branches_to_load = relevantBranches['all'] + relevantBranches['mc']
+        if n in ['tau', 'mu']:
+            branches_to_load += relevantBranches['signal']
+        if 'MuDstPi' in n:
+            branches_to_load += relevantBranches['DstPi']
+        if re.match('B[usd]_DstD[usd]', n):
+            branches_to_load += relevantBranches['DstHc']
+
+
         dSet[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_{}.root'.format(category.name, mcType),
-                                               stop=args.maxEventsToLoad
+                                               stop=args.maxEventsToLoad,
+                                               branches=branches_to_load
                                               )
                               )
+        reType = {}
+        for colName in dSet[n].columns:
+            reType[colName] = np.float32
+        dSet[n] = dSet[n].astype(reType)
         dSetTkSide[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType),
-                                                     stop=args.maxEventsToLoad
+                                                     stop=args.maxEventsToLoad,
+                                                     branches=branches_to_load
                                                     )
                                     )
+        dSetTkSide[n] = dSetTkSide[n].astype(reType)
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
     locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_220311_{}'.format(category.name)
@@ -497,8 +519,8 @@ def loadDatasets(category, loadRD):
 
         creation_date = '220311'
         locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
-        dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root'))
-        dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root'))
+        dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root', branches=relevantBranches['all']))
+        dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root', branches=relevantBranches['all']))
 
     for name in dSet:
         dSet[name]['ctrl'] = get_ctrl_group(dSet[name])
@@ -531,6 +553,7 @@ def loadDatasets(category, loadRD):
             dSetTkSide[name] = pd.concat((dSetTkSide[name],dup[dup['ctrl2'] != 0]),ignore_index=True)
             if name in dSet:
                 dSet[name] = pd.concat((dSet[name],dup[dup['ctrl2'] == 0]),ignore_index=True)
+
 
     if args.useMVA:
         fname = '/storage/af/group/rdst_analysis/BPhysics/data/kinObsMVA/clfGBC_tauVall_{}{}.p'.format(args.useMVA, category.name)
@@ -638,7 +661,6 @@ def loadDatasets(category, loadRD):
                 # compute the correction scale factors only for those events
                 # which aren't duplicates.
                 corrScaleFactors[k+'_tk'] = np.sum(sel[orig])/float(sel[orig].shape[0])
-
 
     return MCsample, dSet, dSetTkSide
 
@@ -4105,11 +4127,8 @@ def runGoodnessOfFit(tag, card, out, algo, maskEvalGoF='', fixRDst=False, rVal=S
 ########################### -------- Condor submissions ------------------ #########################
 # Check for the right singularity using: ll /cvmfs/singularity.opensciencegrid.org/cmssw/
 mem = '7500'
-if 'histos' in args.step:
-    if args.useMVA:
-        mem = '32000'
-    else:
-        mem = '32000'
+if 'histos' in args.step or args.useMVA:
+    mem = '16000'
 elif args.category == 'comb' and 'fitDiag' in args.step:
     mem = '16000'
 jdlTemplate = '\n'.join([
@@ -4209,6 +4228,7 @@ if __name__ == "__main__":
         loadShapeVar = 'card' in args.step
         histo = loadHisto4CombineFromRoot(histo_file_dir, card_name, loadShapeVar=loadShapeVar, verbose=False)
 
+
     if 'preFitPlots' in args.step:
         if args.category == 'comb':
             cPre = {}
@@ -4217,6 +4237,7 @@ if __name__ == "__main__":
         else:
             cPre = drawPlots('prefit', histo, args.category.capitalize(), scale_dic={'tau': SM_RDst})
         args.step.remove('preFitPlots')
+
 
     if 'shapeVarPlots' in args.step:
         if args.category == 'comb':
@@ -4248,6 +4269,7 @@ if __name__ == "__main__":
             cmd = 'cp '+cl+' '+webFolder+'/'+os.path.basename(cl)
             runCommandSafe(cmd)
 
+
         if args.validateCard:
             cl = card_location.replace('.txt', '_fitRegionsOnly.txt')
             cmd = 'cd ' + os.path.dirname(cl) + '; '
@@ -4266,6 +4288,7 @@ if __name__ == "__main__":
         createWorkspace(card_location)
         createWorkspace(card_location.replace('.txt', '_fitRegionsOnly.txt'))
         print '\n'
+
 
     if 'bias' in args.step:
         biasOut = outdir + '/biasStudyToys'

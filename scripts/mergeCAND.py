@@ -6,7 +6,7 @@ import numpy as np
 
 redF = 50
 
-fileTemplate = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/CP_BdToDstarMuNu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen/ntuples_B2DstMu_220311'
+fileTemplate = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/CP_BdToDstarMuNu_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen/ntuples_B2DstMu_220326'
 fileTemplate += '/out_CAND_*.root'
 
 # Create merge directory
