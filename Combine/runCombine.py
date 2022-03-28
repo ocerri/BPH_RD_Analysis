@@ -193,6 +193,9 @@ parser.add_argument ('--forceRDst', default=False, action='store_true', help='Pe
 parser.add_argument ('--seed', default=6741, type=int, help='Seed used by Combine')
 parser.add_argument ('--RDstLims', default=[], type=float, help='Initial boundaries for R(D*).', nargs='+')
 
+# Shape variations options
+parser.add_argument ('--shapeVarRegions', default=[], type=str, help='Regions (or regular expression) to be plotted in shape variations.', nargs='*')
+
 # Bias options
 parser.add_argument ('--runBiasToys', default=False, action='store_true', help='Only generate toys and run scans for bias, do not collect results.')
 parser.add_argument ('--nToys', default=10, type=int, help='Number of toys to run')
@@ -2322,20 +2325,24 @@ def drawPlots(tag, hDic, catName, scale_dic={}):
 def drawShapeVarPlots(card, tag=''):
     print '-----> Creating shape variations plots for', card
 
-    plotsDir = webFolder + '/shapeUncertainties' + tag
-    if os.path.isdir(plotsDir):
-        os.system('rm -rf '+plotsDir)
-    os.system('mkdir -p '+plotsDir)
-    os.system('cp {d}/../index.php {d}/'.format(d=plotsDir))
+    plotsDir = webFolder + '/shapeVariations' + tag
+    if not os.path.isdir(plotsDir):
+        os.system('mkdir -p '+plotsDir)
+        os.system('cp {d}/../index.php {d}/'.format(d=plotsDir))
 
     print '--> REGION:'
     for fn in glob(histo_file_dir + card + '_*.root'):
         region = os.path.basename(fn).replace(card+'_', '').replace('.root', '')
         if region.startswith('h2D'):
             continue
-        # if not region.startswith('ctrl_p') and not region.stratswith('M2_miss'):
-        # if not region.startswith('ctrl_m'):
-        #     continue
+        if len(args.shapeVarRegions) > 0:
+            toBePrinted = False
+            for pattern in args.shapeVarRegions:
+                if re.match(pattern, region):
+                    toBePrinted = True
+                    break
+            if not toBePrinted:
+                continue
         print ' ', region
 
         auxOut = os.path.join(plotsDir, region)
