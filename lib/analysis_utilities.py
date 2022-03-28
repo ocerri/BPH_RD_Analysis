@@ -6,6 +6,8 @@ import pandas as pd
 from glob import glob
 import yaml
 import os
+from os.path import join, expanduser, exists, abspath
+import pickle
 
 import operator
 ops = {'>': operator.gt, '<': operator.lt, }
@@ -123,6 +125,36 @@ def getEff(k,N):
     de = np.sqrt(e*(1-e)/N)
     return [e, de]
 
+def load_data(filename,stop=None,branches=None,cache_path='/storage/af/group/rdst_analysis'):
+    """
+    Returns a pandas dataframe of the skimmed data in `filename`. Caches the
+    result in a local .cache directory so that subsequent calls are fast.
+    """
+    import hashlib
+    mtime = os.path.getmtime(filename)
+    aux = abspath(filename) + str(mtime) + str(stop)
+    if branches is not None:
+        aux += ''.join(branches)
+    sha1 = hashlib.sha1(aux).hexdigest()
+    key = "%s.hdf5" % sha1
+    filepath = join(cache_path,".cache","combine",key)
+    dirname = os.path.dirname(filepath)
+    if not exists(dirname):
+        os.makedirs(dirname)
+    if exists(filepath):
+        try:
+            print "Loading from cache '%s'" % filepath
+            return pd.read_hdf(filepath,'df')
+        except EOFError:
+            pass
+    ds = pd.DataFrame(rtnp.root2array(filename,stop=stop,branches=branches))
+    reType = {}
+    for colName in ds.columns:
+        reType[colName] = np.float32
+    ds = ds.astype(reType)
+    ds.to_hdf(filepath,'df',mode='w')
+    return ds
+
 class DSetLoader(object):
     def __init__(self, in_sample,
                  # candLoc='/storage/af/user/ocerri/BPhysics/data/cmsMC_private/',
@@ -183,7 +215,7 @@ class DSetLoader(object):
         loc = self.skimmed_dir + '/{}_{}.root'.format(catName, tag)
         if not hasattr(self, 'data'):
             self.data = {}
-        self.data['{}_{}'.format(catName, tag)] = pd.DataFrame(rtnp.root2array(loc))
+        self.data['{}_{}'.format(catName, tag)] = load_data(loc)
         return
 
     def getSkimEff(self, catName='probe'):
