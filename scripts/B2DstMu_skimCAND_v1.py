@@ -59,7 +59,7 @@ parser.add_argument ('--jN', type=int, default=None, help='Job number')
 args = parser.parse_args()
 
 
-# python B2DstMu_skimCAND_v1.py -d "B[us]" "Bd_Dst" "Bd_DDs1" "Bd_Tau" "Bd_MuNuDstPi"
+# python B2DstMu_skimCAND_v1.py -d "B[us]" "Bd_Dst" "Bd_DDs1" "Bd_Tau" "Bd_MuNuDstPi" "B_DstDXX"
 
 #############################################################################
 ####                          Datset declaration                         ####
@@ -68,7 +68,7 @@ filesLocMap = {}
 
 root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples_B2DstMu_220311/out_CAND_*.root'
+MCend = 'ntuples_B2DstMu_220326/out_CAND_*.root'
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',       'Bd_MuNuDstPi',
@@ -1281,7 +1281,7 @@ def createSubmissionFile(tmpDir, njobs):
         fsub.write('error         = {}/out/job_$(ProcId)_$(ClusterId).err\n'.format(tmpDir))
         fsub.write('log           = {}/out/job_$(ProcId)_$(ClusterId).log\n'.format(tmpDir))
         fsub.write('WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT\n')
-        fsub.write('+JobQueue="Short"\n')
+        fsub.write('+JobQueue="Normal"\n')
         # fsub.write('+RequestWalltime   = 7000\n')
         fsub.write('+MaxRuntime   = 7000\n')
         fsub.write('+RunAsOwner = True\n')

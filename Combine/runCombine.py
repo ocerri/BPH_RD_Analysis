@@ -436,7 +436,6 @@ controlRegSel['pp'] = selfun__TkPlusPlus
 corrScaleFactors = {}
 def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
-    print_memory_usage(this_process, 'Beginning loading')
     #They all have to be produced with the same pileup
     # candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
     candDir='ntuples_B2DstMu_220311'
@@ -502,16 +501,12 @@ def loadDatasets(category, loadRD):
         for colName in dSet[n].columns:
             reType[colName] = np.float32
         dSet[n] = dSet[n].astype(reType)
-        # pd.set_option('display.max_rows', 500)
-        # print dSet[n].dtypes
-        # exit()
         dSetTkSide[n] = pd.DataFrame(rtnp.root2array(s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType),
                                                      stop=args.maxEventsToLoad,
                                                      branches=branches_to_load
                                                     )
                                     )
         dSetTkSide[n] = dSetTkSide[n].astype(reType)
-    print_memory_usage(this_process, 'MC samples loaded')
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
     locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_220311_{}'.format(category.name)
@@ -526,7 +521,6 @@ def loadDatasets(category, loadRD):
         locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
         dSet['data'] = pd.DataFrame(rtnp.root2array(locRD + '_corr.root', branches=relevantBranches['all']))
         dSetTkSide['data'] = pd.DataFrame(rtnp.root2array(locRD + '_trkCtrl_corr.root', branches=relevantBranches['all']))
-        print_memory_usage(this_process, 'Data samples loaded')
 
     for name in dSet:
         dSet[name]['ctrl'] = get_ctrl_group(dSet[name])
@@ -560,7 +554,6 @@ def loadDatasets(category, loadRD):
             if name in dSet:
                 dSet[name] = pd.concat((dSet[name],dup[dup['ctrl2'] == 0]),ignore_index=True)
 
-    print_memory_usage(this_process, 'Duplicated events for tracks migration')
 
     if args.useMVA:
         fname = '/storage/af/group/rdst_analysis/BPhysics/data/kinObsMVA/clfGBC_tauVall_{}{}.p'.format(args.useMVA, category.name)
@@ -669,7 +662,6 @@ def loadDatasets(category, loadRD):
                 # which aren't duplicates.
                 corrScaleFactors[k+'_tk'] = np.sum(sel[orig])/float(sel[orig].shape[0])
 
-    print_memory_usage(this_process, 'Returning from load sample')
     return MCsample, dSet, dSetTkSide
 
 def computeBrVarWeights(ds, selItems={}, relScale=0.2, centralVal=1., keepNorm=False, absVal=True):
@@ -752,7 +744,6 @@ def createHistograms(category):
     os.system(cmd)
 
     MCsample, dSet, dSetTkSide = loadDatasets(category, not args.asimov)
-    print_memory_usage(this_process, 'Returned to createHistograms')
     mcType = 'bare' if args.bareMC else 'corr'
     ######################################################
     ########## Load calibrations
@@ -991,7 +982,6 @@ def createHistograms(category):
 
 
     totalCounting = [0,0]
-    print_memory_usage(this_process, 'Before starting filling singal region histograms')
     print '---------> Fill signal region histograms'
     for n in processOrder:
         ds = dSet[n]
@@ -1310,7 +1300,6 @@ def createHistograms(category):
                 histo[var][h_name] = create_TH1D(ds[varName], name=h_name, weights=w, scale_histo=scale,
                                                     binning=binning[var], opt='underflow,overflow')
 
-    print_memory_usage(this_process, 'Signal region histograms filled')
     evCountStr = '{:.1f} ({:.1f})'.format(*totalCounting)
     eventCountingStr['tot'] = evCountStr
 
@@ -1871,7 +1860,6 @@ def createHistograms(category):
 
         print 'N observed data control regions: ' + ' & '.join(['{:.0f}'.format(histo['ctrl_'+s+'_mHad']['data'].Integral()) for s in ['p_', 'm_', 'mm', 'pm', 'pp']]) + ' \\\\'
 
-    print_memory_usage(this_process, 'All MC and data histograms filled')
     ######################################################
     ########## Dump root file
     ######################################################
@@ -2771,7 +2759,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             aux = ''
             for p in processes:
                 if p in ['tau', 'mu']:
-                    aux += ' 1.'
+                    aux += ' 0.5'
                 else:
                     aux += ' -'
             card += 'B2Dst'+schemeFF+'{} shape'.format(n_pFF) + aux*nCat + '\n'
