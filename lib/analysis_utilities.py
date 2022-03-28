@@ -125,7 +125,7 @@ def getEff(k,N):
     de = np.sqrt(e*(1-e)/N)
     return [e, de]
 
-def load_data(filename,stop=None):
+def load_data(filename,stop=None,cache_path='/storage/af/group/rdst_analysis'):
     """
     Returns a pandas dataframe of the skimmed data in `filename`. Caches the
     result in a local .cache directory so that subsequent calls are fast.
@@ -134,7 +134,7 @@ def load_data(filename,stop=None):
     mtime = os.path.getmtime(filename)
     sha1 = hashlib.sha1(abspath(filename) + str(mtime) + str(stop)).hexdigest()
     key = "%s.hdf5" % sha1
-    filepath = join(expanduser("~"),".cache","combine",key)
+    filepath = join(cache_path,".cache","combine",key)
     dirname = os.path.dirname(filepath)
     if not exists(dirname):
         os.makedirs(dirname)
