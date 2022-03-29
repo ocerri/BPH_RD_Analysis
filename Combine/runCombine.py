@@ -150,7 +150,8 @@ parser = argparse.ArgumentParser(description='Script used to run combine on the 
 parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
-parser.add_argument ('--skimmedTag', default='_massHadTks_v4', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTagMC', default='', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTagRD', default='_massHadTks_v4', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
 parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
@@ -441,35 +442,36 @@ def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
     # candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
-    candDir='ntuples_B2DstMu_220311'
+    candDir='ntuples_B2DstMu_220326'
     print 'Using candDir =', candDir
-    print 'Using skim = skimmed'+args.skimmedTag
+    print 'Using skim MC = skimmed'+args.skimmedTagMC
+    print 'Using skim RD = skimmed'+args.skimmedTagRD
     MCsample = {
     ######## Signals
-    'tau': DSetLoader('Bd_TauNuDst', candDir=candDir, skimmedTag=args.skimmedTag),
-    'mu': DSetLoader('Bd_MuNuDst', candDir=candDir, skimmedTag=args.skimmedTag),
+    'tau': DSetLoader('Bd_TauNuDst', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'mu': DSetLoader('Bd_MuNuDst', candDir=candDir, skimmedTag=args.skimmedTagMC),
     ######## D** background
-    'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    # 'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi_v3', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi_v3', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bd_TauDstPiPi': DSetLoader('Bd_TauNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bu_TauDstPiPi': DSetLoader('Bu_TauNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bs_MuDstK': DSetLoader('Bs_MuNuDstK', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bs_TauDstK': DSetLoader('Bs_TauNuDstK', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bu_MuDstPi': DSetLoader('Bu_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bd_MuDstPi': DSetLoader('Bd_MuNuDstPi', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    # 'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bd_MuDstPiPi': DSetLoader('Bd_MuNuDstPiPi_v3', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bu_MuDstPiPi': DSetLoader('Bu_MuNuDstPiPi_v3', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bu_TauDstPi': DSetLoader('Bu_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bd_TauDstPi': DSetLoader('Bd_TauNuDstPi', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bd_TauDstPiPi': DSetLoader('Bd_TauNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bu_TauDstPiPi': DSetLoader('Bu_TauNuDstPiPi', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bs_MuDstK': DSetLoader('Bs_MuNuDstK', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bs_TauDstK': DSetLoader('Bs_TauNuDstK', candDir=candDir, skimmedTag=args.skimmedTagMC),
     ######## D*Hc background
-    'Bd_DstDu': DSetLoader('Bd_DstDu', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bu_DstDu': DSetLoader('Bu_DstDu', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bd_DstDd': DSetLoader('Bd_DstDd', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bu_DstDd': DSetLoader('Bu_DstDd', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bd_DstDs': DSetLoader('Bd_DstDs', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bs_DstDs': DSetLoader('Bs_DstDs', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bd_DDs1': DSetLoader('Bd_DDs1', candDir=candDir, skimmedTag=args.skimmedTag),
-    'Bu_DDs1': DSetLoader('Bu_DDs1', candDir=candDir, skimmedTag=args.skimmedTag),
-    'B_DstDXX': DSetLoader('B_DstDXX', candDir=candDir, skimmedTag=args.skimmedTag),
+    'Bd_DstDu': DSetLoader('Bd_DstDu', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bu_DstDu': DSetLoader('Bu_DstDu', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bd_DstDd': DSetLoader('Bd_DstDd', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bu_DstDd': DSetLoader('Bu_DstDd', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bd_DstDs': DSetLoader('Bd_DstDs', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bs_DstDs': DSetLoader('Bs_DstDs', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bd_DDs1': DSetLoader('Bd_DDs1', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'Bu_DDs1': DSetLoader('Bu_DDs1', candDir=candDir, skimmedTag=args.skimmedTagMC),
+    'B_DstDXX': DSetLoader('B_DstDXX', candDir=candDir, skimmedTag=args.skimmedTagMC),
     }
 
     dSet = {}
@@ -500,7 +502,7 @@ def loadDatasets(category, loadRD):
         dSetTkSide[n] = load_data(filename, stop=args.maxEventsToLoad,branches=branches_to_load)
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
-    locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_SS_220311_{}'.format(category.name)
+    locRD = dataDir+'/skimmed'+args.skimmedTagRD+'/B2DstMu_SS_220311_{}'.format(category.name)
     dSet['dataSS_DstMu'] = load_data(locRD + '_corr.root')
     dSetTkSide['dataSS_DstMu'] = load_data(locRD + '_trkCtrl_corr.root')
 
@@ -509,7 +511,7 @@ def loadDatasets(category, loadRD):
         print 'Loading real data datasets'
 
         creation_date = '220311'
-        locRD = dataDir+'/skimmed'+args.skimmedTag+'/B2DstMu_{}_{}'.format(creation_date, category.name)
+        locRD = dataDir+'/skimmed'+args.skimmedTagRD+'/B2DstMu_{}_{}'.format(creation_date, category.name)
         dSet['data'] = load_data(locRD + '_corr.root', branches=relevantBranches['all'])
         dSetTkSide['data'] = load_data(locRD + '_trkCtrl_corr.root', branches=relevantBranches['all'])
 
@@ -2620,8 +2622,8 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     card += 'overallMcNorm'+category.trg+' rateParam * B[usd]_* 1.\n'
 
     # Relax control regions norm
-    card += 'ctrlNormBToDstHc'+category.trg+' rateParam ctrl_??_* B[dsu]_D* 1.\n'
-    card += 'ctrlNormBToDstPiPi'+category.trg+' rateParam ctrl_??_* B[dsu]_*PiPi 1.\n'
+    # card += 'ctrlNormBToDstHc'+category.trg+' rateParam ctrl_??_* B[dsu]_D* 1.\n'
+    # card += 'ctrlNormBToDstPiPi'+category.trg+' rateParam ctrl_??_* B[dsu]_*PiPi 1.\n'
 
 
     #### Combinatorial background norm
