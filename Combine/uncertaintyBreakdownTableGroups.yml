@@ -2,6 +2,7 @@
   title: 'Form factors $B \to D^*\ell\nu$'
   nuisance:
     - rgx{B2DstCLN.*}
+    - rgx{B2DstBLPR.*}
 
 - tag: formFactorsBDststEllNu
   title: 'Form factors $B \to D^{**}\ell\nu$'
@@ -13,12 +14,11 @@
   title: $B\to D^* H_c$ modeling
   nuisance:
     - rgx{D[uds]MuBr}
-    - Bs_DstDsBr
     - Bd_DDs1Br
     - Bu_DDs1Br
     - rgx{brB[dsu]_DstD.*_[0-9]+}
-    # - B_DstDXXBr
-    # - Bu_DstDXX_frac
+    - B_DstDXXBr
+    - Bu_DstDXX_frac
 
 - tag: pythiaProduction
   title: B mesons production modeling
@@ -33,6 +33,7 @@
     - rgx{.*BS[xy]}
     - rgx{trgMu[0-9]+_IP[0-9]+SF_pt[0-9]+}
     - rgx{softTrkEff.*}
+    - ctrl
 
 # - tag: brB2DstMuNu
 #   title: $B \to D^{*}\mu\nu$ branching fraction
@@ -43,7 +44,7 @@
   title: 'Control to signal region transfer factors'
   nuisance:
     - rgx{ctrlNormSF.*}
-    - rgx{ctrlNormBTo.*}
+    # - rgx{ctrlNormBTo.*}
 
 - tag: overallNorm
   title: 'Overall normalization'
@@ -54,16 +55,14 @@
 - tag: modelDstst_DstPi
   title: $B \to D^{**}(D^*\pi)\ell\nu$ modeling
   nuisance:
-    - rgx{brB_D[0-9]+MuNu}
-    - brB_DstPiMuNu
+    - rgx{brB_DstPiMuNu_[0-9]+}
     - D24[0-9]+_width
 
 - tag: modelDstst_DstPiPi
   title: $B \to D^{**}(D^*\pi\pi)\ell\nu$ modeling
   nuisance:
-    - DstPiPiBr
     - Dst2S_width
-    - rgx{brDstPiPi_.*}
+    - rgx{brB_DstPiPiMuNu_[0-9]+}
 
 
 # - tag: others

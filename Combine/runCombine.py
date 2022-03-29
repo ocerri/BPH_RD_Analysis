@@ -585,6 +585,8 @@ def loadDatasets(category, loadRD):
         ['K_lostInnerHits', -2, 1],
         ['pi_lostInnerHits', -2, 1],
         ['pis_lostInnerHits', -2, 1],
+        # ['mass_piK', 1.86483-0.035, 1.86483+0.035],
+        # ['deltaM_DstD', 0.14543-1.e-3, 0.14543+1.e-3],
         # ['ctrl_tk_pval_0', 0.2, 1.0],
         # ['ctrl_tk_pval_1', 0.2, 1.0],
         # ['ctrl_pm_massVisTks', 0, 3.8],
@@ -4368,21 +4370,6 @@ if __name__ == "__main__":
                                     rVal=SM_RDst, rLimits=rDst_postFitRegion
                                     )
 
-    if 'uncBreakdownTable' in args.step:
-        runUncertaintyBreakDownTable(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
-                                args.category.capitalize(),
-                                rVal=fit_RDst, rLimits=rDst_postFitRegion)
-
-    if 'externalize' in args.step:
-        print '-----> Running externalization'
-        externalizeUncertainty(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
-                               parameters=args.externPars,
-                               center=args.externCenter,
-                               sigma=args.externSigma,
-                               tag=args.externTag,
-                               rVal=SM_RDst, rLimits=[0.1, 0.45]
-                               )
-
     if 'GoF' in args.step:
         print '-----> Goodnees of Fit'
         maskList = []
@@ -4401,6 +4388,21 @@ if __name__ == "__main__":
             runGoodnessOfFit(args.tagGoF, card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
                              algo, fixRDst=args.forceRDst, maskEvalGoF=maskStr)
             print '-'
+
+    if 'uncBreakdownTable' in args.step:
+        runUncertaintyBreakDownTable(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+                                args.category.capitalize(),
+                                rVal=fit_RDst, rLimits=rDst_postFitRegion)
+
+    if 'externalize' in args.step:
+        print '-----> Running externalization'
+        externalizeUncertainty(card_location.replace('.txt', '_fitRegionsOnly.txt'), outdir,
+                               parameters=args.externPars,
+                               center=args.externCenter,
+                               sigma=args.externSigma,
+                               tag=args.externTag,
+                               rVal=SM_RDst, rLimits=[0.1, 0.45]
+                               )
 
     if 'fitDiag' in args.step:
         print '-----> Running fit diagnostic'
