@@ -2769,7 +2769,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             aux = ''
             for p in processes:
                 if p in ['tau', 'mu']:
-                    aux += ' 0.5'
+                    aux += ' 1.0'
                 else:
                     aux += ' -'
             card += 'B2Dst'+schemeFF+'{} shape'.format(n_pFF) + aux*nCat + '\n'
