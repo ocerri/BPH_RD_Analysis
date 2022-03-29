@@ -58,8 +58,9 @@ parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directo
 parser.add_argument ('--jN', type=int, default=None, help='Job number')
 args = parser.parse_args()
 
-
-# python B2DstMu_skimCAND_v1.py -d "B[us]" "Bd_Dst" "Bd_DDs1" "Bd_Tau" "Bd_MuNuDstPi" "B_DstDXX"
+# python B2DstMu_skimCAND_v1.py -d "Bd_MuNuDst\Z"
+# python B2DstMu_skimCAND_v1.py -d "B[us]"
+# python B2DstMu_skimCAND_v1.py -d "Bd_Dst" "Bd_DDs1" "Bd_Tau" "Bd_MuNuDstPi" "B_DstDXX"
 
 #############################################################################
 ####                          Datset declaration                         ####

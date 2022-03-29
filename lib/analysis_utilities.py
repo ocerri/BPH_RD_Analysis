@@ -125,7 +125,7 @@ def getEff(k,N):
     de = np.sqrt(e*(1-e)/N)
     return [e, de]
 
-def load_data(filename,stop=None,branches=None,cache_path='/storage/af/group/rdst_analysis',verbose=True):
+def load_data(filename,stop=None,branches=None,cache_path='/storage/af/group/rdst_analysis',verbose=False):
     """
     Returns a pandas dataframe of the skimmed data in `filename`. Caches the
     result in a local .cache directory so that subsequent calls are fast.

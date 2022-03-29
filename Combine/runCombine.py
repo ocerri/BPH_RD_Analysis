@@ -152,7 +152,7 @@ parser.add_argument ('--category', '-c', type=str, default='high', choices=['sin
 
 parser.add_argument ('--skimmedTagMC', default='', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--skimmedTagRD', default='_massHadTks_v4', type=str, help='Tag to append to the skimmed directory.')
-parser.add_argument ('--bareMC', default=True, type=bool, help='Use bare MC instead of the corrected one.')
+parser.add_argument ('--bareMC', default=True, type=str2bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
 parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
