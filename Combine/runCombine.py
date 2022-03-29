@@ -164,6 +164,7 @@ parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_m
 parser.add_argument ('--unblinded', default=False, type=str2bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pp_mHad', 'mm_mHad', 'pm_mVis'], help='Control regions to use', nargs='*')
+parser.add_argument ('--cutMuPS', default=True, type=str2bool, help='Restrict phase space. See data loading for more info.')
 
 parser.add_argument ('--correlate_tkPVfrac', default=False, action='store_true', help='Correlate tkPVfrac in all categories.')
 parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
@@ -506,7 +507,6 @@ def loadDatasets(category, loadRD):
     dSet['dataSS_DstMu'] = load_data(locRD + '_corr.root')
     dSetTkSide['dataSS_DstMu'] = load_data(locRD + '_trkCtrl_corr.root')
 
-
     if loadRD:
         print 'Loading real data datasets'
 
@@ -573,10 +573,12 @@ def loadDatasets(category, loadRD):
     if args.dumpWeightsTree:
         print 'Skipping on the flight cuts (if any).'
     else:
-        addCuts = [
-        ['M2_miss', 0.4, 1e3],
-        # ['M2_miss', -0.2, 1e3],
+        if args.cutMuPS:
+            addCuts = [ ['M2_miss', 0.4, 1e3], ['mu_eta', -0.8, 0.8] ]
+        else:
+            addCuts = [ ['M2_miss', -0.2, 1e3] ]
         ['mu_eta', -0.8, 0.8],
+        addCuts += [
         ['mu_pt', 0, 20],
         # ['B_eta', -1., 1.],
         # ['pis_pt', 1., 1e3],
@@ -655,6 +657,13 @@ def loadDatasets(category, loadRD):
                 # compute the correction scale factors only for those events
                 # which aren't duplicates.
                 corrScaleFactors[k+'_tk'] = np.sum(sel[orig])/float(sel[orig].shape[0])
+
+    for n in dSet.keys():
+        dSet[n].reset_index(inplace=True, drop=True)
+        dSet[n].reset_index(inplace=True, drop=False)
+    for n in dSetTkSide.keys():
+        dSetTkSide[n].reset_index(inplace=True, drop=True)
+        dSetTkSide[n].reset_index(inplace=True, drop=False)
 
     return MCsample, dSet, dSetTkSide
 
@@ -941,7 +950,7 @@ def createHistograms(category):
     binning['mu_pt'] = array('d',
                         {'Low': list(np.arange(7.2, 9.201, 0.05)),
                         'Mid': list(np.arange(9.2, 12.201, 0.05)),
-                        'High': list(8+np.logspace(np.log10(12.2-8), np.log10(60), 30)) if np.max(dSet['mu']['mu_pt']) > 20 else list(np.arange(12.2, 20.01, 0.05))
+                        'High': list(8+np.logspace(np.log10(12.2-8), np.log10(60), 30)) if np.max(dSet['mu']['mu_pt']) > 20 else list(np.arange(12.2, 20.01, 0.15))
                         }[category.name])
     # binning['Dst_pt'] = array('d', list(np.arange(5, 50, 1)) )
     binning['K_pt'] = array('d', list(np.arange( *({'Low':[0.8, 15, 0.4], 'Mid':[0.8, 20, 0.4], 'High':[0.8, 30, 0.4]}[category.name]) ) ) )
@@ -1398,10 +1407,10 @@ def createHistograms(category):
             binning['ctrl_'+s+'_MVA'] = binning['MVA']
 
         ctrlVar['ctrl_'+s+'_M2miss'] = 'M2_miss'
-        binning['ctrl_'+s+'_M2miss'] = [18, 0, 7]
+        binning['ctrl_'+s+'_M2miss'] = [18, np.min(dSet['mu']['M2_miss']), 7]
 
         ctrlVar['ctrl_'+s+'_q2'] = 'q2'
-        binning['ctrl_'+s+'_q2'] = [50, -2, 15]
+        binning['ctrl_'+s+'_q2'] = [30, np.min(dSet['mu']['q2']), np.max(dSet['mu']['q2'])]
 
     ctrlVar['ctrl_pm_dM_DstD'] = 'deltaM_DstD'
     binning['ctrl_pm_dM_DstD'] = [75, 0.1434, 0.1475]
@@ -1413,7 +1422,7 @@ def createHistograms(category):
     binning['ctrl_pm_mDstPi_0'] = [30, 2.1, 3.]
 
     ctrlVar['ctrl_pm_mu_iso'] = 'mu_db_iso04'
-    binning['ctrl_pm_mu_iso'] = [100, 0, 80]
+    binning['ctrl_pm_mu_iso'] = [50, 0, 80]
 
     # Figuring out the mod to avoid double counting
     ctrlVar_mod = defaultdict(lambda : None)
