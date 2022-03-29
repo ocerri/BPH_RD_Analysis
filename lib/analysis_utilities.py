@@ -125,7 +125,7 @@ def getEff(k,N):
     de = np.sqrt(e*(1-e)/N)
     return [e, de]
 
-def load_data(filename,stop=None,branches=None,cache_path='/storage/af/group/rdst_analysis'):
+def load_data(filename,stop=None,branches=None,cache_path='/storage/af/group/rdst_analysis',verbose=True):
     """
     Returns a pandas dataframe of the skimmed data in `filename`. Caches the
     result in a local .cache directory so that subsequent calls are fast.
@@ -143,7 +143,8 @@ def load_data(filename,stop=None,branches=None,cache_path='/storage/af/group/rds
         os.makedirs(dirname)
     if exists(filepath):
         try:
-            print "Loading from cache '%s'" % filepath
+            if verbose:
+                print 'Loading from cache', filename
             return pd.read_hdf(filepath,'df')
         except EOFError:
             pass
@@ -152,6 +153,8 @@ def load_data(filename,stop=None,branches=None,cache_path='/storage/af/group/rds
     for colName in ds.columns:
         reType[colName] = np.float32
     ds = ds.astype(reType)
+    if verbose:
+        print 'Dumping', filename, 'as', filepath
     ds.to_hdf(filepath,'df',mode='w')
     return ds
 
