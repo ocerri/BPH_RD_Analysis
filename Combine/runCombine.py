@@ -1145,6 +1145,13 @@ def createHistograms(category):
 
 
         ############################
+        # Cleaning signal form slipped in events
+        ############################
+        if n in ['mu', 'tau']:
+            weights['kill_slipped_in'] = np.where( ds['procId_signal'] == {'tau': 0, 'mu': 1}[n], 1, 0)
+            print 'Surviving after killing slipped in {:.3f}%'.format(100*np.sum(weights['kill_slipped_in'])/float(ds.shape[0]))
+
+        ############################
         # Dstst resonance mix
         ############################
         if re.match('B[du]_MuDstPi\Z', n):
@@ -1616,6 +1623,13 @@ def createHistograms(category):
                     ratesRatio[23] = sMC.effCand['rate_D2sBLOP_central']/sMC.effCand['rate_D2sBLOP_'+parName+var]
                     wVar['FF_B2'+tag] = np.where(selDstst, (ds['wh_'+tag]/ds['wh_D2S_BLOPCentral'])*ratesRatio[procId_Dstst], 1.)
                     wVar['FF_B2'+tag][np.isnan(wVar['FF_B2'+tag])] = 0.
+
+        ############################
+        # Cleaning signal form slipped in events
+        ############################
+        if n in ['mu', 'tau']:
+            weights['kill_slipped_in'] = np.where( ds['procId_signal'] == {'tau': 0, 'mu': 1}[n], 1, 0)
+            print 'Surviving after killing slipped in {:.3f}%'.format(100*np.sum(weights['kill_slipped_in'])/float(ds.shape[0]))
 
         ############################
         # Dstst resonance mix
