@@ -301,7 +301,7 @@ def extractEventInfos(j, ev, corr=None):
         if np.abs(eta) >= 2.4:
             continue
         phi = ev.tksAdd_phi[jj]
-        pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 2e-3)
+        pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 6e-3)
         # if pt < 1.0:
         if pt < 0.55:
             continue
