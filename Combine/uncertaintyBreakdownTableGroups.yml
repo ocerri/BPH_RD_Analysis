@@ -56,7 +56,7 @@
   title: $B \to D^{**}(D^*\pi)\ell\nu$ modeling
   nuisance:
     - rgx{brB_DstPiMuNu_[0-9]+}
-    - D24[0-9]+_width
+    - rgx{D24[0-9]+_width}
 
 - tag: modelDstst_DstPiPi
   title: $B \to D^{**}(D^*\pi\pi)\ell\nu$ modeling
