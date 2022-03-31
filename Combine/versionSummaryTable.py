@@ -6,7 +6,7 @@ from prettytable import PrettyTable
 import argparse
 
 
-def make_results_table(version=None, cat=None, includeDirs=None, nPulls=4, skipDirs=None, verbose=False):
+def make_results_table(version=None, cat=None, includeDirs=None, nPulls=4, skipDirs=None, allowedTags=None, verbose=False):
     dirs = []
 
     if version is not None and cat is not None:
@@ -74,7 +74,16 @@ def make_results_table(version=None, cat=None, includeDirs=None, nPulls=4, skipD
         if tag.endswith('_'):
             tag = tag[:-1]
         if not tag:
-            tag = '-'
+            tag = 'Baseline'
+
+        if allowedTags is not None:
+            match = False
+            for tagPattern in allowedTags:
+                if re.match(tagPattern, tag):
+                    match = True
+            if not match:
+                continue
+
         if len(tag) > 30:
             tag = tag[:30] + '...'
         # print 'Tag:', tag
@@ -173,6 +182,7 @@ if __name__ == '__main__':
     parser.add_argument ('--category', '-c', default=['low', 'mid', 'high', 'comb'], choices=['low', 'mid', 'high', 'comb'], nargs='*', help='Category.')
     parser.add_argument ('--directories', '-d', default=None, nargs='*', help='Directories to include in the table.')
     parser.add_argument ('--skipDir', default=None, nargs='*', help='Directories to skip in the table.')
+    parser.add_argument ('--allowedTags', default=None, nargs='+', help='Regular expression for allowed tags.')
     parser.add_argument ('--nPulls', default=4, type=int, help='Number of parameters to display in pulls.')
     parser.add_argument ('--output', '-o', default=None, help='Output destination.')
     parser.add_argument ('--verbose', default=False, action='store_true', help='Verbose.')
@@ -182,11 +192,13 @@ if __name__ == '__main__':
     if len(args.category):
         for ccc in args.category:
             table = make_results_table(version=args.version, cat=ccc, includeDirs=args.directories,
-                                       nPulls=args.nPulls, skipDirs=args.skipDir, verbose=args.verbose)
+                                       nPulls=args.nPulls, skipDirs=args.skipDir, allowedTags=args.allowedTags,
+                                       verbose=args.verbose)
             fullOutput += print_with_title(table, ccc)
     else:
         table = make_results_table(version=args.version, includeDirs=args.directories,
-                                   nPulls=args.nPulls, skipDirs=args.skipDir, verbose=args.verbose)
+                                   nPulls=args.nPulls, skipDirs=args.skipDir, allowedTags=args.allowedTags,
+                                   verbose=args.verbose)
         print table
         fullOutput += table.get_string()
 
