@@ -577,7 +577,7 @@ def loadDatasets(category, loadRD):
             addCuts = [ ['M2_miss', 0.4, 1e3], ['mu_eta', -0.8, 0.8] ]
         else:
             addCuts = [ ['M2_miss', -0.2, 1e3] ]
-        ['mu_eta', -0.8, 0.8],
+        
         addCuts += [
         ['mu_pt', 0, 20],
         # ['B_eta', -1., 1.],
