@@ -24,7 +24,7 @@ rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
 
-from analysis_utilities import drawOnCMSCanvas, getEff
+from analysis_utilities import drawOnCMSCanvas, getEff, str2bool
 from histo_utilities import create_TH1D, create_TH2D, std_color_list, SetMaxToMaxHist
 from cebefo_style import Set_2D_colz_graphics
 from gridVarQ2Plot import col_dic, plot_gridVarQ2
@@ -40,7 +40,7 @@ parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) t
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'none'], default='jobs', help='Function to perform')
 parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
-parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
+parser.add_argument ('--applyCorr', default=True, type=str2bool, help='Switch to apply crrections')
 parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'probe', 'none'], help='Category(ies)', nargs='+')
 parser.add_argument ('--skipCut', type=str, default='', choices=['all', '7'], help='Cut to skip')
 ######## Arguments not for user #####################
@@ -223,7 +223,7 @@ def extractEventInfos(j, ev, corr=None):
         if np.abs(eta) >= 2.4:
             continue
         phi = ev.tksAdd_phi[jj]
-        pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 2e-3)
+        pt = correctPt(ev.tksAdd_pt[jj], eta, phi, corr, 6e-3)
         # if pt < 1.0:
         if pt < 0.55:
             continue
