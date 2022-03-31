@@ -39,7 +39,7 @@ parser = argparse.ArgumentParser(description='Script used to calibrate Bd kin',
                                  epilog='Test example: ./kinematicCalibration_Bd_JpsiKst.py',
                                  add_help=True
                                  )
-parser.add_argument ('--category', '-c', type=str, default='low', choices=['low', 'mid', 'high'], help='Category.')
+parser.add_argument ('--category', '-c', type=str, default='high', choices=['low', 'mid', 'high'], help='Category.')
 parser.add_argument ('--version', '-v', default='test', help='Version.')
 parser.add_argument ('--showPlots', default=False, action='store_true', help='Show plots by setting ROOT batch mode OFF (default ON)')
 parser.add_argument ('--draw_precal', default=False, action='store_true', help='Draw also precal plots')
@@ -140,7 +140,8 @@ def getPolyCorrection(hNum, hDen, deg, tag, verbose=False):
 
 # # Load MC
 mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_220228')
-dsetMC_loc = mcSample.skimmed_dir + '/{}_bare.root'.format(cat.name)
+dsetMC_loc = mcSample.skimmed_dir + '/{}_corr.root'.format(cat.name)
+# dsetMC_loc = mcSample.skimmed_dir + '/{}_bare.root'.format(cat.name)
 dfMC = pd.DataFrame(rtnp.root2array(dsetMC_loc))
 
 
@@ -232,7 +233,7 @@ print 'Selected events per fb: {:.0f}'.format(N_sel_per_fb)
 
 # # Clean sets
 cuts = [
-    # ['B_eta', [-1, 1]],
+    ['B_eta', [-0.8, 0.8]],
     [mB_var, [5.24, 5.34]],
 ]
 
