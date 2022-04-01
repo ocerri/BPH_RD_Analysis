@@ -71,7 +71,7 @@ plt.switch_backend('Agg')
 
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rf.ERROR)
-webFolder = '/storage/af/user/alatorre/public_html/BPH_RDst/triggerScaleFactors/'+args.version
+webFolder = os.environ['HOME']+'/public_html/BPH_RDst/triggerScaleFactors/'+args.version
 if not os.path.exists(webFolder):
     print 'Creating', webFolder
     os.makedirs(webFolder)
