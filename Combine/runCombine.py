@@ -762,7 +762,7 @@ def createHistograms(category):
     decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors_v2.pickle', 'rb'))
 
     loc = dataDir+'/calibration/triggerScaleFactors/'
-    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v22_count.root', 'READ')
+    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v23_count.root', 'READ')
     hTriggerSF = fTriggerSF.Get('hSF_HLT_' + category.trg)
     def computeTrgSF(ds, hSF, selection=None):
         trgSF = np.ones_like(ds['q2'])
@@ -777,7 +777,17 @@ def createHistograms(category):
             ix = hSF.GetXaxis().FindBin(min(ptmax, pt))
             iy = hSF.GetYaxis().FindBin(min(ipmax, ip))
             iz = hSF.GetZaxis().FindBin(min(etamax, np.abs(eta)))
-            trgSF[i] = hSF.GetBinContent(ix, iy, iz)
+            # Make sure all the values are in between the bincenters, otherwise
+            # the interpolation doesn't work.
+            if pt > hSF.GetXaxis().GetBinCenter(1) and \
+                ip > hSF.GetYaxis().GetBinCenter(1) and \
+                np.abs(eta) > hSF.GetZaxis().GetBinCenter(1) and \
+                pt < hSF.GetXaxis().GetBinCenter(hSF.GetNbinsX()) and \
+                ip < hSF.GetYaxis().GetBinCenter(hSF.GetNbinsY()) and \
+                np.abs(eta) < hSF.GetZaxis().GetBinCenter(hSF.GetNbinsZ()):
+                trgSF[i] = hSF.Interpolate(pt,ip,np.abs(eta))
+            else:
+                trgSF[i] = hSF.GetBinContent(ix, iy, iz)
             ib = hSF.GetBin(ix, iy, iz)
             trgSFUnc[i] = hSF.GetBinError(ib)
             if trgSF[i] == 0:
@@ -4161,7 +4171,7 @@ jdlTemplate = '\n'.join([
               'JobPrio           = -1',
               'WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT',
               '+MaxRuntime       = 1200',
-              '+JobQueue         = "Normal"',# + ('"Normal"' if ('fitDiag' in args.step or args.category == 'comb') else '"Short"'),
+              '+JobQueue         = ' + ('"Normal"' if ('fitDiag' in args.step or args.category == 'comb') else '"Short"'),
               '+RunAsOwner       = True',
               '+InteractiveUser  = True',
               '+SingularityImage = "/cvmfs/singularity.opensciencegrid.org/cmssw/cms:rhel7"',
