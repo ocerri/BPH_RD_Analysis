@@ -24,7 +24,7 @@ from histo_utilities import create_TH1D, create_TH2D, std_color_list, SetMaxToMa
 from cebefo_style import Set_2D_colz_graphics
 from progressBar import ProgressBar
 
-from analysis_utilities import drawOnCMSCanvas, extarct, extarct_multiple, createSel
+from analysis_utilities import drawOnCMSCanvas, extarct, extarct_multiple, createSel, load_data
 from lumi_utilities import getLumiByTrigger
 from pileup_utilities import pileupReweighter
 
@@ -71,7 +71,7 @@ plt.switch_backend('Agg')
 
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rf.ERROR)
-webFolder = '/storage/af/user/ocerri/public_html/BPH_RDst/triggerScaleFactors/'+args.version
+webFolder = '/storage/af/user/alatorre/public_html/BPH_RDst/triggerScaleFactors/'+args.version
 if not os.path.exists(webFolder):
     print 'Creating', webFolder
     os.makedirs(webFolder)
@@ -114,7 +114,7 @@ def loadDF(loc, branches):
     dfL = []
     pb = ProgressBar(len(loc))
     for il, l in enumerate(loc):
-        dfL.append(pd.DataFrame(rtnp.root2array(l, branches=branches)))
+        dfL.append(load_data(l, branches=branches))
         pb.show(il)
     if len(dfL) == 1:
         return dfL[0]
@@ -369,17 +369,17 @@ def analyzeBin(idx, verbose=False):
 probeTrigger = 'HLT_'+args.trigger
 
 if args.trigger == 'Mu7_IP4':
-    binning = {'pt': array('d', [5.5, 6.5, 7, 7.1, 7.2, 7.3, 7.6, 8, 9, 9.2, 10, 12, 14]),
+    binning = {'pt': array('d', [5.5, 6.5, 7, 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 8, 8.5, 9, 9.2, 10, 12, 14]),
                'eta': array('d', [0, 0.4, 0.8, 1.5]),
                'sigdxy_'+args.refIP: array('d', [4, 5, 5.5, 6, 10, 20, 200])
               }
 elif args.trigger == 'Mu9_IP6':
-    binning = {'pt': array('d', [8.5, 9, 9.1, 9.2, 9.3, 9.6, 10.2, 11, 12, 12.2, 14]),
+    binning = {'pt': array('d', [8.5, 9, 9.1, 9.2, 9.3, 9.4, 9.5, 9.6, 9.7, 9.8, 9.9, 10.0, 10.5, 11, 11.5, 12, 12.2, 14]),
                'eta': array('d', [0, 0.4, 0.8, 1.5]),
                'sigdxy_'+args.refIP: array('d', [4, 6, 7, 7.5, 8, 10, 20, 200])
               }
 elif args.trigger == 'Mu12_IP6':
-    binning = {'pt': array('d', [11, 12, 12.2, 13, 14, 16, 18, 20, 22, 25, 28, 35]),
+    binning = {'pt': array('d', [11, 12, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6, 12.7, 12.8, 12.9, 13, 13.5, 14, 14.5, 15, 16, 17, 18, 19, 20, 22, 25, 28, 35]),
                'eta': array('d', [0, 0.4, 0.8, 1.5]),
                'sigdxy_'+args.refIP: array('d', [4, 6, 7, 8, 10, 20, 200])
               }
