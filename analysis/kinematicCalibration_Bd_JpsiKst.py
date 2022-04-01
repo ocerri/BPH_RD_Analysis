@@ -51,7 +51,7 @@ print 'Kinematic calibration of Bd -> JpsiK*'
 print 'Category:', args.category
 print 40*'#'
 
-# Example with loop: for cat in "low" "mid" "high"; do ./kinematicCalibration_Bd_JpsiKst.py -c $cat; done;
+# Example with loop: for cat in low mid high; do ./kinematicCalibration_Bd_JpsiKst.py -c $cat; done;
 
 if not args.showPlots:
     rt.gROOT.SetBatch(True)
@@ -162,9 +162,9 @@ print 'Expected evts/fb: {:.0f} +/- {:.0f}'.format(xsec_eff, dxsec)
 puRew = pileupReweighter(dsetMC_loc, 'hAllNTrueIntMC', trg=cat.trg)
 dfMC['wPU'] = puRew.getPileupWeights(dfMC['MC_nInteractions'])
 
-beamSpotCalLoc = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v2_bs_'+args.category.capitalize()+'.yaml'
-paramBeamSpotCorr = yaml.load(open(beamSpotCalLoc, 'r'))
-dfMC['wBeamSpot'] = getBeamSpotCorrectionWeights(dfMC, paramBeamSpotCorr, ref='bs')
+# beamSpotCalLoc = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v2_bs_'+args.category.capitalize()+'.yaml'
+# paramBeamSpotCorr = yaml.load(open(beamSpotCalLoc, 'r'))
+# dfMC['wBeamSpot'] = getBeamSpotCorrectionWeights(dfMC, paramBeamSpotCorr, ref='bs')
 
 loc = dataLoc+'calibration/triggerScaleFactors/'
 fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v22_count.root', 'READ')
@@ -202,7 +202,7 @@ for i, (ptp, etap, ptm, etam) in enumerate(dfMC[['MC_mup_pt', 'MC_mup_eta', 'MC_
     wm = hMuonIDSF.GetBinContent(ix, iy)
     dfMC.at[i, 'muonSF'] = wp * wm
 
-dfMC['w'] = dfMC['wPU']*dfMC['wBeamSpot']*dfMC['muonSF']*dfMC['trgSF']
+dfMC['w'] = dfMC['wPU']*dfMC['muonSF']*dfMC['trgSF']#*dfMC['wBeamSpot']
 
 
 dpt_rel = np.abs(dfMC['B_pt']/dfMC['MC_B_pt'] - 1)
@@ -234,7 +234,9 @@ print 'Selected events per fb: {:.0f}'.format(N_sel_per_fb)
 # # Clean sets
 cuts = [
     ['B_eta', [-0.8, 0.8]],
-    [mB_var, [5.24, 5.34]],
+    ['pi_pt', [2., 800]],
+    ['K_pt', [2., 800]],
+    [mB_var, [5.24, 5.32]],
 ]
 
 fout = open(webFolder + 'additionalSelection.txt', 'w')
