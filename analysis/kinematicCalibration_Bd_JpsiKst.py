@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, os, pickle, yaml, time, argparse
+import sys, os, pickle, yaml, time, argparse, copy
 sys.path.append('../lib')
 if os.environ['CMSSW_VERSION'] != 'CMSSW_10_2_3':
     raise
@@ -32,8 +32,9 @@ from pileup_utilities import pileupReweighter
 from beamSpot_calibration import getBeamSpotCorrectionWeights
 
 from categoriesDef import categories
-from analysis_utilities import drawOnCMSCanvas, DSetLoader
+from analysis_utilities import drawOnCMSCanvas, DSetLoader, str2bool
 from pT_calibration_reader import pTCalReader as calibrationReader
+donotdelete = []
 
 parser = argparse.ArgumentParser(description='Script used to calibrate Bd kin',
                                  epilog='Test example: ./kinematicCalibration_Bd_JpsiKst.py',
@@ -41,7 +42,9 @@ parser = argparse.ArgumentParser(description='Script used to calibrate Bd kin',
                                  )
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['low', 'mid', 'high'], help='Category.')
 parser.add_argument ('--version', '-v', default='test', help='Version.')
+parser.add_argument ('--skimTag', type=str, default='', help='Tag to append at the name of the skimmed files directory')
 parser.add_argument ('--showPlots', default=False, action='store_true', help='Show plots by setting ROOT batch mode OFF (default ON)')
+parser.add_argument ('--BScal', default=False, type=str2bool, help='Apply beam spot calibration')
 parser.add_argument ('--draw_precal', default=False, action='store_true', help='Draw also precal plots')
 parser.add_argument ('--verbose', default=False, action='store_true', help='Verbose')
 args = parser.parse_args()
@@ -116,32 +119,36 @@ def getPolyCorrection(hNum, hDen, deg, tag, verbose=False):
 
     plt.figure(figsize=(8,6))
     plt.errorbar(x, y, yerr=yerr, fmt='k.', label='data/MC')
-    plt.plot(x, np.polyval(beta, x), '-', label='Central')
+    xTest = np.linspace(np.min(x), np.max(x), 200)
+    plt.plot(xTest, np.polyval(beta, xTest), '-', label='Central')
     colors = ['#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
     for i in range(len(betaVar)):
         if i > 2:
             break
-        yP = np.polyval(beta+betaVar[i], x)
-        yM = np.polyval(beta-betaVar[i], x)
-        plt.plot(x, yP, '--', color=colors[i], label='w, $\lambda_{} \pm 1\sigma$'.format(i))
-        plt.plot(x, yM, '--', color=colors[i])
+        yP = np.polyval(beta+betaVar[i], xTest)
+        yM = np.polyval(beta-betaVar[i], xTest)
+        plt.plot(xTest, yP, '--', color=colors[i], label='w, $\lambda_{} \pm 1\sigma$'.format(i))
+        plt.plot(xTest, yM, '--', color=colors[i])
 
     plt.grid()
-    ymin, ymax = plt.ylim()
-    plt.ylim(max(0, ymin), min(8, ymax))
+    if tag == 'pt_polyCoeff':
+        plt.ylim(0.6, 2)
+    else:
+        ymin, ymax = plt.ylim()
+        plt.ylim(max(0, ymin), min(8, ymax))
     plt.ylabel('data/MC')
     plt.xlabel('B '+tag.split('_')[0])
     plt.legend(loc='best', numpoints=1)
     plt.savefig(webFolder+tag+'_' + cat.name + '.png', bbox_inches='tight')
+
 
     dOut = {'beta': beta, 'betaVar' : betaVar}
     pickle.dump(dOut, open(dataLoc+'calibration/kinematicCalibration_Bd/'+tag+'_{}_{}.pkl'.format(cat.name, version), 'wb'))
 
 
 # # Load MC
-mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_220228')
+mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_220328', skimmedTag=args.skimTag)
 dsetMC_loc = mcSample.skimmed_dir + '/{}_corr.root'.format(cat.name)
-# dsetMC_loc = mcSample.skimmed_dir + '/{}_bare.root'.format(cat.name)
 dfMC = pd.DataFrame(rtnp.root2array(dsetMC_loc))
 
 
@@ -149,7 +156,7 @@ effMCgen = mcSample.effMCgen
 brFileLoc = dataLoc+'forcedDecayChannelsFactors_v2.pickle'
 decayBR = pickle.load(open(brFileLoc, 'rb'))['JPsiKst']
 effCAND = mcSample.effCand['effCAND']
-effSkim = mcSample.getSkimEff(cat.name+'_bare')
+effSkim = mcSample.getSkimEff(cat.name+'_corr')
 
 xsec_eff = 1
 dxsec = 0
@@ -162,12 +169,13 @@ print 'Expected evts/fb: {:.0f} +/- {:.0f}'.format(xsec_eff, dxsec)
 puRew = pileupReweighter(dsetMC_loc, 'hAllNTrueIntMC', trg=cat.trg)
 dfMC['wPU'] = puRew.getPileupWeights(dfMC['MC_nInteractions'])
 
-# beamSpotCalLoc = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v2_bs_'+args.category.capitalize()+'.yaml'
-# paramBeamSpotCorr = yaml.load(open(beamSpotCalLoc, 'r'))
-# dfMC['wBeamSpot'] = getBeamSpotCorrectionWeights(dfMC, paramBeamSpotCorr, ref='bs')
+if args.BScal:
+    beamSpotCalLoc = '/storage/af/group/rdst_analysis/BPhysics/data/calibration/beamSpot/crystalball_calibration_v2_bs_'+args.category.capitalize()+'.yaml'
+    paramBeamSpotCorr = yaml.load(open(beamSpotCalLoc, 'r'))
+    dfMC['wBeamSpot'] = getBeamSpotCorrectionWeights(dfMC, paramBeamSpotCorr, ref='bs')
 
 loc = dataLoc+'calibration/triggerScaleFactors/'
-fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v22_count.root', 'READ')
+fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v23_count.root', 'READ')
 hTriggerSF = fTriggerSF.Get('hSF_HLT_' + cat.trg)
 
 ptmax = hTriggerSF.GetXaxis().GetXmax() - 0.01
@@ -182,10 +190,25 @@ for i, (pt, eta, ip) in enumerate(dfMC[['trgMu_pt', 'trgMu_eta', 'trgMu_sigdxy']
     ix = hTriggerSF.GetXaxis().FindBin(min(ptmax, pt))
     iy = hTriggerSF.GetYaxis().FindBin(min(ipmax, ip))
     iz = hTriggerSF.GetZaxis().FindBin(min(etamax, np.abs(eta)))
-    dfMC.at[i, 'trgSF'] = hTriggerSF.GetBinContent(ix, iy, iz)
+
+    inBoundary = [
+        pt > hTriggerSF.GetXaxis().GetBinCenter(1),
+        pt < hTriggerSF.GetXaxis().GetBinCenter(hTriggerSF.GetNbinsX()),
+        ip > hTriggerSF.GetYaxis().GetBinCenter(1),
+        ip < hTriggerSF.GetYaxis().GetBinCenter(hTriggerSF.GetNbinsY()),
+        np.abs(eta) > hTriggerSF.GetZaxis().GetBinCenter(1),
+        np.abs(eta) < hTriggerSF.GetZaxis().GetBinCenter(hTriggerSF.GetNbinsZ())
+    ]
+
+    if np.all(inBoundary):
+        sf = hTriggerSF.Interpolate(pt,ip,np.abs(eta))
+    else:
+        sf = hTriggerSF.GetBinContent(ix, iy, iz)
+
+    dfMC.at[i, 'trgSF'] = sf
 #     if np.abs(dfMC.at[i, 'trgSF'] - 1) > 0.1:
 #         print (4*'{:.2f} ').format(pt, eta, ip, hTriggerSF.GetBinContent(ix, iy, iz))
-    ptWeight[ix].append(hTriggerSF.GetBinContent(ix, iy, iz))
+    ptWeight[ix].append(sf)
 
 # Muon ID scale factor
 loc = dataLoc+'calibration/muonIDscaleFactors/Run2018ABCD_SF_MuonID_Jpsi.root'
@@ -202,7 +225,9 @@ for i, (ptp, etap, ptm, etam) in enumerate(dfMC[['MC_mup_pt', 'MC_mup_eta', 'MC_
     wm = hMuonIDSF.GetBinContent(ix, iy)
     dfMC.at[i, 'muonSF'] = wp * wm
 
-dfMC['w'] = dfMC['wPU']*dfMC['muonSF']*dfMC['trgSF']#*dfMC['wBeamSpot']
+dfMC['w'] = dfMC['wPU']*dfMC['muonSF']*dfMC['trgSF']#
+if args.BScal:
+    dfMC['w'] *= dfMC['wBeamSpot']
 
 
 dpt_rel = np.abs(dfMC['B_pt']/dfMC['MC_B_pt'] - 1)
@@ -216,9 +241,6 @@ print 'MC purity (idx match): {:.1f}%'.format(100*np.sum(dfMC['MC_idxMatch'] == 
 
 
 # # Load data
-# datasets_loc = glob(dataLoc + 'cmsRD/ParkingBPH*/*2018*B2JpsiKst_210501*')
-# lumi_tot = getLumiByTrigger(datasets_loc, cat.trg, verbose=True)
-# if not lumi_tot:
 expectedLumi = {'Low':6.4, 'Mid':20., 'High':26.} #fb^-1
 lumi_tot = expectedLumi[cat.name]
 print 'Total lumi (estimated): {:.1f} fb^-1'.format(lumi_tot)
@@ -226,7 +248,7 @@ CMS_lumi.integrated_lumi = lumi_tot
 
 
 
-dsetRD_loc = dataLoc+'cmsRD/skimmed/B2JpsiKst_220228_{}_corr.root'.format(cat.name)
+dsetRD_loc = dataLoc+'cmsRD/skimmed'+args.skimTag+'/B2JpsiKst_220328_{}_corr.root'.format(cat.name)
 dfRD = pd.DataFrame(rtnp.root2array(dsetRD_loc))
 N_sel_per_fb = float(dfRD.shape[0])/lumi_tot
 print 'Selected events per fb: {:.0f}'.format(N_sel_per_fb)
@@ -234,19 +256,23 @@ print 'Selected events per fb: {:.0f}'.format(N_sel_per_fb)
 # # Clean sets
 cuts = [
     ['B_eta', [-0.8, 0.8]],
-    ['pi_pt', [2., 800]],
-    ['K_pt', [2., 800]],
+    ['pi_lostInnerHits', [-2, 1]],
+    ['K_lostInnerHits', [-2, 1]],
+    ['mup_lostInnerHits', [-2, 1]],
+    ['mum_lostInnerHits', [-2, 1]],
+    # ['pi_pt', [2., 800]],
+    # ['K_pt', [2., 800]],
     [mB_var, [5.24, 5.32]],
 ]
 
-fout = open(webFolder + 'additionalSelection.txt', 'w')
+fout = open(webFolder + 'additionalSelection_'+cat.name+'.txt', 'w')
 print 'Including cuts:'
 for i, d in enumerate([dfMC, dfRD]):
     sel = np.ones_like(d['mum_pt']).astype(np.bool)
     for v, [ll, ul] in cuts:
         sel = np.logical_and(sel, np.logical_and(d[v] > ll, d[v] < ul))
         if i == 0:
-            fout.write('{:.3f} < {} < {:.3f}'.format(ll, v, ul))
+            fout.write('{:.3f} < {} < {:.3f}\n'.format(ll, v, ul))
             print '{:.3f} < {} < {:.3f}'.format(ll, v, ul)
     if i == 0:
         dfMC = d[sel]
@@ -255,8 +281,8 @@ for i, d in enumerate([dfMC, dfRD]):
 fout.close()
 
 # # Compare data/MC
-def makePlot(var, binning=None, axis_title=None, wMC=[None], wRD=None, tag='', legMC=['MC'], legRD='Data', saveFig=''):
-    h = create_TH1D(dfRD[var], name='hRD', axis_title=axis_title,
+def makePlot(var, binning=None, axis_title=None, wMC=[None], wRD=None, tag='', legMC=['MC'], legRD='Data', saveFig='', ratio=True):
+    h = create_TH1D(dfRD[var], name='hRD', title='data', axis_title=axis_title,
                     weights=wRD, binning=binning, scale_histo='norm')
     h.SetMarkerStyle(15)
     hList = [h]
@@ -273,12 +299,22 @@ def makePlot(var, binning=None, axis_title=None, wMC=[None], wRD=None, tag='', l
 
     CMS_lumi.integrated_lumi = lumi_tot
     m = SetMaxToMaxHist(hList)
-    c = drawOnCMSCanvas(CMS_lumi, hList, 'same')
+    if ratio:
+        c = make_ratio_plot(hList, ratio_bounds=[0.8,1.2],
+                            leg_pos=None, draw_opt='E', label='_makePlot_'+var)
+        CMS_lumi.CMS_lumi(c.pad1, -1, 0)
+        c.pad1.cd()
+    else:
+        c = drawOnCMSCanvas(CMS_lumi, hList, 'same')
+
+
     leg.Draw()
     c.leg = leg
     catText.DrawLatexNDC(0.95, 0.85, 'Category: {}'.format(cat.name))
     if saveFig:
         c.SaveAs(webFolder+saveFig)
+
+    donotdelete.append(c)
 
 makePlot('N_vtx', binning=[70, 0.5, 70.5], wMC=[dfMC['w']],
          axis_title=['Number of vertexes', 'Normalized entries'], saveFig='reconstructedVertexes_'+cat.name+'.png')
@@ -319,32 +355,12 @@ hRD = create_TH1D(dfRD['B_eta'], name='hRD', title='data',
                   binning=b, scale_histo='norm', opt='overflow+underflow'
                  )
 hRD.SetMarkerStyle(15)
-
 hMC = create_TH1D(dfMC['B_eta'], name='hMC', weights=dfMC['w'],
                   axis_title=['B #eta (reco)',
                               '1/#sigma d#sigma/d#eta / '+'({:.2f})'.format(binWdith)],
                   title = 'B#rightarrow J/#psi K*',
                   scale_histo='norm', color=0,
                   h2clone=hRD, opt='overflow+underflow')
-
-CMS_lumi.extraText = '      Internal'
-c = make_ratio_plot([hMC, hRD], ratio_bounds=[0.8, 1.2], draw_opt='E1')
-
-CMS_lumi.CMS_lumi(c, -1, 0)
-c.pad1.SetTopMargin(0.07)
-c.pad1.SetRightMargin(0.035)
-c.pad2.SetRightMargin(0.035)
-# c.pad2.SetLogy()
-c.leg.SetY1(0.3)
-c.leg.SetY2(0.5)
-c.leg.SetX1(0.35)
-c.leg.SetX2(0.7)
-c.Draw()
-
-c.pad1.cd()
-catText.SetTextSize(0.04)
-catText.DrawLatexNDC(0.9, 0.8, 'Category: {}'.format(cat.name))
-c.SaveAs(webFolder+'B_eta_' + cat.name + '_precal.png')
 
 getPolyCorrection(hRD, hMC, 5, 'eta_polyCoeff', args.verbose)
 cal_eta = calibrationReader(calibration_file=dataLoc+'calibration/kinematicCalibration_Bd/eta_polyCoeff_{}_{}.pkl'.format(cat.name, version))
@@ -439,13 +455,12 @@ hMC = create_TH1D(dfMC['B_pt'], name='hMC',
                   binning=hRD.binning, opt='overflow+underflow')
 
 CMS_lumi.extraText = '      Internal'
-cr = make_ratio_plot([hMC, hRD, hMCb], ratio_bounds=[0.5, 2.5], draw_opt='E1')
-# c = make_ratio_plot([hRD, hMCb, hMC], ratio_bounds=[0.5, 10], draw_opt='E1')
+cr = make_ratio_plot([hMC, hRD, hMCb], ratio_bounds='auto', draw_opt='E1')
 CMS_lumi.CMS_lumi(cr, -1, 0)
 cr.pad1.SetTopMargin(0.07)
 cr.pad1.SetRightMargin(0.035)
 cr.pad2.SetRightMargin(0.035)
-cr.pad2.SetLogy()
+# cr.pad2.SetLogy()
 cr.leg.SetY2(0.9)
 cr.leg.SetY1(0.6)
 cr.leg.SetX1(0.6)
@@ -619,7 +634,7 @@ c.Draw()
 c.SaveAs(webFolder+'closure_' + cat.name +'.png')
 
 
-makePlot(mB_var, binning=[75, 5.24, 5.34], wMC=[dfMC['w'], dfMC['w']*dfMC['wEta']*dfMC['wPt']], legMC=['MC precal', 'MC postcal'],
+makePlot(mB_var, binning=[75, 5.24, np.max(dfMC[mB_var])], wMC=[dfMC['w'], dfMC['w']*dfMC['wEta']*dfMC['wPt']], legMC=['MC precal', 'MC postcal'],
          axis_title=['mass(#mu#mu#piK)', 'Normalized entries'], saveFig='mass_mumupiK_postcal_'+cat.name+'.png')
 makePlot('mass_mumu', binning=[70, 3.0, 3.2], wMC=[dfMC['w'], dfMC['w']*dfMC['wEta']*dfMC['wPt']], legMC=['MC precal', 'MC postcal'],
          axis_title=['mass(#mu#mu)', 'Normalized entries'], saveFig='mass_mumu_postcal_'+cat.name+'.png')
@@ -635,7 +650,7 @@ makePlot('trgMu_pt', binning=b[cat.name],  wMC=[dfMC['w'], dfMC['w']*dfMC['wEta'
          axis_title=['trigger muon p_{T} [GeV]', 'Normalized entries'], saveFig='trgMu_pt_postcal_'+cat.name+'.png')
 
 for n in ['otherMu', 'K', 'pi', 'Jpsi', 'Kst']:
-    makePlot(n+'_pt', binning=3*[None], axis_title=[n+' p_{T}', 'Normalized entries'],
+    makePlot(n+'_pt', binning=[None, np.min(dfMC[n+'_pt']), np.percentile(dfMC[n+'_pt'], 98)], axis_title=[n+' p_{T}', 'Normalized entries'],
               wMC=[dfMC['w'], dfMC['w']*dfMC['wEta']*dfMC['wPt']], legMC=['MC precal', 'MC postcal'], saveFig=n+'_pt_postcal_'+cat.name+'.png')
 
 
