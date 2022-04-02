@@ -34,9 +34,10 @@ from Bd2JpsiKst_selection import candidate_selection, category_selection
 
 import argparse
 parser = argparse.ArgumentParser()
-#Example: python B2JpsiKst_skimCAND_v1.py -d MC --maxEvents 80000 --applyCorr
+#Example: python B2JpsiKst_skimCAND_v1.py -d MC --maxEvents 80000
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
+parser.add_argument ('--skimTag', type=str, default='', help='Tag to append at the name of the skimmed files directory')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'none'], default='jobs', help='Function to perform')
 parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
@@ -52,12 +53,12 @@ args = parser.parse_args()
 ####                          Datset declaration                         ####
 #############################################################################
 MCloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/'
-MCend = '/ntuples_Bd2JpsiKst_220228/out_CAND_*.root'
+MCend = '/ntuples_Bd2JpsiKst_220328/out_CAND_*.root'
 RDloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {
 'MC'    : MCloc+'CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'+MCend,
-'data'  : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_Bd2JpsiKst_220228_CAND.root',
+'data'  : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_Bd2JpsiKst_220328_CAND.root',
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -371,12 +372,16 @@ def makeSelection(inputs):
             aux = (ev.runNum, ev.lumiNum, ev.eventNum,
                    evEx.trgMu_pt, evEx.trgMu_eta, evEx.trgMu_sigdxy,
                    evEx.otherMu_pt, evEx.otherMu_eta, evEx.otherMu_phi,
-                   evEx.mum_pt, evEx.mum_eta, evEx.mum_phi, ev.mum_dxy_PV[j],
-                   evEx.mup_pt, evEx.mup_eta, evEx.mup_phi, ev.mup_dxy_PV[j],
+                   evEx.mum_pt, evEx.mum_eta, evEx.mum_phi,
+                   ev.mum_dxy_PV[j], ev.mum_lostInnerHits[j],
+                   evEx.mup_pt, evEx.mup_eta, evEx.mup_phi,
+                   ev.mup_dxy_PV[j], ev.mup_lostInnerHits[j],
                    ev.pval_mumu[j], evEx.mass_mumu,
                    evEx.Jpsi_pt, evEx.Jpsi_eta, ev.cosT_Jpsi_PV[j],
-                   evEx.K_pt, evEx.K_eta, evEx.K_phi, ev.K_sigdxy_PV[j],
-                   evEx.pi_pt, evEx.pi_eta, evEx.pi_phi, ev.pi_sigdxy_PV[j],
+                   evEx.K_pt, evEx.K_eta, evEx.K_phi,
+                   ev.K_sigdxy_PV[j], ev.K_lostInnerHits[j],
+                   evEx.pi_pt, evEx.pi_eta, evEx.pi_phi,
+                   ev.pi_sigdxy_PV[j], ev.pi_lostInnerHits[j],
                    ev.pval_piK[j], evEx.mass_piK, evEx.mass_Kpi, evEx.mass_KK,
                    evEx.Kst_pt, evEx.Kst_eta, evEx.Kst_pt, ev.sigdxy_vtxKst_PV[j],
                    ev.pval_mumupiK[j],
@@ -456,15 +461,15 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
     print '\n' + 50*'-'
     print n, catName
     if 'data' in n:
-        loc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/skimmed/B2JpsiKst'+ n.replace('data', '')
+        loc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/skimmed'+args.skimTag+'/B2JpsiKst'+ n.replace('data', '')
         out = re.search('2[12][01][1-9][0-3][0-9]', filepath)
         if out is None:
             print filepath
             raise
         fskimmed_name = loc + '_' + out.group(0) + '_' + catName
-        N_evts_per_job = 60000
+        N_evts_per_job = 40000
     else:
-        d = os.path.dirname(filepath) + '/skimmed/'
+        d = os.path.dirname(filepath) + '/skimmed'+args.skimTag+'/'
         if not os.path.isdir(d):
             os.makedirs(d)
         fskimmed_name = d + catName
@@ -517,12 +522,16 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         leafs_names = [ 'runNum', 'lumiNum', 'eventNum',
                         'trgMu_pt', 'trgMu_eta', 'trgMu_sigdxy',
                         'otherMu_pt', 'otherMu_eta', 'otherMu_phi',
-                        'mum_pt', 'mum_eta', 'mum_phi', 'mum_dxy',
-                        'mup_pt', 'mup_eta', 'mup_phi', 'mup_dxy',
+                        'mum_pt', 'mum_eta', 'mum_phi',
+                        'mum_dxy', 'mum_lostInnerHits',
+                        'mup_pt', 'mup_eta', 'mup_phi',
+                        'mup_dxy', 'mup_lostInnerHits',
                         'pval_mumu', 'mass_mumu',
                         'Jpsi_pt', 'Jpsi_eta', 'cosT_Jpsi_PV',
-                        'K_pt','K_eta','K_phi', 'K_sigdxy_PV',
-                        'pi_pt','pi_eta','pi_phi', 'pi_sigdxy_PV',
+                        'K_pt','K_eta','K_phi',
+                        'K_sigdxy_PV', 'K_lostInnerHits',
+                        'pi_pt','pi_eta','pi_phi',
+                        'pi_sigdxy_PV', 'pi_lostInnerHits',
                         'pval_piK', 'mass_piK', 'mass_Kpi', 'mass_KK',
                         'Kst_pt', 'Kst_eta', 'Kst_phi', 'sigdxy_vtxKst_PV',
                         'pval_mumupiK', 'mass_mumupiK',
@@ -682,7 +691,8 @@ def createSubmissionFile(tmpDir, njobs):
     fsub.write('\n')
     fsub.write('WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT')
     fsub.write('\n')
-    fsub.write('+JobQueue="Short"')
+    # fsub.write('+JobQueue="Short"')
+    fsub.write('+JobQueue="Normal"')
     fsub.write('\n')
     fsub.write('+MaxRuntime   = 3600')
     fsub.write('\n')
