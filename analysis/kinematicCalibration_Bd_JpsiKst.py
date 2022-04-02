@@ -255,7 +255,7 @@ print 'Selected events per fb: {:.0f}'.format(N_sel_per_fb)
 
 # # Clean sets
 cuts = [
-    ['B_eta', [-0.8, 0.8]],
+    ['trgMu_eta', [-0.8, 0.8]],
     ['pi_lostInnerHits', [-2, 1]],
     ['K_lostInnerHits', [-2, 1]],
     ['mup_lostInnerHits', [-2, 1]],
