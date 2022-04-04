@@ -15,6 +15,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import uproot as ur
 import ROOT as rt
+rt.PyConfig.IgnoreCommandLineOptions = True
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
@@ -260,8 +261,8 @@ cuts = [
     ['K_lostInnerHits', [-2, 1]],
     ['mup_lostInnerHits', [-2, 1]],
     ['mum_lostInnerHits', [-2, 1]],
-    # ['pi_pt', [2., 800]],
-    # ['K_pt', [2., 800]],
+    ['pi_pt', [2., 800]],
+    ['K_pt', [2., 800]],
     [mB_var, [5.24, 5.32]],
 ]
 
