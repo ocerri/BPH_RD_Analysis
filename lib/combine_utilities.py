@@ -106,7 +106,7 @@ def getUncertaintyFromLimitTree(name, verbose=True, drawPlot=False):
                 u2 = f_u(2.0)
 
                 print l
-                if l < 0.01 and len(r_u) > 4:
+                if l < 0.05 and len(r_u) > 4:
                     print 'Computing upper exclusion since minimum close to lower bound'
                     f_NLL = interp1d(r_u, nll_u, 'quadratic', fill_value='extrapolate')
                     x_test = np.linspace(np.min(r_u), np.max(r_u)+0.3, 500)
