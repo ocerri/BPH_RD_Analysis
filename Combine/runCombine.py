@@ -773,18 +773,21 @@ def createHistograms(category):
         x = np.column_stack((ds['mu_pt'], ds['mu_eta'], ds['mu_sigdxy']))
         if not selection is None:
             x = x[selection]
+        inBoundary = np.all([
+            ds['mu_pt'] > hTriggerSF.GetXaxis().GetBinCenter(1),
+            ds['mu_pt'] < hTriggerSF.GetXaxis().GetBinCenter(hTriggerSF.GetNbinsX()),
+            ds['mu_sigdxy'] > hTriggerSF.GetYaxis().GetBinCenter(1),
+            ds['mu_sigdxy'] < hTriggerSF.GetYaxis().GetBinCenter(hTriggerSF.GetNbinsY()),
+            np.abs(ds['mu_eta']) > hTriggerSF.GetZaxis().GetBinCenter(1),
+            np.abs(ds['mu_eta']) < hTriggerSF.GetZaxis().GetBinCenter(hTriggerSF.GetNbinsZ())
+        ],axis=0)
         for i, (pt, eta, ip) in enumerate(x):
             ix = hSF.GetXaxis().FindBin(min(ptmax, pt))
             iy = hSF.GetYaxis().FindBin(min(ipmax, ip))
             iz = hSF.GetZaxis().FindBin(min(etamax, np.abs(eta)))
             # Make sure all the values are in between the bincenters, otherwise
             # the interpolation doesn't work.
-            if pt > hSF.GetXaxis().GetBinCenter(1) and \
-                ip > hSF.GetYaxis().GetBinCenter(1) and \
-                np.abs(eta) > hSF.GetZaxis().GetBinCenter(1) and \
-                pt < hSF.GetXaxis().GetBinCenter(hSF.GetNbinsX()) and \
-                ip < hSF.GetYaxis().GetBinCenter(hSF.GetNbinsY()) and \
-                np.abs(eta) < hSF.GetZaxis().GetBinCenter(hSF.GetNbinsZ()):
+            if inBoundary[i]:
                 trgSF[i] = hSF.Interpolate(pt,ip,np.abs(eta))
             else:
                 trgSF[i] = hSF.GetBinContent(ix, iy, iz)
