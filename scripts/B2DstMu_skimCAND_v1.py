@@ -36,6 +36,7 @@ from categoriesDef import categories
 from B2DstMu_selection import candidate_selection, trigger_selection
 
 import ROOT as rt
+rt.PyConfig.IgnoreCommandLineOptions = True
 rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
@@ -1193,6 +1194,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 batch_name = 'skim_%s_%s' % (n,catName)
                 if trkControlRegion:
                     batch_name += '_trkControl'
+                if applyCorrections:
+                    batch_name += '_corr'
                 cmd += ' -batch-name %s' % batch_name
                 status, output = commands.getstatusoutput(cmd)
                 if status != 0:
@@ -1282,7 +1285,7 @@ def createSubmissionFile(tmpDir, njobs):
         fsub.write('error         = {}/out/job_$(ProcId)_$(ClusterId).err\n'.format(tmpDir))
         fsub.write('log           = {}/out/job_$(ProcId)_$(ClusterId).log\n'.format(tmpDir))
         fsub.write('WHEN_TO_TRANSFER_OUTPUT = ON_EXIT_OR_EVICT\n')
-        fsub.write('+JobQueue="Normal"\n')
+        fsub.write('+JobQueue="Short"\n')
         # fsub.write('+RequestWalltime   = 7000\n')
         fsub.write('+MaxRuntime   = 7000\n')
         fsub.write('+RunAsOwner = True\n')
