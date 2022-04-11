@@ -187,29 +187,31 @@ nX = hTriggerSF.GetNbinsX()
 ptWeight = [[] for k in range(nX+2)]
 
 dfMC['trgSF'] = np.ones(dfMC.shape[0])
+inBoundary = np.all([
+    dfMC['trgMu_pt'] > hTriggerSF.GetXaxis().GetBinCenter(1),
+    dfMC['trgMu_pt'] < hTriggerSF.GetXaxis().GetBinCenter(hTriggerSF.GetNbinsX()),
+    dfMC['trgMu_sigdxy'] > hTriggerSF.GetYaxis().GetBinCenter(1),
+    dfMC['trgMu_sigdxy'] < hTriggerSF.GetYaxis().GetBinCenter(hTriggerSF.GetNbinsY()),
+    np.abs(dfMC['trgMu_eta']) > hTriggerSF.GetZaxis().GetBinCenter(1),
+    np.abs(dfMC['trgMu_eta']) < hTriggerSF.GetZaxis().GetBinCenter(hTriggerSF.GetNbinsZ())
+],axis=0)
 for i, (pt, eta, ip) in enumerate(dfMC[['trgMu_pt', 'trgMu_eta', 'trgMu_sigdxy']].values):
+    print "\r%i/%i" % (i+1,len(dfMC)),
     ix = hTriggerSF.GetXaxis().FindBin(min(ptmax, pt))
     iy = hTriggerSF.GetYaxis().FindBin(min(ipmax, ip))
     iz = hTriggerSF.GetZaxis().FindBin(min(etamax, np.abs(eta)))
 
-    inBoundary = [
-        pt > hTriggerSF.GetXaxis().GetBinCenter(1),
-        pt < hTriggerSF.GetXaxis().GetBinCenter(hTriggerSF.GetNbinsX()),
-        ip > hTriggerSF.GetYaxis().GetBinCenter(1),
-        ip < hTriggerSF.GetYaxis().GetBinCenter(hTriggerSF.GetNbinsY()),
-        np.abs(eta) > hTriggerSF.GetZaxis().GetBinCenter(1),
-        np.abs(eta) < hTriggerSF.GetZaxis().GetBinCenter(hTriggerSF.GetNbinsZ())
-    ]
 
-    if np.all(inBoundary):
+    if inBoundary[i]:
         sf = hTriggerSF.Interpolate(pt,ip,np.abs(eta))
     else:
         sf = hTriggerSF.GetBinContent(ix, iy, iz)
 
-    dfMC.at[i, 'trgSF'] = sf
+    dfMC.iat[i, dfMC.columns.get_loc('trgSF')] = sf
 #     if np.abs(dfMC.at[i, 'trgSF'] - 1) > 0.1:
 #         print (4*'{:.2f} ').format(pt, eta, ip, hTriggerSF.GetBinContent(ix, iy, iz))
     ptWeight[ix].append(sf)
+print ""
 
 # Muon ID scale factor
 loc = dataLoc+'calibration/muonIDscaleFactors/Run2018ABCD_SF_MuonID_Jpsi.root'
@@ -224,7 +226,7 @@ for i, (ptp, etap, ptm, etam) in enumerate(dfMC[['MC_mup_pt', 'MC_mup_eta', 'MC_
     ix = hMuonIDSF.GetXaxis().FindBin(min(39.9,ptm))
     iy = hMuonIDSF.GetYaxis().FindBin(np.abs(etam))
     wm = hMuonIDSF.GetBinContent(ix, iy)
-    dfMC.at[i, 'muonSF'] = wp * wm
+    dfMC.iat[i, dfMC.columns.get_loc('muonSF')] = wp * wm
 
 dfMC['w'] = dfMC['wPU']*dfMC['muonSF']*dfMC['trgSF']#
 if args.BScal:
