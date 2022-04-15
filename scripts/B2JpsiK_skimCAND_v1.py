@@ -310,16 +310,16 @@ def makeSelection(inputs):
         idx = 0
         if N_acc > 1:
             if 'data' in n:
-                idx = np.random.randint(len(ev_output))
+                idx = ev.eventNum % len(ev_output)
             else:
                 #Get matched can preferably
                 varIdx = leafs_names.index('MC_idxMatch')
                 goodIdx = np.nonzero([o[varIdx] for o in ev_output])[0]
                 if goodIdx.shape[0] > 0:
-                    auxIdx = np.random.randint(goodIdx.shape[0])
+                    auxIdx = ev.eventNum % goodIdx.shape[0]
                     idx = goodIdx[auxIdx]
                 else:
-                    idx = np.random.randint(len(ev_output))
+                    idx = ev.eventNum % len(ev_output)
         if N_acc > 0:
             output[N_accepted_tot] = ev_output[idx]
             N_accepted_tot += 1

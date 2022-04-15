@@ -17,7 +17,7 @@ def exclusiveTrigger(j, ev, trgAcc, trgNegate = []):
                 return False
     return True
 
-def trigger_selection(j, ev, evEx, cat):
+def trigger_selection(j, ev, mu_pt, cat):
     if ev.trgMu_L1_dR[j] > 0.5:
         return False
     ptThr = float(re.search('Mu[0-9]+_', cat.trg).group(0)[2:-1])
@@ -28,7 +28,7 @@ def trigger_selection(j, ev, evEx, cat):
 
     if not exclusiveTrigger(j, ev, 'HLT_' + cat.trg):
         return False
-    if evEx.mu_pt < cat.min_pt or evEx.mu_pt > cat.max_pt:
+    if mu_pt < cat.min_pt or mu_pt > cat.max_pt:
         return False
     if not ev.trgMu_sigdxy_BS[j] > cat.minIP:
         return False

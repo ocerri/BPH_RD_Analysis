@@ -52,7 +52,7 @@ parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of 
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
 parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
 parser.add_argument ('--region', type=str, default='all', choices=['signal', 'trkControl', 'all'], help='Region to skim: signal (0 tracks) or track control (1+)')
-parser.add_argument ('--cat', type=str, default=['high', 'mid', 'low'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
+parser.add_argument ('-c','--cat', type=str, default=['high', 'mid', 'low'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
 parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
 ######## Arguments not for user #####################
 parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
@@ -536,11 +536,15 @@ def makeSelection(inputs):
         ev_output = []
         for j in range(ev.pval_piK.size()):
             idxTrg = int(ev.mu_trgMu_idx[j]) if hasattr(ev, 'mu_trgMu_idx') else int(ev.mu_trgCand_idx[j])
-            evEx = extractEventInfos(j, ev, corr)
 
             if not cat is None:
-                if not trigger_selection(idxTrg, ev, evEx, cat):
+                mu_eta = ev.mu_refitD0pismu_eta[j]
+                mu_phi = ev.mu_refitD0pismu_phi[j]
+                mu_pt = correctPt(ev.mu_refitD0pismu_pt[j], mu_eta, mu_phi, corr, 3e-3)
+                if not trigger_selection(idxTrg, ev, mu_pt, cat):
                     continue
+
+            evEx = extractEventInfos(j, ev, corr)
 
             if not skipCut == 'all':
                 if not candidate_selection(j, ev, evEx, skipCut, trkControlRegion):
@@ -614,9 +618,9 @@ def makeSelection(inputs):
                    evEx.massHad_wNeu[0], evEx.massHad_wNeu[1], evEx.massHad_wNeu[2],
                    evEx.massMuNeu[0], evEx.massMuNeu[1], evEx.massMuNeu[2],
                    evEx.massVisNeu, evEx.massHadNeu,
-                   trigger_selection(idxTrg, ev, evEx, categories['low']),
-                   trigger_selection(idxTrg, ev, evEx, categories['mid']),
-                   trigger_selection(idxTrg, ev, evEx, categories['high']),
+                   trigger_selection(idxTrg, ev, evEx.mu_pt, categories['low']),
+                   trigger_selection(idxTrg, ev, evEx.mu_pt, categories['mid']),
+                   trigger_selection(idxTrg, ev, evEx.mu_pt, categories['high']),
                    ev.trgMu_HLT_Mu12_IP6[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu12_IP6') else ev.trgObj_HLT_Mu12_IP6[idxTrg],
                    ev.trgMu_HLT_Mu9_IP6[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu9_IP6') else ev.trgObj_HLT_Mu9_IP6[idxTrg],
                    ev.trgMu_HLT_Mu7_IP4[idxTrg] if hasattr(ev, 'trgMu_HLT_Mu7_IP4') else ev.trgObj_HLT_Mu7_IP4[idxTrg],
@@ -919,16 +923,16 @@ def makeSelection(inputs):
         idx = 0
         if N_acc > 1:
             if 'data' in n:
-                idx = np.random.randint(len(ev_output))
+                idx = ev.eventNum % len(ev_output)
             else:
                 #Get matched can preferably
                 varIdx = leafs_names.index('MC_idxMatch')
                 goodIdx = np.nonzero([o[varIdx] for o in ev_output])[0]
                 if goodIdx.shape[0] > 0:
-                    auxIdx = np.random.randint(goodIdx.shape[0])
+                    auxIdx = ev.eventNum % goodIdx.shape[0]
                     idx = goodIdx[auxIdx]
                 else:
-                    idx = np.random.randint(len(ev_output))
+                    idx = ev.eventNum % len(ev_output)
         if N_acc > 0:
             output[N_accepted_tot] = ev_output[idx]
             N_accepted_tot += 1

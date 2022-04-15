@@ -47,7 +47,8 @@ def category_selection(j, ev, evEx, cat, saveTrgMu=False):
         # print 'mum'
         # print ev.mum_isTrg[j]
         passed[1] = trigger_selection(int(ev.mum_isTrg[j]), ev, cat, evEx.mum_pt, evEx.mum_eta)
-    if passed[0] and passed[1]: passed[np.random.randint(2)] = False
+    if passed[0] and passed[1]:
+        passed[ev.eventNum % 2] = False
     if saveTrgMu:
         if passed[0]:
             evEx.trgMu_pt = evEx.mup_pt
@@ -68,6 +69,8 @@ def category_selection(j, ev, evEx, cat, saveTrgMu=False):
             evEx.trgMu_eta = -999999999
             evEx.trgMu_sigdxy = -1
             evEx.otherMu_pt = -1
+            evEx.otherMu_eta = -1
+            evEx.otherMu_phi = -1
 
     return np.sum(passed) > 0
 
