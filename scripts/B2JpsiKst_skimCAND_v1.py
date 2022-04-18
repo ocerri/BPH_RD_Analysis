@@ -39,11 +39,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument ('--function', type=str, default='main', help='Function to perform')
 parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) to run on or regular expression for them', nargs='+')
 parser.add_argument ('--skimTag', type=str, default='', help='Tag to append at the name of the skimmed files directory')
-parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'none'], default='jobs', help='Function to perform')
+parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'serial', 'none'], default='jobs', help='Function to perform')
 parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
 parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
 parser.add_argument ('--applyCorr', default=True, type=str2bool, help='Switch to apply crrections')
-parser.add_argument ('--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'probe', 'none'], help='Category(ies)', nargs='+')
+parser.add_argument ('-c','--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'probe', 'none'], help='Category(ies)', nargs='+')
 parser.add_argument ('--skipCut', type=str, default='', choices=['all', '7'], help='Cut to skip')
 ######## Arguments not for user #####################
 parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directory')
@@ -358,11 +358,25 @@ def makeSelection(inputs):
 
         ev_output = []
         for j in range(ev.pval_piK.size()):
+            if cat is not None:
+                e = Container()
+                e.mup_eta = ev.mupRefit_eta[j]
+                e.mup_phi = ev.mupRefit_phi[j]
+                e.mup_pt = correctPt(ev.mupRefit_pt[j], e.mup_eta, e.mup_phi, corr, 3e-3)
+                e.mum_eta = ev.mumRefit_eta[j]
+                e.mum_phi = ev.mumRefit_phi[j]
+                e.mum_pt = correctPt(ev.mumRefit_pt[j], e.mum_eta, e.mum_phi, corr, 3e-3)
+                if not category_selection(j, ev, e, cat, True):
+                    continue
+
             evEx = extractEventInfos(j, ev, corr)
 
-            if not cat is None:
-                if not category_selection(j, ev, evEx, cat, True):
-                    continue
+            evEx.trgMu_pt = e.trgMu_pt
+            evEx.trgMu_eta = e.trgMu_eta
+            evEx.trgMu_sigdxy = e.trgMu_sigdxy
+            evEx.otherMu_pt = e.otherMu_pt
+            evEx.otherMu_eta = e.otherMu_eta
+            evEx.otherMu_phi = e.otherMu_phi
 
             if not skipCut == 'all':
                 if not candidate_selection(j, ev, evEx, skipCut):
@@ -583,7 +597,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
             if 'data' in n:
                 applyCorr = 'RD'
 
-        if N_cand_in < 1.5*N_evts_per_job:
+        if N_cand_in < 1.5*N_evts_per_job or args.parallelType == 'serial':
             output, N_accepted_cand = makeSelection([n, '', filepath, leafs_names, cat,
                                                      [0, N_cand_in-1], applyCorr, skipCut, True])
         else:
