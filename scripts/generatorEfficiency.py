@@ -1,13 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
-
-# Notebook to collect the information of the generation
-
-# ### Import
-
-# In[1]:
-
-
 import sys, os, re, yaml, pickle
 import commands
 from glob import glob
@@ -16,11 +7,42 @@ sys.path.append('../lib')
 
 import time, datetime
 
-
-# In[2]:
-
-
 import signal
+
+import numpy as np
+from scipy.stats import mode
+import matplotlib.pyplot as plt
+from prettytable import PrettyTable
+from progressBar import ProgressBar
+
+import uproot as ur
+import ROOT as rt
+rt.gErrorIgnoreLevel = rt.kError
+rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
+
+# load FWLite C++ libraries
+rt.gSystem.Load("libFWCoreFWLite.so");
+rt.gSystem.Load("libDataFormatsFWLite.so");
+rt.FWLiteEnabler.enable()
+
+# load FWlite python libraries
+from DataFormats.FWLite import Lumis
+from DataFormats.FWLite import Handle
+
+from analysis_utilities import DSetLoader, NTUPLE_TAG
+
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+order = ['mu_c0', 'tau_c0', 'DstPip_c0', 'DstPi0_c0', 'DststPipPi0_c0', 'DststPipPim_c0', 'DststPi0Pi0_c0', 'Bp_TauNuDstst_Pip_PUc0', 'B0_TauNuDstst_Pi0_PUc0', 'DstmDsp','DstmD0','DstmDp','BpHc','BmHc','antiB0Hc']
 
 class TimeoutError(Exception):
     pass
@@ -37,210 +59,51 @@ class timeout:
     def __exit__(self, type, value, traceback):
         signal.alarm(0)
 
-# with timeout(seconds=1):
-#     try:
-#         time.sleep(2)
-#     except TimeoutError:
-#         print 'Got it'
-
-
-# In[3]:
-
-
-import numpy as np
-from scipy.stats import mode
-import matplotlib.pyplot as plt
-from prettytable import PrettyTable
-from progressBar import ProgressBar
-
-
-# In[4]:
-
-
-import uproot as ur
-import ROOT as rt
-rt.gErrorIgnoreLevel = rt.kError
-rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
-
-
-# In[5]:
-
-
-# load FWLite C++ libraries
-rt.gSystem.Load("libFWCoreFWLite.so");
-rt.gSystem.Load("libDataFormatsFWLite.so");
-rt.FWLiteEnabler.enable()
-
-# load FWlite python libraries
-from DataFormats.FWLite import Lumis
-from DataFormats.FWLite import Handle
-# import commands
-
-
-# In[6]:
-
-
-from analysis_utilities import DSetLoader
-
-
-# # Inputs
-
-# Max 3 dataset per time otherwise run out of memory
-
-# In[7]:
-
-
-# order = ['mu_c0', 'tau_c0',
-#          'DstPip_c0', 'DstPi0_c0', 'DststPipPi0_c0', 'DststPipPim_c0', 'DststPi0Pi0_c0', 
-#          'Bp_TauNuDstst_Pip_PUc0', 'B0_TauNuDstst_Pi0_PUc0',
-#          'DstmDsp','DstmD0','DstmDp','BpHc','BmHc','antiB0Hc',
-#         ]
-
-
-# In[8]:
-
-
 inDic = {}
 
-
-# In[9]:
-
+candDir = 'ntuples_B2DstMu_%s' % NTUPLE_TAG
 
 ######## Signals
-inDic['Bd_MuNuDst'] = DSetLoader('Bd_MuNuDst', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bd_TauNuDst'] = DSetLoader('Bd_TauNuDst', candDir='ntuples_B2DstMu_mediumId')
+inDic['Bd_MuNuDst'] = DSetLoader('Bd_MuNuDst', candDir=candDir)
+inDic['Bd_TauNuDst'] = DSetLoader('Bd_TauNuDst', candDir=candDir)
 ######## D** background
-inDic['Bu_MuDstPi'] = DSetLoader('Bu_MuNuDstPi', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bd_MuDstPi'] = DSetLoader('Bd_MuNuDstPi', candDir='ntuples_B2DstMu_mediumId')
-# inDic['Bd_MuDstPiPi'] = DSetLoader('Bd_MuNuDstPiPi', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bu_MuDstPiPi'] = DSetLoader('Bu_MuNuDstPiPi', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bd_MuDstPiPi_v2'] = DSetLoader('Bd_MuNuDstPiPi_v2', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bu_TauDstPi'] = DSetLoader('Bu_TauNuDstPi', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bd_TauDstPi'] = DSetLoader('Bd_TauNuDstPi', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bd_TauDstPiPi'] = DSetLoader('Bd_TauNuDstPiPi', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bu_TauDstPiPi'] = DSetLoader('Bu_TauNuDstPiPi', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bs_MuDstK'] = DSetLoader('Bs_MuNuDstK', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bs_TauDstK'] = DSetLoader('Bs_TauNuDstK', candDir='ntuples_B2DstMu_mediumId')
+inDic['Bu_MuDstPi'] = DSetLoader('Bu_MuNuDstPi', candDir=candDir)
+inDic['Bd_MuDstPi'] = DSetLoader('Bd_MuNuDstPi', candDir=candDir)
+inDic['Bd_MuDstPiPi'] = DSetLoader('Bd_MuNuDstPiPi_v3', candDir=candDir)
+inDic['Bu_MuDstPiPi'] = DSetLoader('Bu_MuNuDstPiPi_v3', candDir=candDir)
+inDic['Bu_TauDstPi'] = DSetLoader('Bu_TauNuDstPi', candDir=candDir)
+inDic['Bd_TauDstPi'] = DSetLoader('Bd_TauNuDstPi', candDir=candDir)
+inDic['Bd_TauDstPiPi'] = DSetLoader('Bd_TauNuDstPiPi', candDir=candDir)
+inDic['Bu_TauDstPiPi'] = DSetLoader('Bu_TauNuDstPiPi', candDir=candDir)
+inDic['Bs_MuDstK'] = DSetLoader('Bs_MuNuDstK', candDir=candDir)
+inDic['Bs_TauDstK'] = DSetLoader('Bs_TauNuDstK', candDir=candDir)
 
 ######## D*Hc background
-inDic['Bd_DstDu'] = DSetLoader('Bd_DstDu', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bd_DstDd'] = DSetLoader('Bd_DstDd', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bd_DstDs'] = DSetLoader('Bd_DstDs', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bu_DstDu'] = DSetLoader('Bu_DstDu', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bu_DstDd'] = DSetLoader('Bu_DstDd', candDir='ntuples_B2DstMu_mediumId')
-inDic['Bs_DstDs'] = DSetLoader('Bs_DstDs', candDir='ntuples_B2DstMu_mediumId')
+inDic['Bd_DstDu'] = DSetLoader('Bd_DstDu', candDir=candDir)
+inDic['Bd_DstDd'] = DSetLoader('Bd_DstDd', candDir=candDir)
+inDic['Bd_DstDs'] = DSetLoader('Bd_DstDs', candDir=candDir)
+inDic['Bu_DstDu'] = DSetLoader('Bu_DstDu', candDir=candDir)
+inDic['Bu_DstDd'] = DSetLoader('Bu_DstDd', candDir=candDir)
+inDic['Bs_DstDs'] = DSetLoader('Bs_DstDs', candDir=candDir)
+inDic['Bd_DDs1'] = DSetLoader('Bd_DDs1', candDir=candDir)
+inDic['Bu_DDs1'] = DSetLoader('Bu_DDs1', candDir=candDir)
+inDic['B_DstDXX'] = DSetLoader('B_DstDXX', candDir=candDir)
 
 ######## Others background
 # inDic['DstKu_KuToMu'] = DSetLoader('DstKu_KuToMu', candDir='ntuples_B2DstMu_211118')
 
-
-# In[10]:
-
-
-# inDic['JPsiKst'] = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_B2JpsiKst')
-
-
-# In[11]:
-
-
-# inDic['muHQET_0'] = DSetLoader('B0_MuNuDmst_HQETcentral_PU0')
-# inDic['mu_0'] = DSetLoader('B0_MuNuDmst_PU0')
-# inDic['mu_20'] = DSetLoader('B0_MuNuDmst_PU20')
-# inDic['mu_c0'] = DSetLoader('B0_MuNuDmst_PUc0')
-# inDic['muSoft_c0'] = DSetLoader('B0_MuNuDmst_SoftQCDall_PUc0')
-# inDic['mu_35'] = DSetLoader('B0_MuNuDmst_PU35')
-
-# inDic['tau_0'] = DSetLoader('B0_TauNuDmst_PU0')
-# inDic['tau_20'] = DSetLoader('B0_TauNuDmst_PU20')
-# inDic['tau_c0'] = DSetLoader('B0_TauNuDmst_PUc0')
-# inDic['tau_35'] = DSetLoader('B0_TauNuDmst_PU35')
-
-# inDic['Hc_20'] = DSetLoader('B0_DmstHc_PU20')
-# inDic['Hc_c0'] = DSetLoader('B0_DmstHc_PUc0')
-
-
-# inDic['DstmDsp'] = DSetLoader('B0_DstmDsp_PUc0')
-
-# inDic['DstmDp'] = DSetLoader('B0_DstmDp_PUc0')
-
-# inDic['DstmD0'] = DSetLoader('B0_DstmD0_PUc0')
-
-# inDic['BpHc'] = DSetLoader('Bp_DstmHc_PUc0')
-
-# inDic['BmHc'] = DSetLoader('Bm_DstmHc_PUc0')
-
-# inDic['antiB0Hc'] = DSetLoader('antiB0_DstmHc_PUc0')
-
-
-# inDic['DstPip_20'] = DSetLoader('Bp_MuNuDstst_PU20')
-# inDic['DstPip_c0'] = DSetLoader('Bp_MuNuDstst_Pip_PUc0')
-
-# inDic['DstPi0_c0'] = DSetLoader('B0_MuNuDstst_Pi0_PUc0')
-
-# inDic['DstPi0_nR_c0'] = DSetLoader('B0_DmstPi0MuNu_PUc0')
-
-# inDic['DststPipPi0_c0'] = DSetLoader('Bp_MuNuDstst_PipPi0_PUc0')
-# inDic['DststPipPi0_nR_c0'] = DSetLoader('Bp_MuNuDstPipPi0_PUc0')
-
-# inDic['DststPipPim_c0'] = DSetLoader('B0_MuNuDstst_PipPim_PUc0')
-# inDic['DststPipPim_nR_c0'] = DSetLoader('B0_MuNuDstPipPim_PUc0')
-
-# inDic['DststPi0Pi0_c0'] = DSetLoader('B0_MuNuDstst_Pi0Pi0_PUc0')
-
-# inDic['B0_DststPiPiPi_c0'] = DSetLoader('B0_MuNuDstPiPiPi_PUc0')
-
-# inDic['Bp_DststPiPiPi_c0'] = DSetLoader('Bp_MuNuDstPiPiPi_PUc0')
-
-# inDic['B0_TauNuDstst_Pi0_PUc0'] = DSetLoader('B0_TauNuDstst_Pi0_PUc0')
-
-# inDic['Bp_TauNuDstst_Pip_PUc0'] = DSetLoader('Bp_TauNuDstst_Pip_PUc0')
-
-
-# In[12]:
-
-
-# inDic['mu_0'] = DSetLoader('B0_MuNuDmst_PU0', candDir='ntuples_probeB2DstMu')
-# inDic['p_mu_c0'] = DSetLoader('p_B0_MuNuDst_PUc0', candDir='ntuples_probeB2DstMu')
-# inDic['p_tau_c0'] = DSetLoader('p_B0_TauNuDst_PUc0', candDir='ntuples_probeB2DstMu')
-
-
-# In[13]:
-
-
-# inDic['JPsiKst_0'] = DSetLoader('B0_JpsiKst_PU0', candDir='ntuples_B2JpsiKst')
-# inDic['JPsiKst_20'] = DSetLoader('B0_JpsiKst_PU20', candDir='ntuples_B2JpsiKst')
-# inDic['JPsiKst_35'] = DSetLoader('B0_JpsiKst_PU35', candDir='ntuples_B2JpsiKst')
-
-# inDic['JPsiKstFSR_20'] = DSetLoader('B0_JpsiKstFSR_PU20', candDir='ntuples_B2JpsiKst')
-# inDic['JPsiKst_c0'] = DSetLoader('B0_JpsiKst_PUc0', candDir='ntuples_B2JpsiKst')
-# inDic['JPsiKst_c0'] = DSetLoader('B0_JpsiX_SoftQCD_PU20', candDir='ntuples_B2JpsiKst')
-
-# inDic['JPsiK_c0'] = DSetLoader('Bp_JpsiK_PUc0', candDir='ntuples_B2JpsiK')
-
-
-# # Efficiency
-
-# In[14]:
-
+inDic['JPsiKst'] = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_%s' % NTUPLE_TAG)
 
 def getEff(k,N):
     e = k/float(N)
     de = np.sqrt(e*(1-e)/N)
     return [e, de]
 
-
-# ## Generator Efficiency
-
-# In[15]:
-
+# Generator Efficiency
 
 handle = {}
 handle['genFilter'] = [Handle('GenFilterInfo'), ('genFilterEfficiencyProducer', '', 'SIM')]
 handle['genProduct'] = [Handle('GenLumiInfoProduct'), ('generator', '', 'SIM')]
-
-
-# In[16]:
-
 
 def analyzeMINIAODs(fileList):  
     print 'Analizing', len(fileList), 'MINIAOD'
@@ -280,9 +143,6 @@ def analyzeMINIAODs(fileList):
     xsec = np.array(xsec)
     xsec_err = np.array(xsec_err)
     return N_gen, N_cuts, xsec, xsec_err
-
-
-# In[17]:
 
 
 N_max = 200
@@ -332,10 +192,7 @@ for n, d in inDic.iteritems():
         dumpF.write(yaml.dump(dump_dic, default_flow_style=False, default_style=''))
 
 
-# ## ntuplizer efficiency
-
-# In[18]:
-
+# ntuplizer efficiency
 
 for d in inDic.values():
     print '\n\n--> ' + d.sample
@@ -343,8 +200,6 @@ for d in inDic.values():
     if not os.path.isdir(d.ntuples_dir):
         continue
     cand_out_list = glob(os.path.join(d.ntuples_dir,'out/job*.out'))
-#     if d.sample == 'Bd_MuNuDst':
-#         cand_out_list = glob(os.path.join(d.ntuples_dir,'out/job_???_*.out'))
     N_analyzed = 0
     N_trg = 0
     N_cand = 0
@@ -355,16 +210,26 @@ for d in inDic.values():
         eff_ln = []
         counters = []
         takingCounters = False
-        for line in open(cand_out).readlines():
-            if 'efficiency:' in line:
-                eff_ln.append(line)
-            elif 'counters:' in line:
+        with open(cand_out) as f:
+            start_analyzing = False
+            for line in f:
+                if not start_analyzing and 'efficiency' not in line:
+                    continue
+                else:
+                    start_analyzing = True
+                if 'efficiency:' in line:
+                    eff_ln.append(line)
+                elif 'counters:' in line:
                     takingCounters = True
-            elif takingCounters and line[:-1].isdigit():
-                counters.append(int(line[:-1]))
-            elif takingCounters:
-                takingCounters = False
-#             print line
+                elif takingCounters and line[:-1].isdigit():
+                    counters.append(int(line[:-1]))
+                elif takingCounters:
+                    takingCounters = False
+
+        if len(eff_ln) == 0:
+            print bcolors.FAIL + "Warning: log file '%s' doesn't have any efficiencies!" % cand_out + bcolors.ENDC
+            continue
+            
         aux = re.search('[0-9]+/[0-9]+', eff_ln[0]).group(0)
         aux = aux.split('/')
         N_analyzed += int(aux[1])
@@ -413,7 +278,7 @@ for d in inDic.values():
             d.rate[str(k)] = r
         print 'Done'
     except:
-        print 'Not found'
+        print bcolors.WARNING + 'Not found' + bcolors.ENDC
     
     dump_dic = {'nTotMINIAOD': int(d.nTotMINIAOD), 'nTotCAND': int(d.nTotCAND)}
     for k in ['effCAND', 'effCAND_trg', 'effCAND_cand']:
@@ -424,9 +289,6 @@ for d in inDic.values():
             dump_dic['rate_'+k] = float(v)
     with open(os.path.join(d.ntuples_dir,'effCAND.yaml'), 'w') as dumpF:
         dumpF.write(yaml.dump(dump_dic, default_flow_style=False, default_style=''))
-
-
-# In[19]:
 
 
 t = PrettyTable()
@@ -453,10 +315,6 @@ plt.grid(True, which='both')
 plt.yscale('log')
 plt.gcf().set_size_inches(10, 6)
 
-
-# In[20]:
-
-
 t = PrettyTable()
 t.field_names = ['Sample'] + [str(i) for i in range(d.counters.shape[0])]
 for n, d in inDic.iteritems():
@@ -479,10 +337,7 @@ plt.yscale('log')
 plt.gcf().set_size_inches(10, 6)
 
 
-# ## Skim Efficiency
-
-# In[21]:
-
+# Skim Efficiency
 
 for p in order:
     if not p in inDic.keys():
@@ -497,10 +352,7 @@ for p in order:
     print s
 
 
-# # Comparison table
-
-# In[ ]:
-
+# Comparison table
 
 # Latex format
 
@@ -539,10 +391,6 @@ for n, ds in inDic.iteritems():
     latexTable += ' ' + ' & '.join(fields) + ' \\\\\n \hline\n'
 latexTable += r'\end{tabular}' + '\n'
 print latexTable
-
-
-# In[ ]:
-
 
 # Latex format transposed
 
@@ -604,10 +452,3 @@ for i, k in enumerate(['Low', 'Mid', 'High']):
 
 latexTable += r'\end{tabular}' + '\n'
 print latexTable
-
-
-# In[ ]:
-
-
-
-

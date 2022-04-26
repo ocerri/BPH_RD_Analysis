@@ -36,7 +36,7 @@ this_process = psutil.Process(os.getpid())
 
 from progressBar import ProgressBar
 from categoriesDef import categories as categoriesDef
-from analysis_utilities import drawOnCMSCanvas, getEff, DSetLoader, str2bool, load_data
+from analysis_utilities import drawOnCMSCanvas, getEff, DSetLoader, str2bool, load_data, NTUPLE_TAG
 from beamSpot_calibration import getBeamSpotCorrectionWeights
 from pT_calibration_reader import pTCalReader as kinCalReader
 from histo_utilities import create_TH1D, create_TH2D, std_color_list, make_ratio_plot
@@ -151,7 +151,7 @@ parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
 parser.add_argument ('--skimmedTagMC', default='', type=str, help='Tag to append to the skimmed directory.')
-parser.add_argument ('--skimmedTagRD', default='_massHadTks_v4', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTagRD', default='', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--bareMC', default=True, type=str2bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
 parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
@@ -228,6 +228,7 @@ parser.add_argument ('--tagGoF', type=str, default='all')
 parser.add_argument ('--showPlots', default=False, action='store_true', help='Show plots by setting ROOT batch mode OFF (default ON)')
 parser.add_argument ('--showCard', default=False, action='store_true', help='Dump card on std outoput')
 parser.add_argument ('--verbose', default=0, type=int, help='Run verbosity.')
+parser.add_argument ('--skip-blop', default=False, action='store_true', help='Skip BLOP form factor weights')
 
 args = parser.parse_args()
 
@@ -443,7 +444,7 @@ def loadDatasets(category, loadRD):
     print 'Loading MC datasets'
     #They all have to be produced with the same pileup
     # candDir='ntuples_B2DstMu_mediumId_lostInnerHits'
-    candDir='ntuples_B2DstMu_220326'
+    candDir='ntuples_B2DstMu_%s' % NTUPLE_TAG
     print 'Using candDir =', candDir
     print 'Using skim MC = skimmed'+args.skimmedTagMC
     print 'Using skim RD = skimmed'+args.skimmedTagRD
@@ -503,15 +504,14 @@ def loadDatasets(category, loadRD):
         dSetTkSide[n] = load_data(filename, stop=args.maxEventsToLoad,branches=branches_to_load)
 
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
-    locRD = dataDir+'/skimmed'+args.skimmedTagRD+'/B2DstMu_SS_220311_{}'.format(category.name)
+    locRD = dataDir+'/skimmed'+args.skimmedTagRD+'/B2DstMu_SS_{}_{}'.format(NTUPLE_TAG,category.name)
     dSet['dataSS_DstMu'] = load_data(locRD + '_corr.root')
     dSetTkSide['dataSS_DstMu'] = load_data(locRD + '_trkCtrl_corr.root')
 
     if loadRD:
         print 'Loading real data datasets'
 
-        creation_date = '220311'
-        locRD = dataDir+'/skimmed'+args.skimmedTagRD+'/B2DstMu_{}_{}'.format(creation_date, category.name)
+        locRD = dataDir+'/skimmed'+args.skimmedTagRD+'/B2DstMu_{}_{}'.format(NTUPLE_TAG, category.name)
         dSet['data'] = load_data(locRD + '_corr.root', branches=relevantBranches['all'])
         dSetTkSide['data'] = load_data(locRD + '_trkCtrl_corr.root', branches=relevantBranches['all'])
 
@@ -762,7 +762,7 @@ def createHistograms(category):
     decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors_v2.pickle', 'rb'))
 
     loc = dataDir+'/calibration/triggerScaleFactors/'
-    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v23_count.root', 'READ')
+    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v39_BS_count.root', 'READ')
     hTriggerSF = fTriggerSF.Get('hSF_HLT_' + category.trg)
     def computeTrgSF(ds, hSF, selection=None):
         trgSF = np.ones_like(ds['q2'])
@@ -834,14 +834,14 @@ def createHistograms(category):
         if args.beamSpotCalibration:
             cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v2.pkl')
         else:
-            cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v1.pkl') # No beamSpot calibration
+            cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_3.pkl') # No beamSpot calibration
 
     if args.beamSpotCalibration:
         cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v2.pkl')
     else:
-        cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v0.pkl') # No beamSpot calibration
+        cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_3.pkl') # No beamSpot calibration
 
-    cal_addTK_pt = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/addTk_pt_polyCoeff_{}_v2.pkl'.format(category.name))
+    cal_addTK_pt = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/addTk_pt_polyCoeff_{}_3.pkl'.format(category.name))
 
 
     def computeKinCalWeights(ds, var, tag, kinCal):
@@ -913,8 +913,7 @@ def createHistograms(category):
     ########## Signal region
     ######################################################
     n_q2bins = len(binning['q2'])-1
-    # negSide = [-2.5, -1.5, -1.0, -0.6, -0.4, -0.2]
-    negSide = []
+    negSide = [-2.5, -1.5, -1.0, -0.6, -0.4, -0.2]
     binning['M2_miss'] = [
             array('d', negSide + [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
             array('d', negSide + [0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.5, 0.2)) + [8] ),
@@ -932,8 +931,7 @@ def createHistograms(category):
     # binning['mu_sigIP3D_vtxDst'] = 4*[[70, -4, 4]]
     # binning['U_miss'] = 4*[[30, -0.1, 0.18]]
 
-    # negSide = [-2.5, -1.0, -0.4, -0.2]
-    negSide = []
+    negSide = [-2.5, -1.0, -0.4, -0.2]
     binning_2D = [
         [
             array('d', negSide + [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
@@ -1143,7 +1141,7 @@ def createHistograms(category):
                     wVar['FF_B2'+tag] = np.where(selDstst, (ds['wh_'+tag]/ds['wh_Dstst_BLRCentral'])*ratesRatio, 1.)
                     wVar['FF_B2'+tag][np.isnan(wVar['FF_B2'+tag])] = 0.
 
-        if n.endswith('_MuDstPiPi'):
+        if n.endswith('_MuDstPiPi') and not args.skip_blop:
             print 'Including B -> D(2S)MuNu FF corrections (Hammer)'
             procId_Dstst = np.array(ds['procId_Dstst']).astype(np.int)
 
@@ -1624,7 +1622,7 @@ def createHistograms(category):
                     wVar['FF_B2'+tag] = np.where(selDstst, (ds['wh_'+tag]/ds['wh_Dstst_BLRCentral'])*ratesRatio, 1.)
                     wVar['FF_B2'+tag][np.isnan(wVar['FF_B2'+tag])] = 0.
 
-        if n.endswith('_MuDstPiPi'):
+        if n.endswith('_MuDstPiPi') and not args.skip_blop:
             print 'Including B -> D(2S)MuNu FF corrections (Hammer)'
             procId_Dstst = np.array(ds['procId_Dstst']).astype(np.int)
 
@@ -2793,7 +2791,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             aux = ''
             for p in processes:
                 if p in ['tau', 'mu']:
-                    aux += ' 1.0'
+                    aux += ' 0.5'
                 else:
                     aux += ' -'
             card += 'B2Dst'+schemeFF+'{} shape'.format(n_pFF) + aux*nCat + '\n'
@@ -2802,7 +2800,7 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
     aux = ''
     for p in processes:
         if '_MuDstPi' in p:
-            aux += ' 1.'
+            aux += ' 0.5'
         else:
             aux += ' -'
     for nEig in [1,2,3,4]:
@@ -2811,14 +2809,15 @@ def createSingleCard(histo, category, fitRegionsOnly=False):
             card += 'FF_B2DststW_BLReig{} shape'.format(nEig) + aux*nCat + '\n'
 
 
-    aux = ''
-    for p in processes:
-        if '_MuDstPiPi' in p:
-            aux += ' 1.'
-        else:
-            aux += ' -'
-    for parName in ['RhoSq', 'chi11', 'chi21', 'chi31', 'eta1']:
-        card += 'FF_B2D2S_BLOP{} shape'.format(parName) + aux*nCat + '\n'
+    if not args.skip_blop:
+        aux = ''
+        for p in processes:
+            if '_MuDstPiPi' in p:
+                aux += ' 0.5'
+            else:
+                aux += ' -'
+        for parName in ['RhoSq', 'chi11', 'chi21', 'chi31', 'eta1']:
+            card += 'FF_B2D2S_BLOP{} shape'.format(parName) + aux*nCat + '\n'
 
 
     # Dstst mix composition

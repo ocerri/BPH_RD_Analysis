@@ -33,7 +33,7 @@ from pileup_utilities import pileupReweighter
 from beamSpot_calibration import getBeamSpotCorrectionWeights
 
 from categoriesDef import categories
-from analysis_utilities import drawOnCMSCanvas, DSetLoader, str2bool
+from analysis_utilities import drawOnCMSCanvas, DSetLoader, str2bool, NTUPLE_TAG
 from pT_calibration_reader import pTCalReader as calibrationReader
 donotdelete = []
 
@@ -148,7 +148,7 @@ def getPolyCorrection(hNum, hDen, deg, tag, verbose=False):
 
 
 # # Load MC
-mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_220328', skimmedTag=args.skimTag)
+mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_%s' % NTUPLE_TAG, skimmedTag=args.skimTag)
 dsetMC_loc = mcSample.skimmed_dir + '/{}_corr.root'.format(cat.name)
 dfMC = pd.DataFrame(rtnp.root2array(dsetMC_loc))
 
@@ -176,7 +176,7 @@ if args.BScal:
     dfMC['wBeamSpot'] = getBeamSpotCorrectionWeights(dfMC, paramBeamSpotCorr, ref='bs')
 
 loc = dataLoc+'calibration/triggerScaleFactors/'
-fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v23_count.root', 'READ')
+fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v39_BS_count.root', 'READ')
 hTriggerSF = fTriggerSF.Get('hSF_HLT_' + cat.trg)
 
 ptmax = hTriggerSF.GetXaxis().GetXmax() - 0.01
@@ -251,7 +251,7 @@ CMS_lumi.integrated_lumi = lumi_tot
 
 
 
-dsetRD_loc = dataLoc+'cmsRD/skimmed'+args.skimTag+'/B2JpsiKst_220328_{}_corr.root'.format(cat.name)
+dsetRD_loc = dataLoc+'cmsRD/skimmed'+args.skimTag+'/B2JpsiKst_{}_{}_corr.root'.format(NTUPLE_TAG,cat.name)
 dfRD = pd.DataFrame(rtnp.root2array(dsetRD_loc))
 N_sel_per_fb = float(dfRD.shape[0])/lumi_tot
 print 'Selected events per fb: {:.0f}'.format(N_sel_per_fb)
@@ -321,6 +321,20 @@ def makePlot(var, binning=None, axis_title=None, wMC=[None], wRD=None, tag='', l
 
 makePlot('N_vtx', binning=[70, 0.5, 70.5], wMC=[dfMC['w']],
          axis_title=['Number of vertexes', 'Normalized entries'], saveFig='reconstructedVertexes_'+cat.name+'.png')
+
+if cat.name == "Low":
+    low, high = 5, 100
+elif cat.name == "Mid":
+    low, high = 7, 100
+elif cat.name == "High":
+    low, high = 7, 100
+else:
+    low, high = 7, 100
+makePlot('trgMu_sigdxy', binning=[100, low, high], wMC=[dfMC['w']],
+         axis_title=['Impact Parameter Significance', 'Normalized entries'], saveFig='trgMu_sigdxy_'+cat.name+'.png')
+
+makePlot('trgMu_dxyErr_BS', binning=[100, 0.0, 1e-2], wMC=[dfMC['w']],
+         axis_title=['Impact Parameter Uncertainty', 'Normalized entries'], saveFig='trgMu_dxyErr_BS_'+cat.name+'.png')
 
 if args.draw_precal:
     makePlot(mB_var, binning=[75, 5.24, 5.34], wMC=[dfMC['w']],

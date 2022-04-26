@@ -30,7 +30,7 @@ import pandas as pd
 #     sys.exit(1)
 sys.path.append('../lib')
 sys.path.append('../analysis')
-from analysis_utilities import getEff
+from analysis_utilities import getEff, check_file, NTUPLE_TAG
 from progressBar import ProgressBar
 from categoriesDef import categories
 from B2DstMu_selection import candidate_selection, trigger_selection
@@ -49,8 +49,8 @@ parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) t
 parser.add_argument ('--skimTag', type=str, default='', help='Tag to append at the name of the skimmed files directory')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'serial'], default='jobs', help='Function to perform')
 parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
-parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
-parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply crrections')
+parser.add_argument ('-f','--recreate', default=False, action='store_true', help='Recreate even if file already present')
+parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply corrections')
 parser.add_argument ('--region', type=str, default='all', choices=['signal', 'trkControl', 'all'], help='Region to skim: signal (0 tracks) or track control (1+)')
 parser.add_argument ('-c','--cat', type=str, default=['high', 'mid', 'low'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
 parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
@@ -70,7 +70,7 @@ filesLocMap = {}
 
 root = '/storage/af/group/rdst_analysis/BPhysics/data'
 MCloc = join(root,'cmsMC/')
-MCend = 'ntuples_B2DstMu_220326/out_CAND_*.root'
+MCend = 'ntuples_B2DstMu_%s/out_CAND_*.root' % NTUPLE_TAG
 MC_samples = ['Bd_MuNuDst',
               'Bd_TauNuDst',
               'Bu_MuNuDstPi',       'Bd_MuNuDstPi',
@@ -89,14 +89,11 @@ MC_samples = ['Bd_MuNuDst',
 sampleFile = '/storage/af/user/ocerri/work/CMSSW_10_2_3/src/ntuplizer/BPH_RDntuplizer/production/samples.yml'
 samples = yaml.load(open(sampleFile))['samples']
 for s in MC_samples:
-    # if s.endswith('_v3'):
-    #     filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend.replace('220201', '220201_ffD2S'))
-    # else:
     filesLocMap[s] = join(MCloc, samples[s]['dataset'], MCend)
 
 RDloc = join(root,'cmsRD/ParkingBPH*/')
-filesLocMap['data'] = join(RDloc, '*_B2DstMu_220311_CAND.root')
-filesLocMap['data_SS'] = join(RDloc, '*_SSDstMu_220311_CAND.root')
+filesLocMap['data'] = join(RDloc, 'Run2018D-05May2019promptD-v1_RDntuplizer_B2DstMu_%s/out_CAND*.root' % NTUPLE_TAG)
+filesLocMap['data_SS'] = join(RDloc, 'Run2018D-05May2019promptD-v1_RDntuplizer_SSDstMu_%s/out_CAND*.root' % NTUPLE_TAG)
 
 def getTLVfromField(ev, n, idx, mass):
     v = rt.TLorentzVector()
@@ -504,14 +501,14 @@ def extractEventInfos(j, ev, corr=None):
     return e
 
 def makeSelection(inputs):
-    n, tag, filepath, leafs_names, cat, idxInt, corr, skipCut, trkControlRegion, serial = inputs
+    n, tag, filenames, leafs_names, cat, idxInt, corr, skipCut, trkControlRegion, serial = inputs
     N_accepted_cand = []
     N_accepted_tot = 0
 
     start, stop = idxInt
 
     tree = rt.TChain('outA/Tevts')
-    for fn in glob(filepath):
+    for fn in filenames:
         tree.Add(fn)
 
     if serial:
@@ -556,6 +553,7 @@ def makeSelection(inputs):
                    evEx.q2, evEx.Est_mu, evEx.M2_miss, evEx.U_miss,
                    evEx.q2_coll, evEx.Est_mu_coll, evEx.M2_miss_coll,
                    ev.mu_charge[j], evEx.mu_pt, evEx.mu_eta, evEx.mu_phi, ev.trgMu_sigdxy_BS[idxTrg],
+                   ev.trgMu_dxyErr_BS[idxTrg],
                    ev.mu_dca_vtxDst[j], ev.mu_sigdca_vtxDst[j],
                    ev.mu_dcaT_vtxDst[j], ev.mu_sigdcaT_vtxDst[j],
                    ev.mu_dca_vtxDstMu[j], ev.mu_sigdca_vtxDstMu[j],
@@ -777,7 +775,8 @@ def makeSelection(inputs):
                     print id_m
                     print id_muM
                     print [x for x in ev.MC_decay]
-                    raise
+                    process = -100
+                    #raise
 
                 aux += (process,)
             if re.match('B[usd]_DstD[usd]', n):
@@ -991,29 +990,40 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         hAllVtxZ = rt.TH1D('hAllVtxZ', 'hAllVtxZ', 100, -25, 25)
         hAllNTrueIntMC = rt.TH1D('hAllNTrueIntMC', 'hAllNTrueIntMC', 101, -0.5, 100.5)
 
-        filenames = glob(filepath)
-        print "Analyzing %i files matching '%s'" % (len(filenames),filepath)
-        pb = ProgressBar(maxEntry=len(filenames))
-        nTryMax = 10 if 'test' in args.skimTag else 500
-        print 'Merging vertexes histograms from the first {} files.'.format(nTryMax)
-        for i, fn in enumerate(filenames):
+        nfiles = len(glob(filepath))
+        print "Analyzing %i files matching '%s'" % (nfiles,filepath)
+        pb = ProgressBar(maxEntry=nfiles)
+        print 'Merging vertexes histograms'
+        filenames = []
+        for i, fn in enumerate(glob(filepath)):
             pb.show(i)
+
+            if not os.path.exists(fn):
+                continue
+
+            if not check_file(fn):
+                continue
+
+            filenames.append(fn)
+
             try:
                 tree.Add(fn)
-                if i < nTryMax:
-                    fAux = rt.TFile.Open(fn, 'READ')
-                    hAux = fAux.Get('trgF/hAllNvts')
-                    hAllNvtx.Add(hAux)
-                    hAux = fAux.Get('trgF/hAllVtxZ')
-                    hAllVtxZ.Add(hAux)
-                    if not 'data' in n:
-                        hAux = fAux.Get('trgF/hAllNTrueIntMC')
-                        hAllNTrueIntMC.Add(hAux)
-                    fAux.Close()
+                fAux = rt.TFile.Open(fn, 'READ')
+                hAux = fAux.Get('trgF/hAllNvts')
+                hAllNvtx.Add(hAux)
+                hAux = fAux.Get('trgF/hAllVtxZ')
+                hAllVtxZ.Add(hAux)
+                if not 'data' in n:
+                    hAux = fAux.Get('trgF/hAllNTrueIntMC')
+                    hAllNTrueIntMC.Add(hAux)
+                fAux.Close()
             except:
                 print >> sys.stderr, '[ERROR] Problem with vertexes histograms in %s' % fn
                 raise
         print 'Computing events from {} files'.format(tree.GetNtrees())
+        if tree.GetEntries() > maxEvents:
+            print "Warning: %i total events but maxEvents is %i" % (tree.GetEntries(), maxEvents)
+            sys.exit(1)
         N_cand_in = min(maxEvents, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
 
@@ -1021,6 +1031,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'q2', 'Est_mu', 'M2_miss', 'U_miss',
                        'q2_coll', 'Est_mu_coll', 'M2_miss_coll',
                        'mu_charge', 'mu_pt', 'mu_eta', 'mu_phi', 'mu_sigdxy',
+                       'trgMu_dxyErr_BS',
                        'mu_dca_vtxDst', 'mu_sigdca_vtxDst',
                        'mu_dcaT_vtxDst', 'mu_sigdcaT_vtxDst',
                        'mu_dca_vtxDstMu', 'mu_sigdca_vtxDstMu',
@@ -1165,7 +1176,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 applyCorr = 'RD'
 
         if N_cand_in < 1.5*N_evts_per_job or args.parallelType == 'serial':
-            output, N_accepted_cand = makeSelection([n, '', filepath, leafs_names, cat,
+            output, N_accepted_cand = makeSelection([n, '', filenames, leafs_names, cat,
                                                      [0, N_cand_in-1], applyCorr, skipCut, trkControlRegion, True])
         else:
             pdiv = list(range(0, N_cand_in, N_evts_per_job))
@@ -1174,7 +1185,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
             print 'Will be divided into ' + str(len(pdiv)-1) + ' jobs'
             inputs = []
             for i, (start, stop) in enumerate(zip(pdiv[:-1],pdiv[1:])):
-                inputs.append([n, str(i), filepath, leafs_names, cat, [start, stop], applyCorr, skipCut, trkControlRegion, False])
+                inputs.append([n, str(i), filenames, leafs_names, cat, [start, stop], applyCorr, skipCut, trkControlRegion, False])
             print ' '
 
             start = time.time()
@@ -1185,6 +1196,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                 tmpDir = 'tmp/B2DstMu_skimCAND_%s_%s' % (n,catName)
                 if trkControlRegion:
                     tmpDir += '_trkControl'
+                if applyCorrections:
+                    tmpDir += '_corr'
                 os.system('rm -rf ' + tmpDir + '/out')
                 os.system('rm -rf ' + tmpDir + '/*.p')
                 os.makedirs(tmpDir + '/out')

@@ -12,6 +12,45 @@ import pickle
 import operator
 ops = {'>': operator.gt, '<': operator.lt, }
 
+# Latest ntuple tag. This tag contains a fix for calculating the impact
+# parameter uncertainty for the muons with respect to the beamspot.
+NTUPLE_TAG = '220412'
+
+def check_file(fn):
+    """
+    Check whether a ROOT file is broken or wasn't closed properly, and if so,
+    ask the user whether to delete it.
+
+    Returns True if the file is OK, or False if the file is deleted.
+    """
+    f = rt.TFile.Open(fn, 'READ')
+    if f is None or f.IsZombie() or f.TestBit(rt.TFile.kRecovered):
+        answer = None
+        while answer not in ('y','n','s'):
+            print "Delete file '%s' which wasn't closed properly? [y/n/s]" % fn
+            answer = raw_input()
+        if answer == 'y':
+            f.Close()
+            os.remove(fn)
+            return False
+        elif answer == 's':
+            f.Close()
+            return False
+    if not f.GetListOfKeys().Contains("outA") or not f.Get("outA").GetListOfKeys().Contains("Tevts"):
+        answer = None
+        while answer not in ('y','n','s'):
+            print "Delete file '%s' which doesn't have the TTree outA/Tevts? [y/n/s]" % fn
+            answer = raw_input()
+        if answer == 'y':
+            f.Close()
+            os.remove(fn)
+            return False
+        elif answer == 's':
+            f.Close()
+            return False
+    f.Close()
+    return True
+
 def drawOnCMSCanvas(CMS_lumi, dobj, opt = None, tag='', size=[800,600],
                     mL=None, mR=None, mT=None, mB=None,
                     makeLegend=False, legPos=[0.7, 0.7, 0.9, 0.9], legNames=None,
