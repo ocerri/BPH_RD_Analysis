@@ -6,11 +6,14 @@ from prettytable import PrettyTable
 import argparse
 
 
-def make_results_table(version=None, cat=None, includeDirs=None, nPulls=4, skipDirs=None, allowedTags=None, verbose=False):
+def make_results_table(version=None, cat=None, includeDirs=None, nPulls=4, skipDirs=None, allowedTags=None, verbose=False, user_name=None):
     dirs = []
 
     if version is not None and cat is not None:
-        results_dir = os.environ['HOME'] + '/public_html/BPH_RDst/Combine/'
+        if user_name is None:
+            results_dir = os.environ['HOME'] + '/public_html/BPH_RDst/Combine/'
+        else:
+            results_dir = '/storage/af/user/' + user_name + '/public_html/BPH_RDst/Combine/'
         matchingDirs = glob(results_dir + '*'+version+'*'+cat+'*')
         auxDirs = []
         for d in sorted(matchingDirs, key=lambda path: os.stat(path).st_ctime):
@@ -185,6 +188,7 @@ if __name__ == '__main__':
     parser.add_argument ('--allowedTags', default=None, nargs='+', help='Regular expression for allowed tags.')
     parser.add_argument ('--nPulls', default=4, type=int, help='Number of parameters to display in pulls.')
     parser.add_argument ('--output', '-o', default=None, help='Output destination.')
+    parser.add_argument ('--user_name', default=None, help='Username to fetch personal website.')
     parser.add_argument ('--verbose', default=False, action='store_true', help='Verbose.')
     args = parser.parse_args()
 
@@ -193,12 +197,12 @@ if __name__ == '__main__':
         for ccc in args.category:
             table = make_results_table(version=args.version, cat=ccc, includeDirs=args.directories,
                                        nPulls=args.nPulls, skipDirs=args.skipDir, allowedTags=args.allowedTags,
-                                       verbose=args.verbose)
+                                       verbose=args.verbose, user_name=args.user_name)
             fullOutput += print_with_title(table, ccc)
     else:
         table = make_results_table(version=args.version, includeDirs=args.directories,
                                    nPulls=args.nPulls, skipDirs=args.skipDir, allowedTags=args.allowedTags,
-                                   verbose=args.verbose)
+                                   verbose=args.verbose, user_name=args.user_name)
         print table
         fullOutput += table.get_string()
 
