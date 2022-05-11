@@ -24,7 +24,7 @@ from histo_utilities import create_TH1D, create_TH2D, std_color_list, SetMaxToMa
 from cebefo_style import Set_2D_colz_graphics
 from progressBar import ProgressBar
 
-from analysis_utilities import drawOnCMSCanvas, extarct, extarct_multiple, createSel, load_data
+from analysis_utilities import drawOnCMSCanvas, extarct, extarct_multiple, createSel, load_data, NTUPLE_TAG
 from lumi_utilities import getLumiByTrigger
 from pileup_utilities import pileupReweighter
 
@@ -124,12 +124,12 @@ def loadDF(loc, branches):
 
 if args.dataset == 'RD':
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
-    RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_220217_CAND.root')
+    RDdsLoc = glob(dataDir + '/ParkingBPH*/Run2018D-05May2019promptD-v1_RDntuplizer_TagAndProbeTrigger_%s/out_CAND*.root' % NTUPLE_TAG)
     df = loadDF(RDdsLoc, branchesToLoad)
     CMS_lumi.extraText = "     Internal"
 elif args.dataset == 'MC':
     mcDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'
-    MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger_220217/out_CAND_*.root')
+    MCdsLoc = glob(mcDir + '/ntuples_TagAndProbeTrigger_%s/out_CAND_*.root' % NTUPLE_TAG)
     df = loadDF(MCdsLoc, branchesToLoad + ['sfMediumMuonID', 'sfSoftMuonID', 'nTrueIntMC', 'MC_mProbe_pt', 'MC_mProbe_eta', 'MC_mProbe_phi'])
     puRew = pileupReweighter(MCdsLoc[0], 'TnP/hAllNTrueIntMC', trg=args.trigger)
     df['wPileup'] = puRew.getPileupWeights(df['nTrueIntMC'])

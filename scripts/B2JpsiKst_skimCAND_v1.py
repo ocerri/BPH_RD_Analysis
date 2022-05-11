@@ -25,7 +25,7 @@ rt.gErrorIgnoreLevel = rt.kError
 rt.RooMsgService.instance().setGlobalKillBelow(rt.RooFit.ERROR)
 import root_numpy as rtnp
 
-from analysis_utilities import drawOnCMSCanvas, getEff, str2bool
+from analysis_utilities import drawOnCMSCanvas, getEff, str2bool, check_file, NTUPLE_TAG
 from histo_utilities import create_TH1D, create_TH2D, std_color_list, SetMaxToMaxHist
 from cebefo_style import Set_2D_colz_graphics
 from gridVarQ2Plot import col_dic, plot_gridVarQ2
@@ -41,7 +41,7 @@ parser.add_argument ('-d', '--dataset', type=str, default=[], help='Dataset(s) t
 parser.add_argument ('--skimTag', type=str, default='', help='Tag to append at the name of the skimmed files directory')
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'serial', 'none'], default='jobs', help='Function to perform')
 parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
-parser.add_argument ('--recreate', default=False, action='store_true', help='Recreate even if file already present')
+parser.add_argument ('-f','--recreate', default=False, action='store_true', help='Recreate even if file already present')
 parser.add_argument ('--applyCorr', default=True, type=str2bool, help='Switch to apply crrections')
 parser.add_argument ('-c','--cat', type=str, default=['low', 'mid', 'high'], choices=['single', 'low', 'mid', 'high', 'probe', 'none'], help='Category(ies)', nargs='+')
 parser.add_argument ('--skipCut', type=str, default='', choices=['all', '7'], help='Cut to skip')
@@ -54,12 +54,12 @@ args = parser.parse_args()
 ####                          Datset declaration                         ####
 #############################################################################
 MCloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/'
-MCend = '/ntuples_Bd2JpsiKst_220328/out_CAND_*.root'
+MCend = '/ntuples_Bd2JpsiKst_%s/out_CAND_*.root' % NTUPLE_TAG
 RDloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {
 'MC'    : MCloc+'CP_General_BdToJpsiKstar_BMuonFilter_SoftQCDnonD_TuneCP5_13TeV-pythia8-evtgen'+MCend,
-'data'  : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_Bd2JpsiKst_220328_CAND.root',
+'data'  : RDloc+'Run2018D-05May2019promptD-v1_RDntuplizer_Bd2JpsiKst_%s/out_CAND*.root' % NTUPLE_TAG,
 }
 
 def getTLVfromField(ev, n, idx, mass):
@@ -320,13 +320,13 @@ def extractEventInfos(j, ev, corr=None):
     return e
 
 def makeSelection(inputs):
-    n, tag, filepath, leafs_names, cat, idxInt, corr, skipCut, serial = inputs
+    n, tag, filenames, leafs_names, cat, idxInt, corr, skipCut, serial = inputs
     N_accepted_cand = []
     N_accepted_tot = 0
 
     tree = rt.TChain('outA/Tevts')
     lastIdxDisc = -1
-    for fn in glob(filepath):
+    for fn in filenames:
         tree.Add(fn)
         if tree.GetEntries() + lastIdxDisc < idxInt[0]:
             lastIdxDisc += tree.GetEntries()
@@ -374,6 +374,7 @@ def makeSelection(inputs):
             evEx.trgMu_pt = e.trgMu_pt
             evEx.trgMu_eta = e.trgMu_eta
             evEx.trgMu_sigdxy = e.trgMu_sigdxy
+            evEx.trgMu_dxyErr_BS = e.trgMu_dxyErr_BS
             evEx.otherMu_pt = e.otherMu_pt
             evEx.otherMu_eta = e.otherMu_eta
             evEx.otherMu_phi = e.otherMu_phi
@@ -386,6 +387,7 @@ def makeSelection(inputs):
 
             aux = (ev.runNum, ev.lumiNum, ev.eventNum,
                    evEx.trgMu_pt, evEx.trgMu_eta, evEx.trgMu_sigdxy,
+                   evEx.trgMu_dxyErr_BS,
                    evEx.otherMu_pt, evEx.otherMu_eta, evEx.otherMu_phi,
                    evEx.mum_pt, evEx.mum_eta, evEx.mum_phi,
                    ev.mum_dxy_PV[j], ev.mum_lostInnerHits[j],
@@ -512,7 +514,22 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         hAllVtxZ = rt.TH1D('hAllVtxZ', 'hAllVtxZ', 100, -25, 25)
         hAllNTrueIntMC = rt.TH1D('hAllNTrueIntMC', 'hAllNTrueIntMC', 101, -0.5, 100.5)
 
-        for fn in glob(filepath):
+        nfiles = len(glob(filepath))
+        print "Analyzing %i files matching '%s'" % (nfiles,filepath)
+        pb = ProgressBar(maxEntry=nfiles)
+        print 'Merging vertexes histograms'
+        filenames = []
+        for i, fn in enumerate(glob(filepath)):
+            pb.show(i)
+
+            if not check_file(fn):
+                continue
+
+            if not os.path.exists(fn):
+                continue
+
+            filenames.append(fn)
+
             tree.Add(fn)
             fAux = rt.TFile.Open(fn, 'READ')
             hAux = fAux.Get('trgF/hAllNvts')
@@ -531,11 +548,15 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
             fAux.Close()
 
         print 'Computing events from {} files'.format(tree.GetNtrees())
+        if tree.GetEntries() > maxEvents:
+            print "Warning: %i total events but maxEvents is %i" % (tree.GetEntries(), maxEvents)
+            sys.exit(1)
         N_cand_in = min(maxEvents, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
 
         leafs_names = [ 'runNum', 'lumiNum', 'eventNum',
                         'trgMu_pt', 'trgMu_eta', 'trgMu_sigdxy',
+                        'trgMu_dxyErr_BS',
                         'otherMu_pt', 'otherMu_eta', 'otherMu_phi',
                         'mum_pt', 'mum_eta', 'mum_phi',
                         'mum_dxy', 'mum_lostInnerHits',
@@ -598,7 +619,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                 applyCorr = 'RD'
 
         if N_cand_in < 1.5*N_evts_per_job or args.parallelType == 'serial':
-            output, N_accepted_cand = makeSelection([n, '', filepath, leafs_names, cat,
+            output, N_accepted_cand = makeSelection([n, '', filenames, leafs_names, cat,
                                                      [0, N_cand_in-1], applyCorr, skipCut, True])
         else:
             pdiv = list(np.arange(0, N_cand_in, N_evts_per_job))
@@ -610,7 +631,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                 corr = 0
                 if i == 1:
                     corr = -1
-                inputs.append([n, str(i), filepath, leafs_names, cat, [pdiv[i-1]+1+corr, pdiv[i]], applyCorr, skipCut, False])
+                inputs.append([n, str(i), filenames, leafs_names, cat, [pdiv[i-1]+1+corr, pdiv[i]], applyCorr, skipCut, False])
             print ' '
 
             start = time.time()
@@ -618,7 +639,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                 p = Pool(min(20,len(inputs)))
                 outputs = p.map(makeSelection, inputs)
             elif args.parallelType == 'jobs':
-                tmpDir = 'tmp/B2JspiKst_skimCAND_' + n
+                tmpDir = 'tmp/B2JpsiKst_skimCAND_%s_%s' % (n,catName)
+                if applyCorrections:
+                    tmpDir += '_corr'
                 os.system('rm -rf ' + tmpDir + '/out')
                 os.system('rm -rf ' + tmpDir + '/*.p')
                 os.makedirs(tmpDir + '/out')
