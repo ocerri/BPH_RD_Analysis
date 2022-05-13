@@ -152,18 +152,18 @@ parser.add_argument ('--category', '-c', type=str, default='high', choices=['sin
 
 parser.add_argument ('--skimmedTagMC', default='', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--skimmedTagRD', default='', type=str, help='Tag to append to the skimmed directory.')
-parser.add_argument ('--bareMC', default=True, type=str2bool, help='Use bare MC instead of the corrected one.')
+parser.add_argument ('--bareMC', default=False, type=str2bool, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
-parser.add_argument ('--calBpT', default='poly', choices=['poly', 'none'], help='Form factor scheme to use.')
+parser.add_argument ('--calBpT', default='none', choices=['poly', 'none'], help='Form factor scheme to use.')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
-parser.add_argument ('--beamSpotCalibration', default=True, type=str2bool, help='Apply beam spot calibration.')
+parser.add_argument ('--beamSpotCalibration', default=False, type=str2bool, help='Apply beam spot calibration.')
 
 parser.add_argument ('--useMVA', default=False, choices=[False, 'v3'], help='Use MVA in the fit.')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu', 'U_miss'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--unblinded', default=False, type=str2bool, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
-parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pp_mHad', 'mm_mHad', 'pm_mVis'], help='Control regions to use', nargs='*')
+parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pp_mHad', 'mm_mHad', 'pm_M2miss', 'pm_q2'], help='Control regions to use', nargs='*')
 parser.add_argument ('--cutMuPS', default=True, type=str2bool, help='Restrict phase space. See data loading for more info.')
 
 parser.add_argument ('--correlate_tkPVfrac', default=False, action='store_true', help='Correlate tkPVfrac in all categories.')
@@ -577,9 +577,9 @@ def loadDatasets(category, loadRD):
             addCuts = [ ['M2_miss', 0.4, 1e3], ['mu_eta', -0.8, 0.8] ]
         else:
             addCuts = [ ['M2_miss', -0.2, 1e3] ]
-        
+
         addCuts += [
-        ['mu_pt', 0, 20],
+        # ['mu_pt', 0, 20],
         # ['B_eta', -1., 1.],
         # ['pis_pt', 1., 1e3],
         ['mu_db_iso04', 0, 80],
@@ -587,8 +587,8 @@ def loadDatasets(category, loadRD):
         ['K_lostInnerHits', -2, 1],
         ['pi_lostInnerHits', -2, 1],
         ['pis_lostInnerHits', -2, 1],
-        # ['mass_piK', 1.86483-0.035, 1.86483+0.035],
-        # ['deltaM_DstD', 0.14543-1.e-3, 0.14543+1.e-3],
+        ['mass_piK', 1.86483-0.035, 1.86483+0.035],
+        ['deltaM_DstD', 0.14543-1.e-3, 0.14543+1.e-3],
         # ['ctrl_tk_pval_0', 0.2, 1.0],
         # ['ctrl_tk_pval_1', 0.2, 1.0],
         # ['ctrl_pm_massVisTks', 0, 3.8],
@@ -828,21 +828,21 @@ def createHistograms(category):
     #     raise
         return muonSF, up, down
 
+    # Kinematic calibration of Bd
+    auxTag = '_eta1p5'
+    if args.cutMuPS:
+        auxTag = '_eta0p8'
+    if args.beamSpotCalibration:
+        auxTag += '_BScal'
+    else:
+        auxTag += '_noBScal'
     if args.calBpT == 'none':
         print 'Not using any B pT calibration'
     elif args.calBpT == 'poly':
-        if args.beamSpotCalibration:
-            cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v2.pkl')
-        else:
-            cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_3.pkl') # No beamSpot calibration
+        cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v4'+auxTag+'.pkl')
 
-    if args.beamSpotCalibration:
-        cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v2.pkl')
-    else:
-        cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_3.pkl') # No beamSpot calibration
-
-    cal_addTK_pt = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/addTk_pt_polyCoeff_{}_3.pkl'.format(category.name))
-
+    cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v4'+auxTag+'.pkl')
+    cal_addTK_pt = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/addTk_pt_polyCoeff_'+category.name+'_v4'+auxTag+'.pkl')
 
     def computeKinCalWeights(ds, var, tag, kinCal):
         if kinCal.kind == 'poly':
@@ -913,12 +913,14 @@ def createHistograms(category):
     ########## Signal region
     ######################################################
     n_q2bins = len(binning['q2'])-1
-    negSide = [-2.5, -1.5, -1.0, -0.6, -0.4, -0.2]
+    lowSide = []
+    if not args.cutMuPS:
+        lowSide = [-1.0, -0.6, -0.4, -0.2, 0., 0.1, 0.2, 0.3]
     binning['M2_miss'] = [
-            array('d', negSide + [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
-            array('d', negSide + [0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.5, 0.2)) + [8] ),
-            array('d', negSide + list(np.arange(0, 6, 0.2)) + [8] ),
-            array('d', negSide + list(np.arange(0, 7.8, 0.2)) + [8] ),
+            array('d', lowSide + [0.4, 0.5, 0.75, 1, 1.5, 4] ),
+            array('d', lowSide + list(np.arange(0.4, 3.5, 0.2)) + [8] ),
+            array('d', lowSide + list(np.arange(0.4, 6, 0.2)) + [8] ),
+            array('d', lowSide + list(np.arange(0.4, 7.8, 0.2)) + [8] ),
         ]
 
     binning['Est_mu'] = [
@@ -931,22 +933,25 @@ def createHistograms(category):
     # binning['mu_sigIP3D_vtxDst'] = 4*[[70, -4, 4]]
     # binning['U_miss'] = 4*[[30, -0.1, 0.18]]
 
-    negSide = [-2.5, -1.0, -0.4, -0.2]
+    lowSide = [[], []]
+    if not args.cutMuPS:
+        lowSide = [[-1.0, -0.4,  -0.2, 0., 0.1, 0.2, 0.3], [-1.0, -0.4, -0.2, 0.]]
+
     binning_2D = [
         [
-            array('d', negSide + [0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.75, 1, 1.5, 4] ),
+            array('d', lowSide[0] + [0.4, 0.5, 0.75, 1, 1.5, 4] ),
             array('d', [0.3] + list(np.arange(0.7, 2.3, 0.3)) + [2.3] )
         ],
         [
-            array('d', negSide + [0.0, 0.1, 0.2, 0.3] + list(np.arange(0.4, 3.0, 0.2)) + [8] ),
+            array('d', lowSide[0] + list(np.arange(0.4, 3.0, 0.2)) + [8] ),
             array('d', [0.3] + list(np.arange(0.7, 2.2, 0.3)) )
         ],
         [
-            array('d', negSide + list(np.arange(0, 5.6, 0.4)) + [8] ),
+            array('d', lowSide[1] + list(np.arange(0.4, 5.6, 0.4)) + [8] ),
             array('d', [0.3] + list(np.arange(0.5, 2.1, 0.3)) + [2.1] )
         ],
         [
-            array('d', negSide + list(np.arange(0, 7.6, 0.4)) + [8] ),
+            array('d', lowSide[1] + list(np.arange(0.4, 7.6, 0.4)) + [8] ),
             array('d', list(np.linspace(0.3, 2.0, 10)) )
         ]
 
