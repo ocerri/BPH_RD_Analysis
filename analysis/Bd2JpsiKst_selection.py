@@ -81,18 +81,19 @@ def candidate_selection(j, ev, evEx, skipCut=None):
         return False
     if not evEx.mup_pt > 3.5:
         return False
-    if not ev.mup_dxy_PV[j] < 3:
-        return False
+    # if not np.abs(ev.mup_dxy_PV[j]) < 3:
+    #     return False
 
     if not abs(evEx.mum_eta) < 2.2:
         return False
     if not evEx.mum_pt > 3.5:
         return False
-    if not ev.mum_dxy_PV[j] < 3:
-        return False
+    # if not np.abs(ev.mum_dxy_PV[j]) < 3:
+    #     return False
 
-    if not ev.pval_mumu[j] > 0.1:
-        return False
+    # Keep the 5% requested at ntuples level
+    # if not ev.pval_mumu[j] > 0.1:
+    #     return False
     if not abs(evEx.mass_mumu - 3.096916) < 0.08:
         return False
     if not evEx.Jpsi_pt > 4.5:
@@ -109,18 +110,20 @@ def candidate_selection(j, ev, evEx, skipCut=None):
     if not evEx.pi_pt > 0.8:
         return False
 
-    if not ev.pval_piK[j] > 0.1:
-        return False
+    # Keep the 5% requested at ntuples level
+    # if not ev.pval_piK[j] > 0.1:
+    #     return False
     if not (7 in skipCut):
         if not abs(evEx.mass_candKst - 0.8955) <  0.07:
             return False
     if not evEx.mass_KK > 1.035:
         return False
-    if not ev.sigdxy_vtxKst_PV[j] > 5:
-        return False
+    # Keep the > 3 requested at ntuples level
+    # if not ev.sigdxy_vtxKst_PV[j] > 5:
+        # return False
 
-    if not ev.pval_mumupiK[j] > 0.1:
-        return False
+    # if not ev.pval_mumupiK[j] > 0.05:
+    #     return False
     if not (7 in skipCut):
         if not abs(evEx.mass_mumupiK - 5.27963) < 0.275:
             return False

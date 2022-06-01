@@ -43,7 +43,7 @@ parser = argparse.ArgumentParser(description='Script used to calibrate Bd kin',
                                  )
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['low', 'mid', 'high'], help='Category.')
 parser.add_argument ('--version', '-v', default='test', help='Version.')
-parser.add_argument ('--skimTag', type=str, default='', help='Tag to append at the name of the skimmed files directory')
+parser.add_argument ('--skimTag', type=str, default='_no_pval_dxy_selection', help='Tag to append at the name of the skimmed files directory')
 parser.add_argument ('--showPlots', default=False, action='store_true', help='Show plots by setting ROOT batch mode OFF (default ON)')
 parser.add_argument ('--BScal', default=False, type=str2bool, help='Apply beam spot calibration')
 parser.add_argument ('--draw_precal', default=False, action='store_true', help='Draw also precal plots')
@@ -133,7 +133,7 @@ def getPolyCorrection(hNum, hDen, deg, tag, verbose=False):
 
     plt.grid()
     if tag == 'pt_polyCoeff':
-        plt.ylim(0.6, 2)
+        plt.ylim(0.8, 1.8)
     else:
         ymin, ymax = plt.ylim()
         plt.ylim(max(0, ymin), min(8, ymax))
@@ -148,7 +148,8 @@ def getPolyCorrection(hNum, hDen, deg, tag, verbose=False):
 
 
 # # Load MC
-mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_%s' % NTUPLE_TAG, skimmedTag=args.skimTag)
+# mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_%s' % NTUPLE_TAG, skimmedTag=args.skimTag)
+mcSample = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_220531', skimmedTag=args.skimTag)
 dsetMC_loc = mcSample.skimmed_dir + '/{}_corr.root'.format(cat.name)
 dfMC = pd.DataFrame(rtnp.root2array(dsetMC_loc))
 
@@ -165,6 +166,12 @@ for f, df in [effMCgen['xsec'], effMCgen['effGEN'], decayBR, effCAND, effSkim]:
     xsec_eff *= f
     dxsec += np.square(df/f)
 dxsec = xsec_eff * np.sqrt(dxsec)
+
+# Rmove oscillated B0
+# sel = np.logical_not(dfMC['MC_B_pdgId'] == -dfMC['MC_B_mother_pdgId'])
+# print 'Selecting unoscillated B0. eff = ', float(np.sum(sel))/sel.shape[0]
+# dfMC = dfMC[sel]
+
 print 'Expected evts/fb: {:.0f} +/- {:.0f}'.format(xsec_eff, dxsec)
 
 puRew = pileupReweighter(dsetMC_loc, 'hAllNTrueIntMC', trg=cat.trg)
@@ -176,7 +183,8 @@ if args.BScal:
     dfMC['wBeamSpot'] = getBeamSpotCorrectionWeights(dfMC, paramBeamSpotCorr, ref='bs')
 
 loc = dataLoc+'calibration/triggerScaleFactors/'
-fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v39_BS_count.root', 'READ')
+# fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v39_BS_count.root', 'READ')
+fTriggerSF = rt.TFile.Open(loc + 'HLT_' + cat.trg + '_SF_v49.root', 'READ')
 hTriggerSF = fTriggerSF.Get('hSF_HLT_' + cat.trg)
 
 ptmax = hTriggerSF.GetXaxis().GetXmax() - 0.01
@@ -263,8 +271,9 @@ cuts = [
     ['K_lostInnerHits', [-2, 1]],
     ['mup_lostInnerHits', [-2, 1]],
     ['mum_lostInnerHits', [-2, 1]],
-    ['pi_pt', [2., 800]],
-    ['K_pt', [2., 800]],
+    # ['mup_dxy', [-3., 3.]],
+    # ['mum_dxy', [-3., 3.]],
+    # ['pval_mumupiK', [0.05, 1.]],
     [mB_var, [5.24, 5.32]],
 ]
 
@@ -330,10 +339,10 @@ elif cat.name == "High":
     low, high = 7, 100
 else:
     low, high = 7, 100
-makePlot('trgMu_sigdxy', binning=[100, low, high], wMC=[dfMC['w']],
+makePlot('trgMu_sigdxy', binning=[70, low, high], wMC=[dfMC['w']],
          axis_title=['Impact Parameter Significance', 'Normalized entries'], saveFig='trgMu_sigdxy_'+cat.name+'.png')
 
-makePlot('trgMu_dxyErr_BS', binning=[100, 0.0, 1e-2], wMC=[dfMC['w']],
+makePlot('trgMu_dxyErr_BS', binning=[50, 1e-3, 6e-3], wMC=[dfMC['w']],
          axis_title=['Impact Parameter Uncertainty', 'Normalized entries'], saveFig='trgMu_dxyErr_BS_'+cat.name+'.png')
 
 if args.draw_precal:
@@ -490,7 +499,7 @@ catText.DrawLatexNDC(0.9, 0.5, 'Category: {}'.format(cat.name))
 cr.SaveAs(webFolder+'BpT_preCal_' + cat.name + '.png')
 
 
-getPolyCorrection(hRD, hMC, 3, 'pt_polyCoeff', args.verbose)
+getPolyCorrection(hRD, hMC, 1, 'pt_polyCoeff', args.verbose)
 cal_pT = calibrationReader(calibration_file=dataLoc+'calibration/kinematicCalibration_Bd/pt_polyCoeff_{}_{}.pkl'.format(cat.name, version))
 dfMC['wPt'] = cal_pT.getWeights(dfMC['MC_B_pt'])
 

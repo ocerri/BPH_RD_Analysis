@@ -54,7 +54,8 @@ args = parser.parse_args()
 ####                          Datset declaration                         ####
 #############################################################################
 MCloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsMC/'
-MCend = '/ntuples_Bd2JpsiKst_%s/out_CAND_*.root' % NTUPLE_TAG
+# MCend = '/ntuples_Bd2JpsiKst_%s/out_CAND_*.root' % NTUPLE_TAG
+MCend = '/ntuples_Bd2JpsiKst_220531/out_CAND_*.root'
 RDloc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/ParkingBPH*/'
 
 filesLocMap = {
@@ -432,8 +433,10 @@ def makeSelection(inputs):
                         ev.MC_idxCand == j,
                         ev.MC_mup_pt, ev.MC_mup_eta,
                         ev.MC_mum_pt, ev.MC_mum_eta,
-                        ev.MC_d_vtxB, ev.MC_dxy_vtxB,
+                        ev.MC_d_vtxB, ev.MC_dxy_vtxB, ev.MC_dxy_genB,
+                        ev.MC_B_pdgId, ev.MC_B_mother_pdgId,
                         ev.d_vtxB_PV_mumupiK[j], ev.dxy_vtxB_PV[j],
+
                         evEx.MC_tkFlag[0], evEx.MC_tkFlag[1],
                         evEx.MC_tkFromMainB[0], evEx.MC_tkFromMainB[1],
                         evEx.MC_tk_dpt[0], evEx.MC_tk_dpt[1],
@@ -479,11 +482,18 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
     print n, catName
     if 'data' in n:
         loc = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD/skimmed'+args.skimTag+'/B2JpsiKst'+ n.replace('data', '')
-        out = re.search('2[12][01][1-9][0-3][0-9]', filepath)
-        if out is None:
-            print filepath
-            raise
-        fskimmed_name = loc + '_' + out.group(0) + '_' + catName
+        # out = re.search('2[12][01][1-9][0-3][0-9]', filepath)
+        # if out is None:
+        #     print filepath
+        #     raise
+        # fskimmed_name = loc + '_' + out.group(0) + '_' + catName
+        aux = os.path.basename(os.path.dirname(filepath))
+        pattern = 'RDntuplizer_Bd2JpsiKst'
+        if pattern not in aux:
+            print 'Pattern', pattern, 'not found in', filepath
+        aux[aux.find(pattern) + len(pattern) : ]
+        fskimmed_name = loc + aux[aux.find(pattern) + len(pattern) : ] + '_' + catName
+
         N_evts_per_job = 40000
     else:
         d = os.path.dirname(filepath) + '/skimmed'+args.skimTag+'/'
@@ -550,7 +560,6 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         print 'Computing events from {} files'.format(tree.GetNtrees())
         if tree.GetEntries() > maxEvents:
             print "Warning: %i total events but maxEvents is %i" % (tree.GetEntries(), maxEvents)
-            sys.exit(1)
         N_cand_in = min(maxEvents, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
 
@@ -599,7 +608,8 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
                             'MC_idxMatch',
                             'MC_mup_pt', 'MC_mup_eta',
                             'MC_mum_pt', 'MC_mum_eta',
-                            'MC_d_vtxB', 'MC_dxy_vtxB',
+                            'MC_d_vtxB', 'MC_dxy_vtxB', 'MC_dxy_genB',
+                            'MC_B_pdgId', 'MC_B_mother_pdgId',
                             'd_vtxB_PV', 'dxy_vtxB_PV',
                             'MC_tkFlag_0', 'MC_tkFlag_1',
                             'MC_tkFromMainB_0', 'MC_tkFromMainB_1',
