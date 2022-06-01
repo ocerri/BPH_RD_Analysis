@@ -12,9 +12,8 @@ import pickle
 import operator
 ops = {'>': operator.gt, '<': operator.lt, }
 
-# Latest ntuple tag. This tag contains a fix for calculating the impact
-# parameter uncertainty for the muons with respect to the beamspot.
-NTUPLE_TAG = '220412'
+# Latest ntuple tag. This tag contains a fix for the impact parameter uncertianty on MC
+NTUPLE_TAG = 'fix_dxy_error_v4'
 
 def check_file(fn):
     """
