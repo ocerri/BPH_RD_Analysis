@@ -491,6 +491,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], maxEvents=
         pattern = 'RDntuplizer_Bd2JpsiKst'
         if pattern not in aux:
             print 'Pattern', pattern, 'not found in', filepath
+            raise
         aux[aux.find(pattern) + len(pattern) : ]
         fskimmed_name = loc + aux[aux.find(pattern) + len(pattern) : ] + '_' + catName
 

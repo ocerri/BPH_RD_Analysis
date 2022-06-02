@@ -959,11 +959,20 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
     print n, catName
     if 'data' in n:
         loc = join(root,'cmsRD/skimmed'+args.skimTag+'/B2DstMu'+ n.replace('data', ''))
-        out = re.search('2[12][01][0-9][0-3][0-9]', filepath)
-        if out is None:
-            print filepath
+        # out = re.search('2[12][01][0-9][0-3][0-9]', filepath)
+        # if out is None:
+        #     print filepath
+        #     raise
+        # fskimmed_name = loc + '_' + out.group(0) + '_' + catName
+        aux = os.path.basename(os.path.dirname(filepath))
+        pattern = 'RDntuplizer_B2DstMu'
+        if pattern not in aux:
+            pattern = 'RDntuplizer_SSDstMu'
+        if pattern not in aux:
+            print 'Pattern', pattern, 'not found in', filepath
             raise
-        fskimmed_name = loc + '_' + out.group(0) + '_' + catName
+        aux[aux.find(pattern) + len(pattern) : ]
+        fskimmed_name = loc + aux[aux.find(pattern) + len(pattern) : ] + '_' + catName
         N_evts_per_job = 75000
     else:
         d = join(os.path.dirname(filepath),'skimmed'+args.skimTag+'/')

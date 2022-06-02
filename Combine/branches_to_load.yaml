@@ -2,6 +2,9 @@ all:
  - q2
  - Est_mu
  - M2_miss
+ - q2_coll
+ - Est_mu_coll
+ - M2_miss_coll
  - mu_pt
  - mu_eta
  - mu_phi
@@ -24,6 +27,8 @@ all:
  - pis_lostInnerHits
  - mass_piK
  - mass_D0pismu
+ - dxy_vtxD0pismu_PV
+ - pval_D0pismu
  - deltaM_DstD
  - N_goodAddTks
  - tkCharge_0

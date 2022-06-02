@@ -20,7 +20,7 @@ def make_results_table(version=None, cat=None, includeDirs=None, nPulls=4, skipD
             if (not os.path.basename(d).startswith('v'+version+'_')) and (not os.path.basename(d).startswith(version+'_')):
                 continue
             if skipDirs is not None:
-                if d in skipDirs:
+                if np.sum([re.match(skipTemplate, d) for skipTemplate in skipDirs]) > 0:
                     continue
             auxDirs.append(d)
         dirs += auxDirs
@@ -68,7 +68,7 @@ def make_results_table(version=None, cat=None, includeDirs=None, nPulls=4, skipD
     table.align['Top pulls'] = 'l'
     table.align['[sigma]'] = 'r'
 
-    for dd in dirs:
+    for dd in sorted(dirs):
         tag = os.path.basename(dd)
         if version is not None:
             tag = tag[tag.find(version+'_')+len(version+'_'):]

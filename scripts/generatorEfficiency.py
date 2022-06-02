@@ -64,36 +64,36 @@ inDic = {}
 candDir = 'ntuples_B2DstMu_%s' % NTUPLE_TAG
 
 ######## Signals
-# inDic['Bd_MuNuDst'] = DSetLoader('Bd_MuNuDst', candDir=candDir)
-# inDic['Bd_TauNuDst'] = DSetLoader('Bd_TauNuDst', candDir=candDir)
-# ######## D** background
-# inDic['Bu_MuDstPi'] = DSetLoader('Bu_MuNuDstPi', candDir=candDir)
-# inDic['Bd_MuDstPi'] = DSetLoader('Bd_MuNuDstPi', candDir=candDir)
-# inDic['Bd_MuDstPiPi'] = DSetLoader('Bd_MuNuDstPiPi_v3', candDir=candDir)
-# inDic['Bu_MuDstPiPi'] = DSetLoader('Bu_MuNuDstPiPi_v3', candDir=candDir)
-# inDic['Bu_TauDstPi'] = DSetLoader('Bu_TauNuDstPi', candDir=candDir)
-# inDic['Bd_TauDstPi'] = DSetLoader('Bd_TauNuDstPi', candDir=candDir)
-# inDic['Bd_TauDstPiPi'] = DSetLoader('Bd_TauNuDstPiPi', candDir=candDir)
-# inDic['Bu_TauDstPiPi'] = DSetLoader('Bu_TauNuDstPiPi', candDir=candDir)
-# inDic['Bs_MuDstK'] = DSetLoader('Bs_MuNuDstK', candDir=candDir)
-# inDic['Bs_TauDstK'] = DSetLoader('Bs_TauNuDstK', candDir=candDir)
-#
-# ######## D*Hc background
-# inDic['Bd_DstDu'] = DSetLoader('Bd_DstDu', candDir=candDir)
-# inDic['Bd_DstDd'] = DSetLoader('Bd_DstDd', candDir=candDir)
-# inDic['Bd_DstDs'] = DSetLoader('Bd_DstDs', candDir=candDir)
-# inDic['Bu_DstDu'] = DSetLoader('Bu_DstDu', candDir=candDir)
-# inDic['Bu_DstDd'] = DSetLoader('Bu_DstDd', candDir=candDir)
-# inDic['Bs_DstDs'] = DSetLoader('Bs_DstDs', candDir=candDir)
-# inDic['Bd_DDs1'] = DSetLoader('Bd_DDs1', candDir=candDir)
-# inDic['Bu_DDs1'] = DSetLoader('Bu_DDs1', candDir=candDir)
-# inDic['B_DstDXX'] = DSetLoader('B_DstDXX', candDir=candDir)
+inDic['Bd_MuNuDst'] = DSetLoader('Bd_MuNuDst', candDir=candDir)
+inDic['Bd_TauNuDst'] = DSetLoader('Bd_TauNuDst', candDir=candDir)
+######## D** background
+inDic['Bu_MuDstPi'] = DSetLoader('Bu_MuNuDstPi', candDir=candDir)
+inDic['Bd_MuDstPi'] = DSetLoader('Bd_MuNuDstPi', candDir=candDir)
+inDic['Bd_MuDstPiPi'] = DSetLoader('Bd_MuNuDstPiPi_v3', candDir=candDir)
+inDic['Bu_MuDstPiPi'] = DSetLoader('Bu_MuNuDstPiPi_v3', candDir=candDir)
+inDic['Bu_TauDstPi'] = DSetLoader('Bu_TauNuDstPi', candDir=candDir)
+inDic['Bd_TauDstPi'] = DSetLoader('Bd_TauNuDstPi', candDir=candDir)
+inDic['Bd_TauDstPiPi'] = DSetLoader('Bd_TauNuDstPiPi', candDir=candDir)
+inDic['Bu_TauDstPiPi'] = DSetLoader('Bu_TauNuDstPiPi', candDir=candDir)
+inDic['Bs_MuDstK'] = DSetLoader('Bs_MuNuDstK', candDir=candDir)
+inDic['Bs_TauDstK'] = DSetLoader('Bs_TauNuDstK', candDir=candDir)
+
+######## D*Hc background
+inDic['Bd_DstDu'] = DSetLoader('Bd_DstDu', candDir=candDir)
+inDic['Bd_DstDd'] = DSetLoader('Bd_DstDd', candDir=candDir)
+inDic['Bd_DstDs'] = DSetLoader('Bd_DstDs', candDir=candDir)
+inDic['Bu_DstDu'] = DSetLoader('Bu_DstDu', candDir=candDir)
+inDic['Bu_DstDd'] = DSetLoader('Bu_DstDd', candDir=candDir)
+inDic['Bs_DstDs'] = DSetLoader('Bs_DstDs', candDir=candDir)
+inDic['Bd_DDs1'] = DSetLoader('Bd_DDs1', candDir=candDir)
+inDic['Bu_DDs1'] = DSetLoader('Bu_DDs1', candDir=candDir)
+inDic['B_DstDXX'] = DSetLoader('B_DstDXX', candDir=candDir)
 
 ######## Others background
 # inDic['DstKu_KuToMu'] = DSetLoader('DstKu_KuToMu', candDir='ntuples_B2DstMu_211118')
 
 # inDic['JPsiKst'] = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_%s' % NTUPLE_TAG)
-inDic['JPsiKst'] = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_220531')
+# inDic['JPsiKst'] = DSetLoader('Bd_JpsiKst_General', candDir='ntuples_Bd2JpsiKst_220531')
 
 def getEff(k,N):
     e = k/float(N)

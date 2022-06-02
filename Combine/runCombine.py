@@ -150,21 +150,22 @@ parser = argparse.ArgumentParser(description='Script used to run combine on the 
 parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
-parser.add_argument ('--skimmedTagMC', default='', type=str, help='Tag to append to the skimmed directory.')
-parser.add_argument ('--skimmedTagRD', default='', type=str, help='Tag to append to the skimmed directory.')
-parser.add_argument ('--bareMC', default=False, type=str2bool, help='Use bare MC instead of the corrected one.')
+parser.add_argument ('--skimmedTagMC', default='_no_pval_selection', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTagRD', default='_no_pval_selection', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--bareMC', default=False, type=str2bool, nargs='?', const=True, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
 parser.add_argument ('--calBpT', default='none', choices=['poly', 'none'], help='Form factor scheme to use.')
 parser.add_argument ('--schemeFF', default='CLN', choices=['CLN', 'BLPR', 'NoFF'], help='Form factor scheme to use.')
 parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity multiplier for asimov dataset. Only works when asimov=True')
-parser.add_argument ('--beamSpotCalibration', default=False, type=str2bool, help='Apply beam spot calibration.')
+parser.add_argument ('--beamSpotCalibration', default=False, type=str2bool, nargs='?', const=True, help='Apply beam spot calibration.')
 
 parser.add_argument ('--useMVA', default=False, choices=[False, 'v3'], help='Use MVA in the fit.')
+parser.add_argument ('--collinear', default=False, type=str2bool, nargs='?', const=True, help='Use collinear approximation variables.')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu', 'U_miss'], help='Use 1D projections in signal region instead of the unrolled histograms')
-parser.add_argument ('--unblinded', default=False, type=str2bool, help='Unblind the fit regions.')
+parser.add_argument ('--unblinded', default=False, type=str2bool, nargs='?', const=True, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
 parser.add_argument ('--controlRegions', default=['p__mHad', 'm__mHad', 'pp_mHad', 'mm_mHad', 'pm_M2miss', 'pm_q2'], help='Control regions to use', nargs='*')
-parser.add_argument ('--cutMuPS', default=True, type=str2bool, help='Restrict phase space. See data loading for more info.')
+parser.add_argument ('--cutMuPS', default=False, type=str2bool, nargs='?', const=True, help='Restrict phase space. See data loading for more info.')
 
 parser.add_argument ('--correlate_tkPVfrac', default=False, action='store_true', help='Correlate tkPVfrac in all categories.')
 parser.add_argument ('--freezeFF', default=False, action='store_true', help='Freeze form factors to central value.')
@@ -228,9 +229,12 @@ parser.add_argument ('--tagGoF', type=str, default='all')
 parser.add_argument ('--showPlots', default=False, action='store_true', help='Show plots by setting ROOT batch mode OFF (default ON)')
 parser.add_argument ('--showCard', default=False, action='store_true', help='Dump card on std outoput')
 parser.add_argument ('--verbose', default=0, type=int, help='Run verbosity.')
-parser.add_argument ('--skip-blop', default=False, action='store_true', help='Skip BLOP form factor weights')
+parser.add_argument ('--skip-blop', default=True, action='store_true', help='Skip BLOP form factor weights')
 
 args = parser.parse_args()
+
+if not args.cardTag.endswith('_'):
+    args.cardTag += '_'
 
 if len(args.step) == 0:
     if args.category == 'comb':
@@ -503,6 +507,7 @@ def loadDatasets(category, loadRD):
         filename = s.skimmed_dir + '/{}_trkCtrl_{}.root'.format(category.name, mcType)
         dSetTkSide[n] = load_data(filename, stop=args.maxEventsToLoad,branches=branches_to_load)
 
+
     dataDir = '/storage/af/group/rdst_analysis/BPhysics/data/cmsRD'
     locRD = dataDir+'/skimmed'+args.skimmedTagRD+'/B2DstMu_SS_{}_{}'.format(NTUPLE_TAG,category.name)
     dSet['dataSS_DstMu'] = load_data(locRD + '_corr.root')
@@ -514,6 +519,12 @@ def loadDatasets(category, loadRD):
         locRD = dataDir+'/skimmed'+args.skimmedTagRD+'/B2DstMu_{}_{}'.format(NTUPLE_TAG, category.name)
         dSet['data'] = load_data(locRD + '_corr.root', branches=relevantBranches['all'])
         dSetTkSide['data'] = load_data(locRD + '_trkCtrl_corr.root', branches=relevantBranches['all'])
+
+    if args.collinear:
+        print '[INFO] Using collinear approximation'
+        for name in dSet:
+            dSet[name].drop(columns=['q2', 'Est_mu', 'M2_miss'], inplace=True)
+            dSet[name].rename(columns={'q2_coll':'q2', 'Est_mu_coll':'Est_mu', 'M2_miss_coll':'M2_miss'}, inplace=True)
 
     for name in dSet:
         dSet[name]['ctrl'] = get_ctrl_group(dSet[name])
@@ -574,11 +585,12 @@ def loadDatasets(category, loadRD):
         print 'Skipping on the flight cuts (if any).'
     else:
         if args.cutMuPS:
-            addCuts = [ ['M2_miss', 0.4, 1e3], ['mu_eta', -0.8, 0.8] ]
+            addCuts = [ ['M2_miss', 0.4, 1e3] ]
         else:
-            addCuts = [ ['M2_miss', -0.2, 1e3] ]
+            addCuts = [ ['M2_miss', -2., 1e3] ]
 
         addCuts += [
+        ['mu_eta', -0.8, 0.8],
         # ['mu_pt', 0, 20],
         # ['B_eta', -1., 1.],
         # ['pis_pt', 1., 1e3],
@@ -589,6 +601,7 @@ def loadDatasets(category, loadRD):
         ['pis_lostInnerHits', -2, 1],
         ['mass_piK', 1.86483-0.035, 1.86483+0.035],
         ['deltaM_DstD', 0.14543-1.e-3, 0.14543+1.e-3],
+        # ['pval_D0pismu', 0.1, 1.0],
         # ['ctrl_tk_pval_0', 0.2, 1.0],
         # ['ctrl_tk_pval_1', 0.2, 1.0],
         # ['ctrl_pm_massVisTks', 0, 3.8],
@@ -623,12 +636,21 @@ def loadDatasets(category, loadRD):
                         raise
                     sel = np.logical_and(sel, np.logical_and(dSet[k][var] > low, dSet[k][var] < high))
 
+
                 orig = dSet[k]['ctrl'] == dSet[k]['ctrl2']
                 dSet[k] = dSet[k][sel]
                 # We don't want to include the duplicate events here, so we
                 # compute the correction scale factors only for those events
                 # which aren't duplicates.
                 corrScaleFactors[k] = np.sum(sel[orig])/float(sel[orig].shape[0])
+
+                # Just as a test
+                # if 'data' not in k:
+                #     sel_mixed = np.logical_and(np.abs(dSet[k]['MC_B_pdgId']) == 511,
+                #                                dSet[k]['MC_B_mother_pdgId'] + dSet[k]['MC_B_pdgId'] == 0)
+                #     fMixed = np.sum(sel_mixed)/float(sel_mixed.shape[0])
+                #     print 'Removing mixed B0 from', k, ': {:.3f}'.format(fMixed)
+                #     dSet[k] = dSet[k][np.logical_not(sel_mixed)]
 
                 sel = np.ones_like(dSetTkSide[k]['q2']).astype(np.bool)
                 for var, low, high in addCuts:
@@ -762,7 +784,7 @@ def createHistograms(category):
     decayBR = pickle.load(open(dataDir+'/forcedDecayChannelsFactors_v2.pickle', 'rb'))
 
     loc = dataDir+'/calibration/triggerScaleFactors/'
-    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v39_BS_count.root', 'READ')
+    fTriggerSF = rt.TFile.Open(loc + 'HLT_' + category.trg + '_SF_v49.root', 'READ')
     hTriggerSF = fTriggerSF.Get('hSF_HLT_' + category.trg)
     def computeTrgSF(ds, hSF, selection=None):
         trgSF = np.ones_like(ds['q2'])
@@ -829,20 +851,22 @@ def createHistograms(category):
         return muonSF, up, down
 
     # Kinematic calibration of Bd
-    auxTag = '_eta1p5'
-    if args.cutMuPS:
-        auxTag = '_eta0p8'
-    if args.beamSpotCalibration:
-        auxTag += '_BScal'
-    else:
-        auxTag += '_noBScal'
+    auxTag = 'v5_220601_base'
+    # auxTag += '_eta1p5'
+    # if args.cutMuPS:
+    #     auxTag = '_eta0p8'
+    # if args.beamSpotCalibration:
+    #     auxTag += '_BScal'
+    # else:
+    #     auxTag += '_noBScal'
+
     if args.calBpT == 'none':
         print 'Not using any B pT calibration'
     elif args.calBpT == 'poly':
-        cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_v4'+auxTag+'.pkl')
+        cal_pT_Bd = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/pt_polyCoeff_'+category.name+'_'+auxTag+'.pkl')
 
-    cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_v4'+auxTag+'.pkl')
-    cal_addTK_pt = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/addTk_pt_polyCoeff_'+category.name+'_v4'+auxTag+'.pkl')
+    cal_eta_B = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/eta_polyCoeff_'+category.name+'_'+auxTag+'.pkl')
+    cal_addTK_pt = kinCalReader(calibration_file=dataDir+'/calibration/kinematicCalibration_Bd/addTk_pt_polyCoeff_'+category.name+'_'+auxTag+'.pkl')
 
     def computeKinCalWeights(ds, var, tag, kinCal):
         if kinCal.kind == 'poly':
@@ -907,61 +931,96 @@ def createHistograms(category):
 
     histo = {}
     eventCountingStr = {}
-    data_over_MC_overallNorm = 0.7
+    data_over_MC_overallNorm = 0.82
 
     ######################################################
     ########## Signal region
     ######################################################
     n_q2bins = len(binning['q2'])-1
-    lowSide = []
-    if not args.cutMuPS:
-        lowSide = [-1.0, -0.6, -0.4, -0.2, 0., 0.1, 0.2, 0.3]
-    binning['M2_miss'] = [
-            array('d', lowSide + [0.4, 0.5, 0.75, 1, 1.5, 4] ),
-            array('d', lowSide + list(np.arange(0.4, 3.5, 0.2)) + [8] ),
-            array('d', lowSide + list(np.arange(0.4, 6, 0.2)) + [8] ),
-            array('d', lowSide + list(np.arange(0.4, 7.8, 0.2)) + [8] ),
+    if args.collinear:
+        binning['M2_miss'] = [
+                array('d', list(np.arange(0., 1., 0.02)) + [1.2] ),
+                array('d', list(np.arange(0.5, 2.2, 0.025)) + [2.1] ),
+                array('d', list(np.arange(1.5, 6, 0.15)) + [8] ),
+                array('d', list(np.arange(5.5, 8.5, 0.15)) + [9] ),
+            ]
+
+        binning['Est_mu'] = [
+                array('d', list(np.arange(1.7, 2.3, 0.025)) + [2.4] ),
+                array('d', list(np.arange(1.35, 1.9, 0.025))),
+                array('d', list(np.arange(0.6, 1.6, 0.025))),
+                array('d', list(np.arange(0.3, 0.85, 0.03)) + [0.85]),
+            ]
+
+        binning_2D = [
+            [
+                array('d', list(np.arange(0., 1., 0.04)) + [1.2] ),
+                array('d', list(np.arange(1.7, 2.3, 0.05)) + [2.4] )
+            ],
+            [
+                array('d', list(np.arange(0.5, 2.2, 0.05)) + [2.1] ),
+                array('d', list(np.arange(1.35, 1.9, 0.05)) )
+            ],
+            [
+                array('d', list(np.arange(1.5, 6, 0.25)) + [8] ),
+                array('d', list(np.arange(0.6, 1.6, 0.07))),
+            ],
+            [
+                array('d', list(np.arange(5.5, 8.5, 0.3)) + [9] ),
+                array('d', list(np.arange(0.3, 0.85, 0.07))  + [0.85] )
+            ]
+
         ]
+    else:
+        lowSide = []
+        if not args.cutMuPS:
+            lowSide = [-2.0, -1.0, -0.6, -0.4, -0.2, 0., 0.1, 0.2, 0.3]
+        binning['M2_miss'] = [
+                array('d', lowSide + [0.4, 0.5, 0.75, 1, 1.5, 4] ),
+                array('d', lowSide + list(np.arange(0.4, 3.5, 0.2)) + [8] ),
+                array('d', lowSide + list(np.arange(0.4, 6, 0.2)) + [8] ),
+                array('d', lowSide + list(np.arange(0.4, 7.8, 0.2)) + [8] ),
+            ]
 
-    binning['Est_mu'] = [
-            array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.3] ),
-            array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.3] ),
-            array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.2] ),
-            [24, 0.3, 2.0],
+        binning['Est_mu'] = [
+                array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.3] ),
+                array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.3] ),
+                array('d', [0.3] + list(np.arange(0.5, 2.2, 0.05)) + [2.2] ),
+                [24, 0.3, 2.0],
+            ]
+
+
+        lowSide = [[], []]
+        if not args.cutMuPS:
+            lowSide = [[-2.0, -1.0, -0.4,  -0.2, 0., 0.1, 0.2, 0.3], [-1.0, -0.4, -0.2, 0.]]
+
+        binning_2D = [
+            [
+                array('d', lowSide[0] + [0.4, 0.5, 0.75, 1, 1.5, 4] ),
+                array('d', [0.3] + list(np.arange(0.7, 2.3, 0.3)) + [2.3] )
+            ],
+            [
+                array('d', lowSide[0] + list(np.arange(0.4, 3.0, 0.2)) + [8] ),
+                array('d', [0.3] + list(np.arange(0.7, 2.2, 0.3)) )
+            ],
+            [
+                array('d', lowSide[1] + list(np.arange(0.4, 5.6, 0.4)) + [8] ),
+                array('d', [0.3] + list(np.arange(0.5, 2.1, 0.3)) + [2.1] )
+            ],
+            [
+                array('d', lowSide[1] + list(np.arange(0.4, 7.6, 0.4)) + [8] ),
+                array('d', list(np.linspace(0.3, 2.0, 10)) )
+            ]
+
         ]
-
-    # binning['mu_sigIP3D_vtxDst'] = 4*[[70, -4, 4]]
-    # binning['U_miss'] = 4*[[30, -0.1, 0.18]]
-
-    lowSide = [[], []]
-    if not args.cutMuPS:
-        lowSide = [[-1.0, -0.4,  -0.2, 0., 0.1, 0.2, 0.3], [-1.0, -0.4, -0.2, 0.]]
-
-    binning_2D = [
-        [
-            array('d', lowSide[0] + [0.4, 0.5, 0.75, 1, 1.5, 4] ),
-            array('d', [0.3] + list(np.arange(0.7, 2.3, 0.3)) + [2.3] )
-        ],
-        [
-            array('d', lowSide[0] + list(np.arange(0.4, 3.0, 0.2)) + [8] ),
-            array('d', [0.3] + list(np.arange(0.7, 2.2, 0.3)) )
-        ],
-        [
-            array('d', lowSide[1] + list(np.arange(0.4, 5.6, 0.4)) + [8] ),
-            array('d', [0.3] + list(np.arange(0.5, 2.1, 0.3)) + [2.1] )
-        ],
-        [
-            array('d', lowSide[1] + list(np.arange(0.4, 7.6, 0.4)) + [8] ),
-            array('d', list(np.linspace(0.3, 2.0, 10)) )
-        ]
-
-    ]
 
     binning['MVA'] = [10, 0, 1]
     if args.useMVA:
         bbb = np.arange(0., np.max(dSet['tau']['MVA']) + 0.0249, 0.025)
         binning['MVA'] = array('d', list(bbb))
     binning['specQ2'] = array('d', list(np.arange(-2, 11.4, 0.2)))
+    # binning['mu_sigIP3D_vtxDst'] = 4*[[70, -4, 4]]
+    # binning['U_miss'] = 4*[[30, -0.1, 0.18]]
     binning['B_pt'] = array('d', list({'Low': np.arange(10, 75, 2), 'Mid': np.arange(14, 90, 2), 'High': np.arange(18, 110, 2)}[category.name]))
     binning['mu_pt'] = array('d',
                         {'Low': list(np.arange(7.2, 9.201, 0.05)),
@@ -977,6 +1036,7 @@ def createHistograms(category):
     binning['mass_piK'] = [75, 1.81, 1.92]
     binning['deltaM_DstD'] = [75, 0.1434, 0.1475]
     binning['mass_D0pismu'] = [50, 2.1, 5.28]
+    # binning['dxy_vtxD0pismu_PV'] = [80, 0., 2.5]
 
     observables_q2bins = []
     observables_q2integrated = []
