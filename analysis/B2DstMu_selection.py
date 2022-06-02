@@ -41,8 +41,10 @@ def trigger_selection(j, ev, mu_pt, cat):
 
 def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
     if not (1 in skipCut):
-        if not ev.pval_piK[j] > 0.1:
-            return False
+        # Leave at 5% used in ntuplizer
+        # if not ev.pval_piK[j] > 0.1:
+        #     return False
+        pass
     if not (2 in skipCut):
         # if not e.K_pt > 1.0:
         if not e.K_pt > 0.8:
@@ -78,8 +80,10 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
             # if not ev.mass_piK_hKK[j] > 1.91 and ev.mass_piK_hpipi[j] < 1.83:
             return False
     if not (7 in skipCut):
-        if not ev.sigdxy_vtxD0_PV[j] > 2:
-            return False
+        # Leave at >2 used in ntuplizer
+        # if not ev.sigdxy_vtxD0_PV[j] > 2:
+        #     return False
+        pass
     if not (8 in skipCut):
         if not e.pis_pt > 0.6:
         # if not e.pis_pt > 0.5:
@@ -88,8 +92,10 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
         if not abs(e.pis_eta) < 2.4:
             return False
     if not (10 in skipCut):
-        if not ev.pval_D0pis[j] > 0.1:
-            return False
+        # Leave at 5% used in ntuplizer
+        # if not ev.pval_D0pis[j] > 0.1:
+        #     return False
+        pass
     if not (11 in skipCut):
         pass # Cut removed
         # if not abs(e.mass_D0pis - 2.01026) < 0.03:
@@ -98,8 +104,10 @@ def candidate_selection(j, ev, e, skipCut=[], trkControlRegion=False):
         if not 1e3*abs(e.mass_D0pis - e.mass_piK - 0.14543) < 2.:
             return False
     if not (13 in skipCut):
-        if not ev.pval_D0pismu[j] > 0.1:
-            return False
+        # Leave at 0.1% used in ntuplizer
+        # if not ev.pval_D0pismu[j] > 0.1:
+        #     return False
+        pass
     if not (14 in skipCut):
         if not ev.cos_D0pismu_PV[j] > 0.99:
             return False

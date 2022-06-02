@@ -30,7 +30,7 @@ import pandas as pd
 #     sys.exit(1)
 sys.path.append('../lib')
 sys.path.append('../analysis')
-from analysis_utilities import getEff, check_file, NTUPLE_TAG
+from analysis_utilities import getEff, check_file, str2bool, NTUPLE_TAG
 from progressBar import ProgressBar
 from categoriesDef import categories
 from B2DstMu_selection import candidate_selection, trigger_selection
@@ -50,7 +50,7 @@ parser.add_argument ('--skimTag', type=str, default='', help='Tag to append at t
 parser.add_argument ('-p', '--parallelType', choices=['pool', 'jobs', 'serial'], default='jobs', help='Function to perform')
 parser.add_argument ('--maxEvents', type=int, default=1e15, help='Max number of events to be processed')
 parser.add_argument ('-f','--recreate', default=False, action='store_true', help='Recreate even if file already present')
-parser.add_argument ('--applyCorr', default=False, action='store_true', help='Switch to apply corrections')
+parser.add_argument ('--applyCorr', default=True, type=str2bool, help='Switch to apply corrections')
 parser.add_argument ('--region', type=str, default='all', choices=['signal', 'trkControl', 'all'], help='Region to skim: signal (0 tracks) or track control (1+)')
 parser.add_argument ('-c','--cat', type=str, default=['high', 'mid', 'low'], choices=['single', 'low', 'mid', 'high', 'none'], help='Category(ies)', nargs='+')
 parser.add_argument ('--skipCut', type=str, default='', choices=['all', '11', '13', '14', '16', '17'], help='Cut to skip.\nAll: skip all the cuts\n16:Visible mass cut\n17: additional tracks cut')
@@ -289,8 +289,9 @@ def extractEventInfos(j, ev, corr=None):
     p4_tks = []
     for jj in range(idx_st, idx_stop):
         pval = ev.tksAdd_pval[jj]
-        if pval < 0.1:
-            continue
+        # Leave to 5% required in ntuplizer
+        # if pval < 0.1:
+        #     continue
 
         if ev.tksAdd_lostInnerHits[jj] > 0:
             continue
@@ -641,6 +642,12 @@ def makeSelection(inputs):
                     muSisPdgId[0] = muSisPdgId[1]
                     muSisPdgId[1] = auxSwap
 
+                MC_B_mother_pdgId = 0
+                MC_B_pdgId = 0
+                if len(ev.MC_decay):
+                    MC_B_mother_pdgId = ev.MC_decay[0]
+                    MC_B_pdgId = ev.MC_decay[2]
+
                 aux += (
                         ev.MC_nAddOgB, ev.MC_bestBB_dR, ev.MC_bestBB_dphi, ev.MC_bestBB_mass,
                         ev.MC_q2, ev.MC_Est_mu, ev.MC_M2_miss,
@@ -652,6 +659,7 @@ def makeSelection(inputs):
                         ev.MC_K_pt, ev.MC_K_eta, ev.MC_K_phi,
                         ev.MC_pis_pt, ev.MC_pis_eta, ev.MC_pis_phi,
                         ev.MC_idxCand == j,
+                        MC_B_mother_pdgId, MC_B_pdgId,
                         ev.MC_muMotherPdgId,
                         muSisPdgId[0], muSisPdgId[1],
                         ev.MC_MassCharmedBDaugther,
@@ -1023,7 +1031,6 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         print 'Computing events from {} files'.format(tree.GetNtrees())
         if tree.GetEntries() > maxEvents:
             print "Warning: %i total events but maxEvents is %i" % (tree.GetEntries(), maxEvents)
-            sys.exit(1)
         N_cand_in = min(maxEvents, tree.GetEntries())
         print n, ': Total number of candidate events =', N_cand_in
 
@@ -1119,6 +1126,7 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                             'MC_K_pt', 'MC_K_eta', 'MC_K_phi',
                             'MC_pis_pt', 'MC_pis_eta', 'MC_pis_phi',
                             'MC_idxMatch',
+                            'MC_B_mother_pdgId', 'MC_B_pdgId',
                             'MC_muMotherPdgId',
                             'MC_munuSisterPdgId_0', 'MC_munuSisterPdgId_1',
                             'MC_MassCharmedBDaughter',

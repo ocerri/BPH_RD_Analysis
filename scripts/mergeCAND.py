@@ -22,7 +22,7 @@ if args.directory == '':
 else:
     fileTemplate = args.directory
 
-fileTemplate += '/out_CAND_*.root'
+fileTemplate = os.path.join(fileTemplate, 'out_CAND_*.root')
 
 # Create merge directory
 outdir = os.path.join(os.path.dirname(fileTemplate), 'merged')
