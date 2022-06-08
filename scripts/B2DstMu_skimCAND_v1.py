@@ -59,6 +59,7 @@ parser.add_argument ('--tmpDir', type=str, default=None, help='Temporary directo
 parser.add_argument ('--jN', type=int, default=None, help='Job number')
 args = parser.parse_args()
 
+# python B2DstMu_skimCAND_v1.py -d data
 # python B2DstMu_skimCAND_v1.py -d "Bd_MuNuDst\Z"
 # python B2DstMu_skimCAND_v1.py -d "B[us]"
 # python B2DstMu_skimCAND_v1.py -d "Bd_Dst" "Bd_DDs1" "Bd_Tau" "Bd_MuNuDstPi" "B_DstDXX"
@@ -169,7 +170,54 @@ def extractEventInfos(j, ev, corr=None):
     m_B0   = 5.27963
 
     e = Container()
-    # print '------> <-----'
+    #############################################
+    ############ Prefit quantities ##############
+    #############################################
+
+    e.prefit_K_eta = ev.K_eta[j]
+    e.prefit_K_phi = ev.K_phi[j]
+    e.prefit_K_pt = correctPt(ev.K_pt[j], e.prefit_K_eta, e.prefit_K_phi, corr, 3e-3)
+    p4_K_prefit = rt.TLorentzVector()
+    p4_K_prefit.SetPtEtaPhiM(e.prefit_K_pt, e.prefit_K_eta, e.prefit_K_phi, m_K)
+
+    e.prefit_pi_eta = ev.pi_eta[j]
+    e.prefit_pi_phi = ev.pi_phi[j]
+    e.prefit_pi_pt = correctPt(ev.pi_pt[j], e.prefit_pi_eta, e.prefit_pi_phi, corr, 3e-3)
+    p4_pi_prefit = rt.TLorentzVector()
+    p4_pi_prefit.SetPtEtaPhiM(e.prefit_pi_pt, e.prefit_pi_eta, e.prefit_pi_phi, m_pi)
+
+    e.prefit_pis_eta = ev.pis_eta[j]
+    e.prefit_pis_phi = ev.pis_phi[j]
+    e.prefit_pis_pt = correctPt(ev.pis_pt[j], e.prefit_pis_eta, e.prefit_pis_phi, corr, 6e-3)
+    p4_pis_prefit = rt.TLorentzVector()
+    p4_pis_prefit.SetPtEtaPhiM(e.prefit_pis_pt, e.prefit_pis_eta, e.prefit_pis_phi, m_pi)
+
+    e.prefit_mu_eta = ev.mu_eta[j]
+    e.prefit_mu_phi = ev.mu_phi[j]
+    e.prefit_mu_pt = correctPt(ev.mu_pt[j], e.prefit_mu_eta, e.prefit_mu_phi, corr, 3e-3)
+    p4_mu_prefit = rt.TLorentzVector()
+    p4_mu_prefit.SetPtEtaPhiM(e.prefit_mu_pt, e.prefit_mu_eta, e.prefit_mu_phi, m_mu)
+
+    # Use collinearity approximation, no fit exists here
+    p4_Dst_prefit = p4_K_prefit + p4_pi_prefit + p4_pis_prefit
+    p4_vis_prefit = p4_Dst_prefit + p4_mu_prefit
+    e.prefit_B_pt = p4_vis_prefit.Pt() * m_B0/ p4_vis_prefit.M()
+
+
+    p4_B_prefit = rt.TLorentzVector()
+    p4_B_prefit.SetPtEtaPhiM(e.prefit_B_pt, p4_vis_prefit.Eta(), p4_vis_prefit.Phi(), m_B0)
+
+    e.M2_miss_prefit = (p4_B_prefit - p4_vis_prefit).M2()
+    e.q2_prefit = (p4_B_prefit - p4_Dst_prefit).M2()
+
+    p4st_mu_prefit = rt.TLorentzVector(p4_mu_prefit)
+    p4st_mu_prefit.Boost(-1*p4_B_prefit.BoostVector())
+    e.Est_mu_prefit = p4st_mu_prefit.E()
+
+    #############################################
+    ####### Post-fit quantites ##################
+    #############################################
+
     e.K_eta = ev.K_refitpiK_eta[j]
     e.K_phi = ev.K_refitpiK_phi[j]
     e.K_pt = correctPt(ev.K_refitpiK_pt[j], e.K_eta, e.K_phi, corr, 3e-3)
@@ -553,8 +601,9 @@ def makeSelection(inputs):
             aux = (ev.runNum, ev.lumiNum, ev.eventNum, ev.LumiBlock,
                    evEx.q2, evEx.Est_mu, evEx.M2_miss, evEx.U_miss,
                    evEx.q2_coll, evEx.Est_mu_coll, evEx.M2_miss_coll,
-                   ev.mu_charge[j], evEx.mu_pt, evEx.mu_eta, evEx.mu_phi, ev.trgMu_sigdxy_BS[idxTrg],
-                   ev.trgMu_dxyErr_BS[idxTrg],
+                   evEx.q2_prefit, evEx.Est_mu_prefit, evEx.M2_miss_prefit,
+                   ev.mu_charge[j], evEx.prefit_mu_pt, evEx.mu_pt, evEx.mu_eta, evEx.mu_phi,
+                   ev.trgMu_sigdxy_BS[idxTrg], ev.trgMu_dxyErr_BS[idxTrg],
                    ev.mu_dca_vtxDst[j], ev.mu_sigdca_vtxDst[j],
                    ev.mu_dcaT_vtxDst[j], ev.mu_sigdcaT_vtxDst[j],
                    ev.mu_dca_vtxDstMu[j], ev.mu_sigdca_vtxDstMu[j],
@@ -565,15 +614,15 @@ def makeSelection(inputs):
                    ev.mu_IP3D_vtxDst[j], ev.mu_sigIP3D_vtxDst[j],
                    ev.mu_db_iso04[j], ev.mu_db_corr_iso04[j], ev.mu_db_iso03[j],
                    ev.mu_db_iso04[j]/evEx.mu_pt, ev.mu_db_corr_iso04[j]/evEx.mu_pt, ev.mu_db_iso03[j]/evEx.mu_pt,
-                   evEx.B_pt, evEx.B_eta, evEx.B_phi,
+                   evEx.prefit_B_pt, evEx.B_pt, evEx.B_eta, evEx.B_phi,
                    evEx.Dst_pt, evEx.Dst_eta, evEx.Dst_phi,
                    evEx.D0_pt, evEx.D0_eta, evEx.D0_phi,
-                   evEx.pi_pt, evEx.pi_eta, evEx.pi_phi,
+                   evEx.prefit_pi_pt, evEx.pi_pt, evEx.pi_eta, evEx.pi_phi,
                    ev.pi_lostInnerHits[j],
-                   evEx.K_pt, evEx.K_eta, evEx.K_phi,
+                   evEx.prefit_K_pt, evEx.K_pt, evEx.K_eta, evEx.K_phi,
                    ev.K_lostInnerHits[j],
                    ev.pval_piK[j], ev.sigdxy_vtxD0_PV[j],
-                   evEx.pis_pt, evEx.pis_eta, evEx.pis_phi,
+                   evEx.prefit_pis_pt, evEx.pis_pt, evEx.pis_eta, evEx.pis_phi,
                    ev.pis_lostInnerHits[j],
                    ev.pval_D0pis[j],
                    evEx.mass_piK, evEx.mass_D0pis, evEx.mass_D0pismu,
@@ -1046,8 +1095,9 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
         leafs_names = ['runNum', 'lumiNum', 'eventNum', 'lumiBlock',
                        'q2', 'Est_mu', 'M2_miss', 'U_miss',
                        'q2_coll', 'Est_mu_coll', 'M2_miss_coll',
-                       'mu_charge', 'mu_pt', 'mu_eta', 'mu_phi', 'mu_sigdxy',
-                       'trgMu_dxyErr_BS',
+                       'q2_prefit', 'Est_mu_prefit', 'M2_miss_prefit',
+                       'mu_charge', 'prefit_mu_pt', 'mu_pt', 'mu_eta', 'mu_phi',
+                       'mu_sigdxy', 'trgMu_dxyErr_BS',
                        'mu_dca_vtxDst', 'mu_sigdca_vtxDst',
                        'mu_dcaT_vtxDst', 'mu_sigdcaT_vtxDst',
                        'mu_dca_vtxDstMu', 'mu_sigdca_vtxDstMu',
@@ -1058,15 +1108,15 @@ def create_dSet(n, filepath, cat, applyCorrections=False, skipCut=[], trkControl
                        'mu_IP3D_vtxDst', 'mu_sigIP3D_vtxDst',
                        'mu_db_iso04', 'mu_db_corr_iso04', 'mu_db_iso03',
                        'mu_db_iso04_rel', 'mu_db_corr_iso04_rel', 'mu_db_iso03_rel',
-                       'B_pt', 'B_eta', 'B_phi',
+                       'prefit_B_pt', 'B_pt', 'B_eta', 'B_phi',
                        'Dst_pt', 'Dst_eta', 'Dst_phi',
                        'D0_pt', 'D0_eta', 'D0_phi',
-                       'pi_pt', 'pi_eta', 'pi_phi',
+                       'prefit_pi_pt', 'pi_pt', 'pi_eta', 'pi_phi',
                        'pi_lostInnerHits',
-                       'K_pt', 'K_eta', 'K_phi',
+                       'prefit_K_pt', 'K_pt', 'K_eta', 'K_phi',
                        'K_lostInnerHits',
                        'pval_piK', 'sigdxy_vtxD0_PV',
-                       'pis_pt', 'pis_eta', 'pis_phi',
+                       'prefit_pis_pt', 'pis_pt', 'pis_eta', 'pis_phi',
                        'pis_lostInnerHits',
                        'pval_D0pis',
                        'mass_piK', 'mass_D0pis', 'mass_D0pismu',

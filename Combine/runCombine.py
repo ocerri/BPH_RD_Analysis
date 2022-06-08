@@ -150,8 +150,8 @@ parser = argparse.ArgumentParser(description='Script used to run combine on the 
 parser.add_argument ('--cardTag', '-v', default='test_', help='Card name initial tag.')
 parser.add_argument ('--category', '-c', type=str, default='high', choices=['single', 'low', 'mid', 'high', 'comb'], help='Category.')
 
-parser.add_argument ('--skimmedTagMC', default='_no_pval_selection', type=str, help='Tag to append to the skimmed directory.')
-parser.add_argument ('--skimmedTagRD', default='_no_pval_selection', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTagMC', default='_no_pval_sel_v2', type=str, help='Tag to append to the skimmed directory.')
+parser.add_argument ('--skimmedTagRD', default='_no_pval_sel_v2', type=str, help='Tag to append to the skimmed directory.')
 parser.add_argument ('--bareMC', default=False, type=str2bool, nargs='?', const=True, help='Use bare MC instead of the corrected one.')
 parser.add_argument ('--maxEventsToLoad', default=None, type=int, help='Max number of MC events to load per sample.')
 parser.add_argument ('--calBpT', default='none', choices=['poly', 'none'], help='Form factor scheme to use.')
@@ -160,7 +160,7 @@ parser.add_argument ('--lumiMult', default=1., type=float, help='Luminosity mult
 parser.add_argument ('--beamSpotCalibration', default=False, type=str2bool, nargs='?', const=True, help='Apply beam spot calibration.')
 
 parser.add_argument ('--useMVA', default=False, choices=[False, 'v3'], help='Use MVA in the fit.')
-parser.add_argument ('--collinear', default=False, type=str2bool, nargs='?', const=True, help='Use collinear approximation variables.')
+parser.add_argument ('--Breco', default='vtx', type=str, choices=['vtx', 'coll', 'prefit'], help='Select reconstruction mode for B.')
 parser.add_argument ('--signalRegProj1D', default='', choices=['M2_miss', 'Est_mu', 'U_miss'], help='Use 1D projections in signal region instead of the unrolled histograms')
 parser.add_argument ('--unblinded', default=False, type=str2bool, nargs='?', const=True, help='Unblind the fit regions.')
 parser.add_argument ('--noLowq2', default=False, action='store_true', help='Mask the low q2 signal regions.')
@@ -520,12 +520,6 @@ def loadDatasets(category, loadRD):
         dSet['data'] = load_data(locRD + '_corr.root', branches=relevantBranches['all'])
         dSetTkSide['data'] = load_data(locRD + '_trkCtrl_corr.root', branches=relevantBranches['all'])
 
-    if args.collinear:
-        print '[INFO] Using collinear approximation'
-        for name in dSet:
-            dSet[name].drop(columns=['q2', 'Est_mu', 'M2_miss'], inplace=True)
-            dSet[name].rename(columns={'q2_coll':'q2', 'Est_mu_coll':'Est_mu', 'M2_miss_coll':'M2_miss'}, inplace=True)
-
     for name in dSet:
         dSet[name]['ctrl'] = get_ctrl_group(dSet[name])
         dSet[name]['ctrl2'] = dSet[name]['ctrl']
@@ -580,6 +574,15 @@ def loadDatasets(category, loadRD):
             dSet[n]['MVA'] = clfGBC.predict_proba(dSet[n][clfGBC.featuresNames])[:,1]
             dSetTkSide[n]['MVA'] = clfGBC.predict_proba(dSetTkSide[n][clfGBC.featuresNames])[:,1]
         print '\n'
+
+    if args.Breco in ['coll', 'prefit']:
+        print '[INFO] Using '+args.Breco+' B reconstruction'
+        for name in dSet:
+            dSet[name].drop(columns=['q2', 'Est_mu', 'M2_miss'], inplace=True)
+            dSet[name].rename(columns={'q2_'+args.Breco:'q2', 'Est_mu_'+args.Breco:'Est_mu', 'M2_miss_'+args.Breco:'M2_miss'}, inplace=True)
+        for name in dSetTkSide:
+            dSetTkSide[name].drop(columns=['q2', 'Est_mu', 'M2_miss'], inplace=True)
+            dSetTkSide[name].rename(columns={'q2_'+args.Breco:'q2', 'Est_mu_'+args.Breco:'Est_mu', 'M2_miss_'+args.Breco:'M2_miss'}, inplace=True)
 
     if args.dumpWeightsTree:
         print 'Skipping on the flight cuts (if any).'
@@ -937,10 +940,10 @@ def createHistograms(category):
     ########## Signal region
     ######################################################
     n_q2bins = len(binning['q2'])-1
-    if args.collinear:
+    if args.Breco in ['coll', 'prefit']:
         binning['M2_miss'] = [
                 array('d', list(np.arange(0., 1., 0.02)) + [1.2] ),
-                array('d', list(np.arange(0.5, 2.2, 0.025)) + [2.1] ),
+                array('d', list(np.arange(0.5, 2.2, 0.025)) + [2.2] ),
                 array('d', list(np.arange(1.5, 6, 0.15)) + [8] ),
                 array('d', list(np.arange(5.5, 8.5, 0.15)) + [9] ),
             ]
@@ -958,7 +961,7 @@ def createHistograms(category):
                 array('d', list(np.arange(1.7, 2.3, 0.05)) + [2.4] )
             ],
             [
-                array('d', list(np.arange(0.5, 2.2, 0.05)) + [2.1] ),
+                array('d', list(np.arange(0.5, 2.2, 0.05)) + [2.2] ),
                 array('d', list(np.arange(1.35, 1.9, 0.05)) )
             ],
             [
